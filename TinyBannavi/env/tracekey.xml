@@ -1,0 +1,3294 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<java version="1.6.0_45" class="java.beans.XMLDecoder"> 
+ <object class="java.util.ArrayList"> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳフジ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>80</int> 
+    </void> 
+    <void property="label"> 
+     <string>ジャパコン (ＢＳフジ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>シヤ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヤハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハコ</string> 
+      </void> 
+      <void method="add"> 
+       <string>コン</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>シヤハコン</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＮＨＫ Ｅテレ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>黒魔女 (ＮＨＫ Ｅテレ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>黒魔</string> 
+      </void> 
+      <void method="add"> 
+       <string>魔女</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>黒魔女</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>日本テレビ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>HUNTER×HUNTER (日本テレビ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>HU</string> 
+      </void> 
+      <void method="add"> 
+       <string>UN</string> 
+      </void> 
+      <void method="add"> 
+       <string>NT</string> 
+      </void> 
+      <void method="add"> 
+       <string>TE</string> 
+      </void> 
+      <void method="add"> 
+       <string>ER</string> 
+      </void> 
+      <void method="add"> 
+       <string>R×</string> 
+      </void> 
+      <void method="add"> 
+       <string>×H</string> 
+      </void> 
+      <void method="add"> 
+       <string>HU</string> 
+      </void> 
+      <void method="add"> 
+       <string>UN</string> 
+      </void> 
+      <void method="add"> 
+       <string>NT</string> 
+      </void> 
+      <void method="add"> 
+       <string>TE</string> 
+      </void> 
+      <void method="add"> 
+       <string>ER</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>HUNTER×HUNTER</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>日本テレビ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>60</int> 
+    </void> 
+    <void property="label"> 
+     <string>宇宙兄弟 (日本テレビ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>宇宙</string> 
+      </void> 
+      <void method="add"> 
+       <string>宙兄</string> 
+      </void> 
+      <void method="add"> 
+       <string>兄弟</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>宇宙兄弟</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>日本テレビ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>ちはやふる2 (日本テレビ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>チハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハヤ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヤフ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ル2</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>チハヤフル2</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ朝日</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>ドキドキ!プリキュア (テレビ朝日)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>トキ</string> 
+      </void> 
+      <void method="add"> 
+       <string>キト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トキ</string> 
+      </void> 
+      <void method="add"> 
+       <string>キ!</string> 
+      </void> 
+      <void method="add"> 
+       <string>!フ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リキ</string> 
+      </void> 
+      <void method="add"> 
+       <string>キユ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ユア</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>トキトキ!フリキユア</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＢＳテレビ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>宇宙戦艦ヤマト2199 (ＴＢＳテレビ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>宇宙</string> 
+      </void> 
+      <void method="add"> 
+       <string>宙戦</string> 
+      </void> 
+      <void method="add"> 
+       <string>戦艦</string> 
+      </void> 
+      <void method="add"> 
+       <string>艦ヤ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヤマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マト</string> 
+      </void> 
+      <void method="add"> 
+       <string>ト2</string> 
+      </void> 
+      <void method="add"> 
+       <string>21</string> 
+      </void> 
+      <void method="add"> 
+       <string>19</string> 
+      </void> 
+      <void method="add"> 
+       <string>99</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>宇宙戦艦ヤマト2199</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＢＳテレビ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>やはり俺の青春ラブコメはまちがっている。 (ＴＢＳテレビ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ヤハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リ俺</string> 
+      </void> 
+      <void method="add"> 
+       <string>俺ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ青</string> 
+      </void> 
+      <void method="add"> 
+       <string>青春</string> 
+      </void> 
+      <void method="add"> 
+       <string>春ラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ラフ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フコ</string> 
+      </void> 
+      <void method="add"> 
+       <string>コメ</string> 
+      </void> 
+      <void method="add"> 
+       <string>メハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マチ</string> 
+      </void> 
+      <void method="add"> 
+       <string>チカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ル.</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ヤハリ俺ノ青春ラフコメハマチカツテイル.</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＢＳテレビ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>フォトカノ (ＴＢＳテレビ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>フオ</string> 
+      </void> 
+      <void method="add"> 
+       <string>オト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カノ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>フオトカノ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＢＳテレビ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>革命機ヴァルヴレイヴ (ＴＢＳテレビ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>革命</string> 
+      </void> 
+      <void method="add"> 
+       <string>命機</string> 
+      </void> 
+      <void method="add"> 
+       <string>機ウ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ウア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルウ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ウレ</string> 
+      </void> 
+      <void method="add"> 
+       <string>レイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イウ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>革命機ウアルウレイウ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＢＳテレビ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>DEVIL　SURVIVOR2　the　ANIMATION (ＴＢＳテレビ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>DE</string> 
+      </void> 
+      <void method="add"> 
+       <string>EV</string> 
+      </void> 
+      <void method="add"> 
+       <string>VI</string> 
+      </void> 
+      <void method="add"> 
+       <string>IL</string> 
+      </void> 
+      <void method="add"> 
+       <string>LS</string> 
+      </void> 
+      <void method="add"> 
+       <string>SU</string> 
+      </void> 
+      <void method="add"> 
+       <string>UR</string> 
+      </void> 
+      <void method="add"> 
+       <string>RV</string> 
+      </void> 
+      <void method="add"> 
+       <string>VI</string> 
+      </void> 
+      <void method="add"> 
+       <string>IV</string> 
+      </void> 
+      <void method="add"> 
+       <string>VO</string> 
+      </void> 
+      <void method="add"> 
+       <string>OR</string> 
+      </void> 
+      <void method="add"> 
+       <string>R2</string> 
+      </void> 
+      <void method="add"> 
+       <string>2T</string> 
+      </void> 
+      <void method="add"> 
+       <string>TH</string> 
+      </void> 
+      <void method="add"> 
+       <string>HE</string> 
+      </void> 
+      <void method="add"> 
+       <string>EA</string> 
+      </void> 
+      <void method="add"> 
+       <string>AN</string> 
+      </void> 
+      <void method="add"> 
+       <string>NI</string> 
+      </void> 
+      <void method="add"> 
+       <string>IM</string> 
+      </void> 
+      <void method="add"> 
+       <string>MA</string> 
+      </void> 
+      <void method="add"> 
+       <string>AT</string> 
+      </void> 
+      <void method="add"> 
+       <string>TI</string> 
+      </void> 
+      <void method="add"> 
+       <string>IO</string> 
+      </void> 
+      <void method="add"> 
+       <string>ON</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>DEVILSURVIVOR2THEANIMATION</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="disableRepeat"> 
+     <boolean>true</boolean> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>80</int> 
+    </void> 
+    <void property="label"> 
+     <string>カードファイト!!ヴァンガード　リンクジョーカー編「狙われたアイドル」 (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>カト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トフ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イト</string> 
+      </void> 
+      <void method="add"> 
+       <string>ト!</string> 
+      </void> 
+      <void method="add"> 
+       <string>!!</string> 
+      </void> 
+      <void method="add"> 
+       <string>!ウ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ウア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンク</string> 
+      </void> 
+      <void method="add"> 
+       <string>クシ</string> 
+      </void> 
+      <void method="add"> 
+       <string>シヨ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヨカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カ編</string> 
+      </void> 
+      <void method="add"> 
+       <string>編[</string> 
+      </void> 
+      <void method="add"> 
+       <string>[狙</string> 
+      </void> 
+      <void method="add"> 
+       <string>狙ワ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ワレ</string> 
+      </void> 
+      <void method="add"> 
+       <string>レタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ル]</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>カトフアイト!!ウアンカトリンクシヨカ編[狙ワレタアイトル]</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>60</int> 
+    </void> 
+    <void property="label"> 
+     <string>プリティーリズム・レインボーライブ (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>フリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リス</string> 
+      </void> 
+      <void method="add"> 
+       <string>スム</string> 
+      </void> 
+      <void method="add"> 
+       <string>ム/</string> 
+      </void> 
+      <void method="add"> 
+       <string>/レ</string> 
+      </void> 
+      <void method="add"> 
+       <string>レイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンホ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ホラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ライ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イフ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>フリテイリスム/レインホライフ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="disableRepeat"> 
+     <boolean>true</boolean> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>超速変形ジャイロゼッター (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>超速</string> 
+      </void> 
+      <void method="add"> 
+       <string>速変</string> 
+      </void> 
+      <void method="add"> 
+       <string>変形</string> 
+      </void> 
+      <void method="add"> 
+       <string>形シ</string> 
+      </void> 
+      <void method="add"> 
+       <string>シヤ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヤイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イロ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ロセ</string> 
+      </void> 
+      <void method="add"> 
+       <string>セツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツタ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>超速変形シヤイロセツタ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>マイリトルポニー　～トモダチは魔法～ (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>マイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルホ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ホニ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ニ~</string> 
+      </void> 
+      <void method="add"> 
+       <string>~ト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トモ</string> 
+      </void> 
+      <void method="add"> 
+       <string>モタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タチ</string> 
+      </void> 
+      <void method="add"> 
+       <string>チハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハ魔</string> 
+      </void> 
+      <void method="add"> 
+       <string>魔法</string> 
+      </void> 
+      <void method="add"> 
+       <string>法~</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>マイリトルホニ~トモタチハ魔法~</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>獣旋バトル　モンスーノ (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>獣旋</string> 
+      </void> 
+      <void method="add"> 
+       <string>旋ハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルモ</string> 
+      </void> 
+      <void method="add"> 
+       <string>モン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンス</string> 
+      </void> 
+      <void method="add"> 
+       <string>スノ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>獣旋ハトルモンスノ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>ムシブギョー (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ムシ</string> 
+      </void> 
+      <void method="add"> 
+       <string>シフ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フキ</string> 
+      </void> 
+      <void method="add"> 
+       <string>キヨ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ムシフキヨ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>絶対防衛レヴィアタン (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>絶対</string> 
+      </void> 
+      <void method="add"> 
+       <string>対防</string> 
+      </void> 
+      <void method="add"> 
+       <string>防衛</string> 
+      </void> 
+      <void method="add"> 
+       <string>衛レ</string> 
+      </void> 
+      <void method="add"> 
+       <string>レウ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ウイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タン</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>絶対防衛レウイアタン</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>這いよれ!ニャル子さんW (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>這イ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イヨ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヨレ</string> 
+      </void> 
+      <void method="add"> 
+       <string>レ!</string> 
+      </void> 
+      <void method="add"> 
+       <string>!ニ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ニヤ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヤル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ル子</string> 
+      </void> 
+      <void method="add"> 
+       <string>子サ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンW</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>這イヨレ!ニヤル子サンW</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>ハヤテのごとく!Cuties (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ハヤ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヤテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノコ</string> 
+      </void> 
+      <void method="add"> 
+       <string>コト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トク</string> 
+      </void> 
+      <void method="add"> 
+       <string>ク!</string> 
+      </void> 
+      <void method="add"> 
+       <string>!C</string> 
+      </void> 
+      <void method="add"> 
+       <string>CU</string> 
+      </void> 
+      <void method="add"> 
+       <string>UT</string> 
+      </void> 
+      <void method="add"> 
+       <string>TI</string> 
+      </void> 
+      <void method="add"> 
+       <string>IE</string> 
+      </void> 
+      <void method="add"> 
+       <string>ES</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ハヤテノコトク!CUTIES</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>アラタカンガタリ　～革神語～ (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>アラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ラタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リ~</string> 
+      </void> 
+      <void method="add"> 
+       <string>~革</string> 
+      </void> 
+      <void method="add"> 
+       <string>革神</string> 
+      </void> 
+      <void method="add"> 
+       <string>神語</string> 
+      </void> 
+      <void method="add"> 
+       <string>語~</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>アラタカンカタリ~革神語~</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>フジテレビ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>90</int> 
+    </void> 
+    <void property="label"> 
+     <string>トリコ (フジテレビ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>トリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リコ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>トリコ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>はたらく魔王さま! (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ハタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ラク</string> 
+      </void> 
+      <void method="add"> 
+       <string>ク魔</string> 
+      </void> 
+      <void method="add"> 
+       <string>魔王</string> 
+      </void> 
+      <void method="add"> 
+       <string>王サ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マ!</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ハタラク魔王サマ!</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>銀河機攻隊　マジェスティックプリンス (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>銀河</string> 
+      </void> 
+      <void method="add"> 
+       <string>河機</string> 
+      </void> 
+      <void method="add"> 
+       <string>機攻</string> 
+      </void> 
+      <void method="add"> 
+       <string>攻隊</string> 
+      </void> 
+      <void method="add"> 
+       <string>隊マ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マシ</string> 
+      </void> 
+      <void method="add"> 
+       <string>シエ</string> 
+      </void> 
+      <void method="add"> 
+       <string>エス</string> 
+      </void> 
+      <void method="add"> 
+       <string>ステ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツク</string> 
+      </void> 
+      <void method="add"> 
+       <string>クフ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンス</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>銀河機攻隊マシエステイツクフリンス</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>翠星のガルガンティア (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>翠星</string> 
+      </void> 
+      <void method="add"> 
+       <string>星ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イア</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>翠星ノカルカンテイア</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>カーニヴァル (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>カニ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ニウ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ウア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アル</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>カニウアル</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>機動戦士ガンダムSEED　DESTINY　HDリマスター (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>機動</string> 
+      </void> 
+      <void method="add"> 
+       <string>動戦</string> 
+      </void> 
+      <void method="add"> 
+       <string>戦士</string> 
+      </void> 
+      <void method="add"> 
+       <string>士カ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タム</string> 
+      </void> 
+      <void method="add"> 
+       <string>ムS</string> 
+      </void> 
+      <void method="add"> 
+       <string>SE</string> 
+      </void> 
+      <void method="add"> 
+       <string>EE</string> 
+      </void> 
+      <void method="add"> 
+       <string>ED</string> 
+      </void> 
+      <void method="add"> 
+       <string>DD</string> 
+      </void> 
+      <void method="add"> 
+       <string>DE</string> 
+      </void> 
+      <void method="add"> 
+       <string>ES</string> 
+      </void> 
+      <void method="add"> 
+       <string>ST</string> 
+      </void> 
+      <void method="add"> 
+       <string>TI</string> 
+      </void> 
+      <void method="add"> 
+       <string>IN</string> 
+      </void> 
+      <void method="add"> 
+       <string>NY</string> 
+      </void> 
+      <void method="add"> 
+       <string>YH</string> 
+      </void> 
+      <void method="add"> 
+       <string>HD</string> 
+      </void> 
+      <void method="add"> 
+       <string>Dリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マス</string> 
+      </void> 
+      <void method="add"> 
+       <string>スタ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>機動戦士カンタムSEEDDESTINYHDリマスタ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>進撃の巨人 (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>進撃</string> 
+      </void> 
+      <void method="add"> 
+       <string>撃ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ巨</string> 
+      </void> 
+      <void method="add"> 
+       <string>巨人</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>進撃ノ巨人</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>断裁分離のクライムエッジ (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>断裁</string> 
+      </void> 
+      <void method="add"> 
+       <string>裁分</string> 
+      </void> 
+      <void method="add"> 
+       <string>分離</string> 
+      </void> 
+      <void method="add"> 
+       <string>離ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノク</string> 
+      </void> 
+      <void method="add"> 
+       <string>クラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ライ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イム</string> 
+      </void> 
+      <void method="add"> 
+       <string>ムエ</string> 
+      </void> 
+      <void method="add"> 
+       <string>エツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツシ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>断裁分離ノクライムエツシ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>レッドデータガール (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>レツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カル</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>レツトテタカル</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>うたの☆プリンスさまっ♪マジLOVE2000% (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ウタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ☆</string> 
+      </void> 
+      <void method="add"> 
+       <string>☆フ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンス</string> 
+      </void> 
+      <void method="add"> 
+       <string>スサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツ♪</string> 
+      </void> 
+      <void method="add"> 
+       <string>♪マ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マシ</string> 
+      </void> 
+      <void method="add"> 
+       <string>シL</string> 
+      </void> 
+      <void method="add"> 
+       <string>LO</string> 
+      </void> 
+      <void method="add"> 
+       <string>OV</string> 
+      </void> 
+      <void method="add"> 
+       <string>VE</string> 
+      </void> 
+      <void method="add"> 
+       <string>E2</string> 
+      </void> 
+      <void method="add"> 
+       <string>20</string> 
+      </void> 
+      <void method="add"> 
+       <string>00</string> 
+      </void> 
+      <void method="add"> 
+       <string>00</string> 
+      </void> 
+      <void method="add"> 
+       <string>0%</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ウタノ☆フリンスサマツ♪マシLOVE2000%</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>とある科学の超電磁砲S (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>トア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ル科</string> 
+      </void> 
+      <void method="add"> 
+       <string>科学</string> 
+      </void> 
+      <void method="add"> 
+       <string>学ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ超</string> 
+      </void> 
+      <void method="add"> 
+       <string>超電</string> 
+      </void> 
+      <void method="add"> 
+       <string>電磁</string> 
+      </void> 
+      <void method="add"> 
+       <string>磁砲</string> 
+      </void> 
+      <void method="add"> 
+       <string>砲S</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>トアル科学ノ超電磁砲S</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>デート・ア・ライブ (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>テト</string> 
+      </void> 
+      <void method="add"> 
+       <string>ト/</string> 
+      </void> 
+      <void method="add"> 
+       <string>/ア</string> 
+      </void> 
+      <void method="add"> 
+       <string>ア/</string> 
+      </void> 
+      <void method="add"> 
+       <string>/ラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ライ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イフ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>テト/ア/ライフ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>よんでますよ、アザゼルさん。Z (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ヨン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マス</string> 
+      </void> 
+      <void method="add"> 
+       <string>スヨ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヨ,</string> 
+      </void> 
+      <void method="add"> 
+       <string>,ア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サセ</string> 
+      </void> 
+      <void method="add"> 
+       <string>セル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ン.</string> 
+      </void> 
+      <void method="add"> 
+       <string>.Z</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ヨンテマスヨ,アサセルサン.Z</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>波打際のむろみさん (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>波打</string> 
+      </void> 
+      <void method="add"> 
+       <string>打際</string> 
+      </void> 
+      <void method="add"> 
+       <string>際ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノム</string> 
+      </void> 
+      <void method="add"> 
+       <string>ムロ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ロミ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ミサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サン</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>波打際ノムロミサン</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>俺の妹がこんなに可愛いわけがない。 (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>俺ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ妹</string> 
+      </void> 
+      <void method="add"> 
+       <string>妹カ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カコ</string> 
+      </void> 
+      <void method="add"> 
+       <string>コン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンナ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ナニ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ニ可</string> 
+      </void> 
+      <void method="add"> 
+       <string>可愛</string> 
+      </void> 
+      <void method="add"> 
+       <string>愛イ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イワ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ワケ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ケカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カナ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ナイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イ.</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>俺ノ妹カコンナニ可愛イワケカナイ.</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>百花繚乱　サムライブライド (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>百花</string> 
+      </void> 
+      <void method="add"> 
+       <string>花繚</string> 
+      </void> 
+      <void method="add"> 
+       <string>繚乱</string> 
+      </void> 
+      <void method="add"> 
+       <string>乱サ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サム</string> 
+      </void> 
+      <void method="add"> 
+       <string>ムラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ライ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イフ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ライ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イト</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>百花繚乱サムライフライト</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＴＯＫＹＯ　ＭＸ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>ゆゆ式 (ＴＯＫＹＯ　ＭＸ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ユユ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ユ式</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ユユ式</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳ日テレ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>はたらく魔王さま! (ＢＳ日テレ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ハタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ラク</string> 
+      </void> 
+      <void method="add"> 
+       <string>ク魔</string> 
+      </void> 
+      <void method="add"> 
+       <string>魔王</string> 
+      </void> 
+      <void method="add"> 
+       <string>王サ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マ!</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ハタラク魔王サマ!</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳ日テレ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>銀河機攻隊　マジェスティックプリンス (ＢＳ日テレ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>銀河</string> 
+      </void> 
+      <void method="add"> 
+       <string>河機</string> 
+      </void> 
+      <void method="add"> 
+       <string>機攻</string> 
+      </void> 
+      <void method="add"> 
+       <string>攻隊</string> 
+      </void> 
+      <void method="add"> 
+       <string>隊マ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マシ</string> 
+      </void> 
+      <void method="add"> 
+       <string>シエ</string> 
+      </void> 
+      <void method="add"> 
+       <string>エス</string> 
+      </void> 
+      <void method="add"> 
+       <string>ステ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツク</string> 
+      </void> 
+      <void method="add"> 
+       <string>クフ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンス</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>銀河機攻隊マシエステイツクフリンス</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳ朝日</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>80</int> 
+    </void> 
+    <void property="label"> 
+     <string>バビル2世 (ＢＳ朝日)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ハヒ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヒル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ル2</string> 
+      </void> 
+      <void method="add"> 
+       <string>2世</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ハヒル2世</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳ-ＴＢＳ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>革命機ヴァルヴレイヴ (ＢＳ-ＴＢＳ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>革命</string> 
+      </void> 
+      <void method="add"> 
+       <string>命機</string> 
+      </void> 
+      <void method="add"> 
+       <string>機ウ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ウア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルウ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ウレ</string> 
+      </void> 
+      <void method="add"> 
+       <string>レイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イウ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>革命機ウアルウレイウ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳ-ＴＢＳ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>デビルサバイバー2 (ＢＳ-ＴＢＳ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>テヒ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヒル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハ2</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>テヒルサハイハ2</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳ-ＴＢＳ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>やはり俺の青春ラブコメはまちがっている。 (ＢＳ-ＴＢＳ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ヤハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リ俺</string> 
+      </void> 
+      <void method="add"> 
+       <string>俺ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ青</string> 
+      </void> 
+      <void method="add"> 
+       <string>青春</string> 
+      </void> 
+      <void method="add"> 
+       <string>春ラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ラフ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フコ</string> 
+      </void> 
+      <void method="add"> 
+       <string>コメ</string> 
+      </void> 
+      <void method="add"> 
+       <string>メハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マチ</string> 
+      </void> 
+      <void method="add"> 
+       <string>チカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ル.</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ヤハリ俺ノ青春ラフコメハマチカツテイル.</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳ-ＴＢＳ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>80</int> 
+    </void> 
+    <void property="label"> 
+     <string>フォトカノ (ＢＳ-ＴＢＳ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>フオ</string> 
+      </void> 
+      <void method="add"> 
+       <string>オト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カノ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>フオトカノ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳジャパン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>80</int> 
+    </void> 
+    <void property="label"> 
+     <string>アイカツ! (ＢＳジャパン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>アイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツ!</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>アイカツ!</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>テレビ東京</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>80</int> 
+    </void> 
+    <void property="label"> 
+     <string>アイカツ! (テレビ東京)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>アイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツ!</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>アイカツ!</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>80</int> 
+    </void> 
+    <void property="label"> 
+     <string>ゆゆ式 (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ユユ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ユ式</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ユユ式</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>百花繚乱サムライブライド (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>百花</string> 
+      </void> 
+      <void method="add"> 
+       <string>花繚</string> 
+      </void> 
+      <void method="add"> 
+       <string>繚乱</string> 
+      </void> 
+      <void method="add"> 
+       <string>乱サ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サム</string> 
+      </void> 
+      <void method="add"> 
+       <string>ムラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ライ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イフ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ライ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イト</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>百花繚乱サムライフライト</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>ハイスクールD×D (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ハイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イス</string> 
+      </void> 
+      <void method="add"> 
+       <string>スク</string> 
+      </void> 
+      <void method="add"> 
+       <string>クル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルD</string> 
+      </void> 
+      <void method="add"> 
+       <string>D×</string> 
+      </void> 
+      <void method="add"> 
+       <string>×D</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ハイスクルD×D</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>よんでますよ、アザゼルさん。Z (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ヨン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マス</string> 
+      </void> 
+      <void method="add"> 
+       <string>スヨ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヨ,</string> 
+      </void> 
+      <void method="add"> 
+       <string>,ア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サセ</string> 
+      </void> 
+      <void method="add"> 
+       <string>セル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ン.</string> 
+      </void> 
+      <void method="add"> 
+       <string>.Z</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ヨンテマスヨ,アサセルサン.Z</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>波打際のむろみさん (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>波打</string> 
+      </void> 
+      <void method="add"> 
+       <string>打際</string> 
+      </void> 
+      <void method="add"> 
+       <string>際ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノム</string> 
+      </void> 
+      <void method="add"> 
+       <string>ムロ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ロミ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ミサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サン</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>波打際ノムロミサン</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>中二病でも恋がしたい! (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>中2</string> 
+      </void> 
+      <void method="add"> 
+       <string>2病</string> 
+      </void> 
+      <void method="add"> 
+       <string>病テ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テモ</string> 
+      </void> 
+      <void method="add"> 
+       <string>モ恋</string> 
+      </void> 
+      <void method="add"> 
+       <string>恋カ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カシ</string> 
+      </void> 
+      <void method="add"> 
+       <string>シタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イ!</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>中2病テモ恋カシタイ!</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>とある科学の超電磁砲S (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>トア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ル科</string> 
+      </void> 
+      <void method="add"> 
+       <string>科学</string> 
+      </void> 
+      <void method="add"> 
+       <string>学ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ超</string> 
+      </void> 
+      <void method="add"> 
+       <string>超電</string> 
+      </void> 
+      <void method="add"> 
+       <string>電磁</string> 
+      </void> 
+      <void method="add"> 
+       <string>磁砲</string> 
+      </void> 
+      <void method="add"> 
+       <string>砲S</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>トアル科学ノ超電磁砲S</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>RDG レッドデータガール (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>RD</string> 
+      </void> 
+      <void method="add"> 
+       <string>DG</string> 
+      </void> 
+      <void method="add"> 
+       <string>Gレ</string> 
+      </void> 
+      <void method="add"> 
+       <string>レツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カル</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>RDGレツトテタカル</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>カーニヴァル (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>カニ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ニウ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ウア</string> 
+      </void> 
+      <void method="add"> 
+       <string>アル</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>カニウアル</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>俺の妹がこんなに可愛いわけがない。 (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>俺ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ妹</string> 
+      </void> 
+      <void method="add"> 
+       <string>妹カ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カコ</string> 
+      </void> 
+      <void method="add"> 
+       <string>コン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンナ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ナニ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ニ可</string> 
+      </void> 
+      <void method="add"> 
+       <string>可愛</string> 
+      </void> 
+      <void method="add"> 
+       <string>愛イ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イワ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ワケ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ケカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カナ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ナイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イ.</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>俺ノ妹カコンナニ可愛イワケカナイ.</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>うたの☆プリンスさまっ♪ マジLOVE2000% (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>ウタ</string> 
+      </void> 
+      <void method="add"> 
+       <string>タノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ☆</string> 
+      </void> 
+      <void method="add"> 
+       <string>☆フ</string> 
+      </void> 
+      <void method="add"> 
+       <string>フリ</string> 
+      </void> 
+      <void method="add"> 
+       <string>リン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンス</string> 
+      </void> 
+      <void method="add"> 
+       <string>スサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サマ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マツ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ツ♪</string> 
+      </void> 
+      <void method="add"> 
+       <string>♪マ</string> 
+      </void> 
+      <void method="add"> 
+       <string>マシ</string> 
+      </void> 
+      <void method="add"> 
+       <string>シL</string> 
+      </void> 
+      <void method="add"> 
+       <string>LO</string> 
+      </void> 
+      <void method="add"> 
+       <string>OV</string> 
+      </void> 
+      <void method="add"> 
+       <string>VE</string> 
+      </void> 
+      <void method="add"> 
+       <string>E2</string> 
+      </void> 
+      <void method="add"> 
+       <string>20</string> 
+      </void> 
+      <void method="add"> 
+       <string>00</string> 
+      </void> 
+      <void method="add"> 
+       <string>00</string> 
+      </void> 
+      <void method="add"> 
+       <string>0%</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>ウタノ☆フリンスサマツ♪マシLOVE2000%</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>変態王子と笑わない猫。 (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>変態</string> 
+      </void> 
+      <void method="add"> 
+       <string>態王</string> 
+      </void> 
+      <void method="add"> 
+       <string>王子</string> 
+      </void> 
+      <void method="add"> 
+       <string>子ト</string> 
+      </void> 
+      <void method="add"> 
+       <string>ト笑</string> 
+      </void> 
+      <void method="add"> 
+       <string>笑ワ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ワナ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ナイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イ猫</string> 
+      </void> 
+      <void method="add"> 
+       <string>猫.</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>変態王子ト笑ワナイ猫.</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>翠星のガルガンティア (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>翠星</string> 
+      </void> 
+      <void method="add"> 
+       <string>星ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カル</string> 
+      </void> 
+      <void method="add"> 
+       <string>ルカ</string> 
+      </void> 
+      <void method="add"> 
+       <string>カン</string> 
+      </void> 
+      <void method="add"> 
+       <string>ンテ</string> 
+      </void> 
+      <void method="add"> 
+       <string>テイ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イア</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>翠星ノカルカンテイア</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>TwellV</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>デート・ア・ライブ (TwellV)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>テト</string> 
+      </void> 
+      <void method="add"> 
+       <string>ト/</string> 
+      </void> 
+      <void method="add"> 
+       <string>/ア</string> 
+      </void> 
+      <void method="add"> 
+       <string>ア/</string> 
+      </void> 
+      <void method="add"> 
+       <string>/ラ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ライ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イフ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>テト/ア/ライフ</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>BSイレブン</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>進撃の巨人 (BSイレブン)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>進撃</string> 
+      </void> 
+      <void method="add"> 
+       <string>撃ノ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ノ巨</string> 
+      </void> 
+      <void method="add"> 
+       <string>巨人</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>進撃ノ巨人</string> 
+    </void> 
+   </object> 
+  </void> 
+ </object> 
+</java> 
