@@ -1380,6 +1380,10 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 					}
 					// 局が一致して
 					if (r.getCh_name() == null) {
+						if ( r.getChannel() == null ) {
+							System.err.println(ERRID+"予約情報にCHコードが設定されていません。バグの可能性があります。 recid="+recorder.Myself()+" chname="+r.getCh_name());
+							continue;
+						}
 						if (r.getChannel().length() > 0) {
 							misCN.put(r.getChannel(),true);
 						}

@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.HashMap;
@@ -113,7 +114,14 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 	private static final int DIGAEVID_NONE = 0;
 	private static final int DIGAEVID_CANNOTFOLLOW = 0xFFFE;
 	private static final int DIGAEVID_PROGRSV = 0xFFFF;
-	
+
+	// 録画結果一覧関連
+	private static final int RECITEMPERPAGE = 20;		// 予約結果の１ページあたりの件数
+	private static final int RECLENGTHDEFAULT = 60;		// デフォルトの番組長
+
+	public void setRecPageMax(int n) { recPageMax = n; }
+	private static int recPageMax = 3;					// 予約結果を最大何ページ取得するか
+
 	// ログ関連
 	
 	private final String MSGID = "["+getRecorderId()+"] ";
@@ -286,6 +294,49 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 		return true;
 	}
 
+	/*******************************************************************************
+	 * レコーダーから録画結果一覧を取得する
+	 ******************************************************************************/
+	
+	/**
+	 * @see #GetRdSettings(boolean)
+	 */
+	@Override
+	public boolean GetRdRecorded(boolean force) {
+		
+		System.out.println("レコーダから録画結果一覧を取得します("+force+")： "+getRecorderId()+"("+getIPAddr()+":"+getPortNo()+")");
+		
+		String recedFile = String.format("%s%s%s.%s_%s_%s.xml", "env", File.separator, "recorded", getIPAddr(), getPortNo(), getRecorderId());
+		
+		// 既存のログをチェック
+		ArrayList<RecordedInfo> newRecordedList = RecordedFromFile(recedFile);
+		
+		File f = new File(recedFile);
+		if ( ! force && f.exists() ) {
+			
+			// キャッシュから読み出し（録画結果一覧）
+			setRecorded(newRecordedList);
+			if (getDebug()) ShowRecorded(getRecorded());
+	
+			// 録画済みフラグを立てる（録画結果一覧→予約一覧）
+			setRecordedFlag();
+		
+			return true;
+		}
+		
+		if ( getDigaRecordedList(newRecordedList) != RETCODE_SUCCESS ) {
+			return false;
+		}
+		setRecorded(newRecordedList);				// 置き換え
+		RecordedToFile(getRecorded(), recedFile);	// キャッシュに保存
+		
+		// 録画済みフラグを立てる（録画結果一覧→予約一覧）
+		setRecordedFlag();
+		
+		ShowRecorded(getRecorded());
+		
+		return true;
+	}
 	
 	/*******************************************************************************
 	 * 新規予約
@@ -1208,6 +1259,8 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 		
 		System.out.println("Run: getDigaReserveList");
 
+		reportProgress("予約一覧（詳細を除く）を取得します.");
+		
 		// リクエスト発行
 		String[] d = reqDigaPOST("http://"+this.getIPAddr()+":"+this.getPortNo()+"/cgi-bin/dvdr/dvdr_ctrl.cgi", "cCMD_RSVLST.x=39&cCMD_RSVLST.y=16", null);
 		String response = d[1];
@@ -1424,6 +1477,8 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 	 * 予約の詳細情報を取得する（全部）
 	 ******************************************************************************/
 	private boolean getDigaReserveDetails(ArrayList<ReserveList> newReserveList, ArrayList<ReserveList> oldReserveList) {
+		
+		reportProgress(String.format("予約一覧（詳細）を取得します(%d)",oldReserveList.size()));
 		
 		// 詳細情報の取得
 		System.out.println("========");
@@ -1710,6 +1765,171 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 		return(reserve_d);
 	}
 
+	/*******************************************************************************
+	 * 予約のタイトル一覧を取得する。詳細は{@link #getDigaReserveDetail}で。
+	 ******************************************************************************/
+	
+	private int getDigaRecordedList(ArrayList<RecordedInfo> newRecordedList) {
+		
+		System.out.println("Run: getDigaRecordedList");
+
+		String baseurl = "http://"+this.getIPAddr()+":"+this.getPortNo()+"/cgi-bin/vttl_list.cgi?VT_TITLEID=&cCMD_VT_SELECT=";
+		
+		// リクエスト発行
+		int pagecnt = 0;
+		String topResult = null;
+		{
+			reportProgress("録画結果一覧を取得します.(1/-)");
+			
+			String url = baseurl+String.valueOf(0);;
+			String[] d = reqDigaGET(url, null);
+			if (d[1] == null) {
+				// エラーになった場合
+				errmsg = "録画結果一覧を取得できませんでした.";
+				return(RETCODE_FATAL);
+			}
+			
+			topResult = d[1];
+			
+			int reccnt = 0;
+			Matcher ma = Pattern.compile("番組数：.*?(\\d+)",Pattern.DOTALL).matcher(d[1]);
+			if ( ma.find() ) {
+				reccnt = Integer.valueOf(ma.group(1));
+				int n = reccnt % RECITEMPERPAGE;
+				pagecnt = (reccnt-n)/RECITEMPERPAGE + (n==0?0:1);
+			}
+		}
+		
+		for ( int p=0; p<pagecnt && p<recPageMax; p++ ) {
+			
+			int curpage = pagecnt-p-1;
+			
+			String result = null;
+			if ( curpage == 0 ) {
+				reportProgress(String.format("取得済みの録画結果一覧を利用します.(%d/%d)",pagecnt-p,pagecnt));
+				result = topResult;
+			}
+			else {
+				reportProgress(String.format("録画結果一覧を取得します.(%d/%d)",pagecnt-p,pagecnt));
+				
+				String url = baseurl+String.valueOf(curpage*RECITEMPERPAGE);
+				String[] d = reqDigaGET(url, null);
+				if (d[1] == null) {
+					// エラーになった場合
+					errmsg = "録画結果一覧を取得できませんでした.";
+					return(RETCODE_FATAL);
+				}
+				
+				result = d[1];
+			}
+			
+			if ( _getDigaRecordedList(newRecordedList,result) == 0 ) {
+				// 追加が０件なら終わってもいいかな
+				break;
+			}
+		}
+		
+		return RETCODE_SUCCESS;
+	}
+	
+	private int _getDigaRecordedList(ArrayList<RecordedInfo> newRecordedList, String response) {
+		
+		ArrayList<RecordedInfo> tmpRecordedList = new ArrayList<RecordedInfo>();
+		
+		Matcher ma = Pattern.compile("<input type=\"checkbox\" name=\"chk(.+?)</tr>",Pattern.DOTALL).matcher(response);
+		while ( ma.find() ) {
+			String date = null;
+			String start = null;
+			String recChName = null;
+			String title = null;
+			Matcher mb = Pattern.compile("<td [^>]*?>(<div [^>]*?>)?<font style=\".*?\">\\s*(.*?)\\s*</font>",Pattern.DOTALL).matcher(ma.group(1));
+			for ( int i=1; mb.find(); i++ ) {
+				String val = CommonUtils.unEscape(mb.group(2));
+				switch ( i ) {
+				case 1:
+					date = "20"+val;
+					break;
+				case 3:
+					recChName = val;
+					break;
+				case 4:
+					start = val;
+					break;
+				case 5:
+					title = val;
+					break;
+				default:
+					break;
+				}
+			}
+			
+			RecordedInfo entry = new RecordedInfo();
+			
+			GregorianCalendar ca = CommonUtils.getCalendar(date+" "+start);
+			if ( ca == null ) {
+				// もうエントリがないっぽい
+				break;
+			}
+			
+			entry.setDate(CommonUtils.getDate(ca));
+			entry.setAhh(String.format("%02d",ca.get(Calendar.HOUR_OF_DAY)));
+			entry.setAmm(String.format("%02d",ca.get(Calendar.MINUTE)));
+			entry.setLength(RECLENGTHDEFAULT);
+			ca.add(Calendar.MINUTE, entry.getLength());
+			entry.setZhh(String.format("%02d",ca.get(Calendar.HOUR_OF_DAY)));
+			entry.setZmm(String.format("%02d",ca.get(Calendar.MINUTE)));
+			
+			String chid = cc.getCH_REC2CODE(recChName);
+			if ( chid == null ) {
+				// CHコードにできなければ、HTMLから取得した放送局名をそのまま使う
+				entry.setChannel(null);
+				entry.setCh_name(recChName);
+			}
+			else {
+				entry.setChannel(chid);
+				String webChName = cc.getCH_CODE2WEB(chid);
+				if ( webChName == null ) {
+					// CHコード設定がうまくないようですよ？
+					entry.setCh_name(recChName);
+				}
+				else {
+					entry.setCh_name(webChName);
+				}
+			}
+			entry.setCh_orig(recChName);
+			
+			entry.setTitle(title);
+			
+			entry.setResult("DIGAでは終了～MPEGの値が取得できません");
+			
+			entry.setSucceeded(true);
+			
+			tmpRecordedList.add(0,entry);	// テンポラリは日時昇順に構築
+		}
+		
+		int addcnt = 0;
+		for ( RecordedInfo e : tmpRecordedList ) {
+			boolean isExists = false;
+			for ( RecordedInfo d : newRecordedList ) {
+				// 既存エントリか？
+				if ( d.getDate().equals(e.getDate()) &&
+						d.getAhh().equals(e.getAhh()) &&
+						d.getAmm().equals(e.getAmm()) &&
+						d.getTitle().equals(e.getTitle()) ) {
+					isExists = true;
+					break;
+				}
+			}
+			if ( ! isExists ) {
+				// 既存でなければ挿入（日時降順）
+				newRecordedList.add(e);
+				++addcnt;
+			}
+		}
+		
+		return addcnt;	// 追加0件なら即終了してほしい
+	}
+	
 	/*******************************************************************************
 	 * 番組の画質設定を取得する（番組追従なし）
 	 ******************************************************************************/

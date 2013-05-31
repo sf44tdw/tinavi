@@ -1013,6 +1013,36 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	}
 	
 	/*******************************************************************************
+	 * ログ系
+	 ******************************************************************************/
+	
+	protected void ShowReserves(ArrayList<ReserveList> ress) {
+		
+		System.out.println("---Reserved List Start---");
+		int i=0;
+		for ( ReserveList e : ress ) {
+			// 詳細情報の取得
+			System.out.println(String.format("[%s] %s\t%s\t%s %s:%s-%s:%s\t%sm\t%s\t%s\t%s(%s)\t%s\t%s\t%s",
+					++i, e.getId(), e.getRec_pattern(), e.getRec_nextdate(), e.getAhh(), e.getAmm(), e.getZhh(), e.getZmm(), e.getRec_min(), e.getContentId(), e.getRec_audio(), e.getTitle(), e.getTitlePop(), e.getChannel(), e.getCh_name(), e.getRecorded()));
+		}
+		System.out.println("---Reserved List End---");
+		
+	}
+	
+	protected void ShowRecorded(ArrayList<RecordedInfo> recs) {
+		
+		System.out.println("---Recorded List Start---");
+		int i=0;
+		for ( RecordedInfo e : recs ) {
+			// 詳細情報の取得
+			System.out.println(String.format("[%s] %s %s\t%s:%s-%s:%s\t%s(%s)\t%s",
+					++i, e.getId(), e.getDate(), e.getAhh(), e.getAmm(), e.getZhh(), e.getZmm(), e.getTitle(), e.getCh_name(), e.getResult()));
+		}
+		System.out.println("---Recorded List End---");
+		
+	}
+
+	/*******************************************************************************
 	 * 通信系
 	 ******************************************************************************/
 

@@ -464,7 +464,7 @@ public class CommonUtils {
 	 *  @param date YYYY/MM/DD[(.)][ hh:mm[:ss]] or YYYY-MM-DD[Thh:mm[:ss]] or YYYYMMDD[hhmm[ss]]
 	 */
 	public static GregorianCalendar getCalendar(String date) {
-		Matcher ma = Pattern.compile("^(\\d\\d\\d\\d)[/-](\\d\\d)[/-](\\d\\d)(\\(.\\))?([ T](\\d\\d):(\\d\\d)(:\\d\\d)?)?$").matcher(date);
+		Matcher ma = Pattern.compile("^(\\d\\d\\d\\d)[/-](\\d{1,2})[/-](\\d{1,2})(\\(.\\))?([ T](\\d{1,2}):(\\d{1,2})(:\\d{1,2})?)?$").matcher(date);
 		if ( ! ma.find()) {
 			ma = Pattern.compile("^(\\d\\d\\d\\d)(\\d\\d)(\\d\\d)()?((\\d\\d)(\\d\\d)(\\d\\d)?)?$").matcher(date);
 			if ( ! ma.find()) {
