@@ -1366,7 +1366,7 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 			
 			// ピックアップはここに入らない
 			
-			HDDRecorderList recs = recorders.getMyself(myself);
+			HDDRecorderList recs = recorders.findInstance(myself);
 			
 			for ( HDDRecorder recorder : recs )
 			{

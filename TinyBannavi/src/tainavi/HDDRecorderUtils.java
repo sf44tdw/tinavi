@@ -52,6 +52,8 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	@Override
 	public boolean isThereAdditionalDetails() { return false; }
 	@Override
+	public boolean isEditAutoReserveSupported() { return false; }
+	@Override
 	public boolean isRepeatReserveSupported() { return true; }
 	@Override
 	public boolean isPursuesEditable() { return false; }
@@ -276,6 +278,12 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	public ArrayList<ReserveList> getReserves() { return RESERVES; }
 	
 	private ArrayList<ReserveList> RESERVES = new ArrayList<ReserveList>();
+	
+	/**
+	 * 自動予約一覧
+	 */
+	public AutoReserveInfoList getAutoReserves() { return AUTORESERVES; }
+	private AutoReserveInfoList AUTORESERVES = new AutoReserveInfoList();
 	
 	/**
 	 * 録画済み一覧
@@ -975,6 +983,13 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 		return entry;
 	}
 
+	/**
+	 * 自動予約一覧の置き換え
+	 */
+	protected void setAutoReserves(AutoReserveInfoList l) {
+		AUTORESERVES = l;
+	}
+	
 	/*******************************************************************************
 	 * ログと進捗ダイアログ
 	 ******************************************************************************/
@@ -1324,58 +1339,51 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	
 	@Override
 	public RecType getType() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	@Override
 	public ChannelCode getChCode() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	@Override
 	public boolean ChangeChannel(String Channel) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	@Override
 	public boolean GetRdSettings(boolean force) {
-		// TODO Auto-generated method stub
 		return true;
 	}
 	@Override
 	public boolean GetRdReserve(boolean force) {
-		// TODO Auto-generated method stub
+		return true;
+	}
+	@Override
+	public boolean GetRdAutoReserve(boolean force) {
 		return true;
 	}
 	@Deprecated
 	@Override
 	public boolean GetRdReserveDetails() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	@Override
 	public boolean GetRdRecorded(boolean force) {
-		// TODO Auto-generated method stub
 		return true;
 	}
 	@Override
 	public boolean PostRdEntry(ReserveList r) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	@Override
 	public boolean UpdateRdEntry(ReserveList o, ReserveList r) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	@Override
 	public ReserveList RemoveRdEntry(String delno) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	@Override
 	public String getErrmsg() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

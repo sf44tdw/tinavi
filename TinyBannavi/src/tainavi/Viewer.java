@@ -341,6 +341,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 	private VWPaperView paper = null;
 	private VWReserveListView reserved = null;
 	private VWRecordedListView recorded = null;
+	private VWAutoReserveListView autores = null;
 	private VWSettingView setting = null;
 	private VWRecorderSettingView recsetting = null;
 	private VWChannelSettingView chsetting = null;
@@ -726,7 +727,6 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 	}
 	
 	
-	
 	/**
 	 * 
 	 * 録画結果一覧の内部クラス
@@ -761,7 +761,24 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		@Override
 		protected String getSelectedRecorderOnToolbar() { return toolBar.getSelectedRecorder(); }
 	}
+	
+	
+	/**
+	 * 
+	 * 録画結果一覧の内部クラス
+	 * 
+	 */
+	private class VWAutoReserveListView extends AbsAutoReserveListView {
 
+		private static final long serialVersionUID = 1L;
+
+		// 環境設定の入れ物を渡す
+		@Override
+		protected Env getEnv() { return env; }
+		@Override
+		protected Bounds getBoundsEnv() { return bounds; }
+		
+	}
 	
 	/***
 	 * 各種設定の内部クラス
@@ -828,7 +845,11 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 			CommonUtils.setDebug(env.getDebug());
 			
 			SwingBackgroundWorker.setDebug(env.getDebug());
-			
+
+			// ほにゃらら
+			toolBar.setDebug(env.getDebug());
+			autores.setDebug(env.getDebug());
+
 			// PassedProgramListの設定変更
 			tvprograms.getPassed().setPassedDir(env.getPassedDir());
 
@@ -2711,7 +2732,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 				
 				HDDRecorderList recs;
 				if ( myself != null ) {
-					recs = recorders.getMyself(myself);
+					recs = recorders.findInstance(myself);
 				}
 				else {
 					recs = recorders;
@@ -2816,6 +2837,16 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 				}
 			}
 			
+			// 自動予約一覧の取得
+			if ( recorder.isEditAutoReserveSupported() ) {
+				if ( ! recorder.GetRdAutoReserve(force) ) {
+					// 取得に失敗
+					mwin.appendError(recorder.getErrmsg()+" "+recorder.getIPAddr()+":"+recorder.getPortNo()+":"+recorder.getRecorderId());
+					ringBeep();
+					return false;
+				}
+			}
+			
 			// 録画結果一覧の取得
 			if ( env.getSkipGetRdRecorded() ) {
 				mwin.appendMessage("【！】録画結果一覧の取得はスキップされました");
@@ -2857,7 +2888,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 				
 				HDDRecorderList recs;
 				if ( myself != null ) {
-					recs = recorders.getMyself(myself);
+					recs = recorders.findInstance(myself);
 				}
 				else {
 					recs = recorders;
@@ -3778,7 +3809,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		//
 		recorders.clear();
 		for ( RecorderInfo ri : recInfoList ) {
-			ArrayList<HDDRecorder> rl = recPlugins.get(ri.getRecorderId());
+			ArrayList<HDDRecorder> rl = recPlugins.findPlugin(ri.getRecorderId());
 			if ( rl.size() == 0 ) {
 				stwin.appendError("【レコーダプラグイン】プラグインがみつかりません: "+ri.getRecorderId()+"("+ri.getRecorderIPAddr()+":"+ri.getRecorderPortNo()+")");
 			}
@@ -4217,6 +4248,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		mainWindow.addTab(paper, MWinTab.PAPER);
 		mainWindow.addTab(reserved, MWinTab.RSVED);
 		mainWindow.addTab(recorded, MWinTab.RECED);
+		mainWindow.addTab(autores, MWinTab.AUTORES);
 		mainWindow.addTab(setting, MWinTab.SETTING);
 		mainWindow.addTab(recsetting, MWinTab.RECSET);
 		mainWindow.addTab(chsetting, MWinTab.CHSET);
@@ -4237,9 +4269,6 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 			
 			// 開いていたタブ
 			mainWindow.setShowSettingTabs(bounds.getShowSettingTabs());
-			
-			// 選択していたレコーダ
-			toolBar.setSelectedRecorder(bounds.getSelectedRecorderId());
 			
 			// ステータスエリアの高さ
 			mwin.setRows(bounds.getStatusRows());
@@ -4676,6 +4705,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 			paper = new VWPaperView();
 			reserved = new VWReserveListView();
 			recorded = new VWRecordedListView();
+			autores = new VWAutoReserveListView();
 			setting = new VWSettingView();
 			recsetting = new VWRecorderSettingView();
 			chsetting = new VWChannelSettingView();
@@ -4683,6 +4713,10 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 			chsortsetting = new VWChannelSortView();
 			chconvsetting = new VWChannelConvertView();
 			
+			// 設定のほにゃらら
+			toolBar.setDebug(env.getDebug());
+			autores.setDebug(env.getDebug());
+
 			// ページャーの設定
 			toolBar.setPagerItems();
 			
@@ -4731,7 +4765,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 			JOptionPane.showMessageDialog(cp, "レコーダが登録されていません。\n最初に登録を行ってください。\n番組表だけを使いたい場合は、\nNULLプラグインを登録してください。");
 		}
 		
-		// メインウィンドウを入れ替える
+		// メインウィンドウをスプラッシュからコンポーネントに入れ替える
 		this.setVisible(false);
 		this.setContentPane(mainWindow);
 		setInitBounds();
@@ -4739,6 +4773,12 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		
 		// タイトル更新
 		setTitleBar();
+		
+		// [ツールバー/レコーダ選択] 自動予約一覧
+		toolBar.addVWHDDRecorderSelectionListener(autores);
+		
+		// レコーダ選択イベントキック
+		toolBar.setSelectedRecorder(bounds.getSelectedRecorderId());
 		
 		// [タイマー] タイトルバー更新／リスト形式の現在時刻ノード／新聞形式の現在時刻ノード
 		timer_now.addVWTimerRiseListener(this);

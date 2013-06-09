@@ -13,7 +13,6 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -287,7 +286,7 @@ public abstract class AbsChannelDatSettingView extends JScrollPane {
 				cc.save(webChName, recChName, chCode);
 				
 				// ここがあるのでSwingBackgroundWorkerを使わざるをえない
-				for ( HDDRecorder rec : recorders.get(recId) ) {
+				for ( HDDRecorder rec : recorders.findPlugin(recId) ) {
 					// 関連するプラグインを全部リロードする
 					rec.getChCode().load(false);	// ログ出力あり
 					rec.GetRdReserve(false);
@@ -322,7 +321,7 @@ public abstract class AbsChannelDatSettingView extends JScrollPane {
 			return;
 		}
 		
-		ArrayList<HDDRecorder> ra = recorders.get(recId);
+		ArrayList<HDDRecorder> ra = recorders.findPlugin(recId);
 		if ( ra.size() == 0 ) {
 			MWin.appendError(ERRID+"指定のレコーダのプラグインがみつかりません： "+recId);
 			return;
@@ -1117,73 +1116,77 @@ public abstract class AbsChannelDatSettingView extends JScrollPane {
 		private static final long serialVersionUID = 1L;
 
 		private static final String LABEL = "SET";
-		private final JButton renderButton = new JButton(LABEL);
+		
+		private final JButton renderButton;
 		private final JButton editorButton;
 		private Boolean cellValue = Boolean.FALSE;
 		
 		public ButtonColumn() {
 			super();
-			editorButton = new JButton(new AbstractAction(LABEL) {
-
-				private static final long serialVersionUID = 1L;
-
-				public void actionPerformed(ActionEvent e) {
-					fireEditingStopped();
+			renderButton = new JButton(LABEL);
+			editorButton = new JButton(LABEL);
+			editorButton.addActionListener(al_set);
+		}
+		
+		private final ActionListener al_set = new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fireEditingStopped();
+				
+				int row = jTable_entries.getSelectedRow();
+				
+				ChDatItem c = rowData.get(row);
+				
+				String chCode = c.chCode;
+				if ( chCode.length() == 0 ) {
 					
-					int row = jTable_entries.getSelectedRow();
-					
-					ChDatItem c = rowData.get(row);
-					
-					String chCode = c.chCode;
-					if ( chCode.length() == 0 ) {
-						
-						// レコーダプラグインが持っているチャンネルコードバリューを検索する
-						if ( selectedRecorder.isChValueAvailable() ) {
-							// 新バージョン
-							String recChName = c.recChName;
+					// レコーダプラグインが持っているチャンネルコードバリューを検索する
+					if ( selectedRecorder.isChValueAvailable() ) {
+						// 新バージョン
+						String recChName = c.recChName;
+						for ( TextValueSet t : selectedRecorder.getChValue() ) {
+							if ( recChName.equals(t.getText()) ) {
+								c.chCode = t.getValue();
+								break;
+							}
+						}
+					}
+					else if ( selectedRecorder.getChValue().size() > 0 ) {
+						// 旧バージョン（置き換えていきたい）
+						String recChName = c.recChName;
+						if ( selectedRecorder.getRecorderId().startsWith("DIGA ") ) {
+							// for DIGA ONLY
 							for ( TextValueSet t : selectedRecorder.getChValue() ) {
-								if ( recChName.equals(t.getText()) ) {
-									c.chCode = t.getValue();
+								if ( recChName.startsWith(t.getText()+" ") ) {
+									String val = t.getValue();
+									if ( val != null ) {
+										c.chCode = recChName.replaceFirst(t.getText()+" ","")+":"+val;
+									}
 									break;
 								}
 							}
 						}
-						else if ( selectedRecorder.getChValue().size() > 0 ) {
-							// 旧バージョン（置き換えていきたい）
-							String recChName = c.recChName;
-							if ( selectedRecorder.getRecorderId().startsWith("DIGA ") ) {
-								// for DIGA ONLY
-								for ( TextValueSet t : selectedRecorder.getChValue() ) {
-									if ( recChName.startsWith(t.getText()+" ") ) {
-										String val = t.getValue();
-										if ( val != null ) {
-											c.chCode = recChName.replaceFirst(t.getText()+" ","")+":"+val;
-										}
-										break;
+						else {
+							// for RD ONLY
+							for ( TextValueSet t : selectedRecorder.getChValue() ) {
+								if ( t.getText().equals(recChName) ) {
+									String val = t.getValue();
+									if ( val != null ) {
+										c.chCode = val;
 									}
-								}
-							}
-							else {
-								// for RD ONLY
-								for ( TextValueSet t : selectedRecorder.getChValue() ) {
-									if ( t.getText().equals(recChName) ) {
-										String val = t.getValue();
-										if ( val != null ) {
-											c.chCode = val;
-										}
-										break;
-									}
+									break;
 								}
 							}
 						}
-						
-						c.fireChanged();
-						jTable_entries.clearSelection();
-						jTable_entries.setRowSelectionInterval(row, row);
 					}
+					
+					c.fireChanged();
+					jTable_entries.clearSelection();
+					jTable_entries.setRowSelectionInterval(row, row);
 				}
-			});
-		}
+			}
+		};
 		
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			ChDatItem c = rowData.get(row);

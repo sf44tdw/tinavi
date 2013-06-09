@@ -458,7 +458,7 @@ public abstract class AbsRecorderSettingView extends JScrollPane {
 				jCBX_tunernum.setEnabled(false);
 				
 				// とりあえずIDの一致するものを全部拾う
-				HDDRecorderList rl = recPlugins.get(recId);
+				HDDRecorderList rl = recPlugins.findPlugin(recId);
 				if ( rl.size() <= 0) {
 					MWin.appendError(ERRID+"選択されたプラグインのインスタンスが存在しない： "+recId);
 					return;
@@ -494,7 +494,7 @@ public abstract class AbsRecorderSettingView extends JScrollPane {
 					jLabel_user.setText("インストールディレクトリ");
 					jLabel_wakeup.setText("-");
 					
-					jTextField_user.setText(rl.get(recId).get(0).getUser());
+					jTextField_user.setText(rl.findPlugin(recId).get(0).getUser());
 					jTextField_passwd.setText("dummy");
 					
 					jTextField_ipaddr.setEnabled(false);

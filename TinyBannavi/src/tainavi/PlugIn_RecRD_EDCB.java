@@ -23,6 +23,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	}
 	
 	private static final String thisEncoding = "MS932";
+	private static final String xmlEncoding = "utf8";
 	
 	/*******************************************************************************
 	 * 種族の特性
@@ -33,6 +34,9 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	@Override
 	public RecType getType() { return RecType.RECORDER; }
 	
+	// 自動予約を編集できる
+	@Override
+	public boolean isEditAutoReserveSupported() { return true; }
 	// 自動エンコーダ選択は禁止
 	@Override
 	public boolean isAutoEncSelectEnabled() { return false; }
@@ -414,10 +418,9 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		return (getListTunerID().size()>0 && getListChValue().size()>0 && getListPresetID().size()>0);
 	}
 	
-	/*
+	/**
 	 *	レコーダーから予約一覧を取得する 
 	 */
-	
 	@Override
 	public boolean GetRdReserve(boolean force)
 	{
@@ -472,6 +475,30 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	}
 	
 	/**
+	 *	レコーダーから自動予約一覧を取得する 
+	 */
+	@Override
+	public boolean GetRdAutoReserve(boolean force)
+	{
+		System.out.println("レコーダから自動予約一覧を取得します("+force+")");
+		
+		errmsg = "";
+		
+		// おまじない
+		Authenticator.setDefault(new MyAuthenticator(getUser(), getPasswd()));
+		
+		AutoReserveInfoList newAutoReserveList = new AutoReserveInfoList();
+		if ( ! GetRdAutoReserveList(newAutoReserveList) ) {
+			return false;
+		}
+		
+		setAutoReserves(newAutoReserveList);
+		
+		return true;
+	}
+	
+	/**
+	 *	レコーダーから録画結果一覧を取得する 
 	 * @see #GetRdSettings(boolean)
 	 */
 	@Override
@@ -523,7 +550,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		String response="";
 		{
 			reportProgress("予約一覧を取得します.");
-			String[] d = reqGET("http://"+getIPAddr()+":"+getPortNo()+"/api/EnumReserveInfo",null,"utf8");
+			String[] d = reqGET("http://"+getIPAddr()+":"+getPortNo()+"/api/EnumReserveInfo",null,xmlEncoding);
 			response = d[1];
 			
 			if (response == null) {
@@ -1357,10 +1384,96 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		return null;
 	}
 	
+	
+	/**
+	 * 自動予約一覧を取得する
+	 */
+	private boolean GetRdAutoReserveList(AutoReserveInfoList newAutoReserveList) {
+		
+		int maxpage = 1;
+		String firstResp = null;	// ２回呼びたくない
+		
+		String url = "http://"+getIPAddr()+":"+getPortNo()+"/autoaddepg.html&page=";
+		
+		{
+			reportProgress("自動予約一覧のページ数を取得します.");
+			String[] d = reqGET(url+"0",null);
+			if (d[1] == null) {
+				errmsg = "レコーダーが反応しません";
+				return false;
+			}
+			
+			firstResp = d[1];
+			
+			// maxpageの計算が入る
+			Matcher ma = Pattern.compile("\"autoaddepg\\.html\\?page=\"").matcher(firstResp);
+			while ( ma.find() ) {
+				++maxpage;
+			}
+		}
+		
+		for ( int i=1; i<=maxpage; i++ ) {
+			
+			reportProgress(String.format("+自動予約一覧を取得します(%d/%d)",i,maxpage));
+			
+			String response;
+			if ( i == 1 ) {
+				response = firstResp;
+			}
+			else {
+				// あとで
+				String[] d = reqGET(url+String.valueOf(i),null);
+				if (d[1] == null) {
+					errmsg = "レコーダーが反応しません";
+					return false;
+				}
+				
+				response = d[1];
+			}
+			
+			Matcher ma = Pattern.compile("<TR>(.+?)</TR>",Pattern.DOTALL).matcher(response);
+			while ( ma.find() ) {
+				// 入れ物用意
+				AutoReserveInfo c = new AutoReserveInfo();
+				
+				// 分解
+				Matcher mb = Pattern.compile("<TD>(.*?)</TD>",Pattern.DOTALL).matcher(ma.group(1));
+				for ( int n=0; mb.find(); n++ ) {
+					switch (n) {
+					case 0:	// title
+						c.setLabel(CommonUtils.unEscape(mb.group(1)));
+						break;
+					case 5:	// id
+						Matcher mc = Pattern.compile("\"autoaddepginfo\\.html\\?id=(.+)\"",Pattern.DOTALL).matcher(mb.group(1));
+						if ( mc.find() ) {
+							c.setId(mc.group(1));
+						}
+						break;
+					case 3:	// channel
+						c.getChannels().add(CommonUtils.unEscape(mb.group(1)));
+						break;
+					case 1:	// mark
+					case 2:	// genre
+					case 4:	// service
+					default:
+						break;
+					}
+				}
+				if ( c.getId() == null ) {
+					c = null;
+					continue;	// 情報がみつからなかった
+				}
+				
+				newAutoReserveList.add(c);
+			}
+		}
+		
+		return true;
+	}
+	
 	/**
 	 *	録画結果一覧を取得する
 	 */
-	
 	private boolean GetRdRecordedList(ArrayList<RecordedInfo> newRecordedList) {
 		
 		String critDate = null;

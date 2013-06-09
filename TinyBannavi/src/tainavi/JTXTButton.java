@@ -294,7 +294,8 @@ public class JTXTButton extends JLabel {
 			image = new BufferedImage(imgw, imgh, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2 = (Graphics2D)image.createGraphics();
 			
-			g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,aahint);
+			g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,aahint);	// アンチエイリアスの設定
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_SPEED);
 			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 			
 			float baseline = 0.0F;

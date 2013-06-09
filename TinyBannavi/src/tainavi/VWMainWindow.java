@@ -19,6 +19,7 @@ public class VWMainWindow extends JPanel {
 		PAPER	("新聞形式"),
 		RSVED	("本体予約一覧"),
 		RECED	("録画結果一覧"),
+		AUTORES	("自動予約一覧"),
 		SETTING	("各種設定"),
 		RECSET	("レコーダ設定"),
 		CHSET	("CH設定"),

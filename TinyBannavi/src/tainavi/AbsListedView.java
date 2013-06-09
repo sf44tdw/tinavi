@@ -2397,7 +2397,7 @@ public abstract class AbsListedView extends JPanel implements VWTimerRiseListene
 		long diff = 86400L*30L;
 		
 		String myself = getSelectedRecorderOnToolbar();
-		HDDRecorderList recs = recorders.getMyself(myself);
+		HDDRecorderList recs = recorders.findInstance(myself);
 
 		// コンボボックスの指定はピックアップである
 		boolean isPickupOnly = ( myself != null && myself.length() == 0 ) ;
@@ -2630,7 +2630,7 @@ public abstract class AbsListedView extends JPanel implements VWTimerRiseListene
 	private Marker _getReservedMarkCharUra(ListedItem data) {
 		//
 		String myself = getSelectedRecorderOnToolbar();
-		HDDRecorderList recs = recorders.getMyself(myself);
+		HDDRecorderList recs = recorders.findInstance(myself);
 		
 		for ( HDDRecorder rec : recs )
 		{

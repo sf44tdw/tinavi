@@ -281,7 +281,7 @@ public abstract class AbsRecordedListView extends JPanel {
 		
 		// 選択されたレコーダ
 		String myself = getSelectedRecorderOnToolbar();
-		HDDRecorderList recs = recorders.getMyself(myself);
+		HDDRecorderList recs = recorders.findInstance(myself);
 
 		for ( HDDRecorder recorder : recs )
 		{

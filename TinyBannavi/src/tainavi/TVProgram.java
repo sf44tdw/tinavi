@@ -292,7 +292,7 @@ public interface TVProgram {
 	public static final String csCode = "cs";
 	
 	// タイトルの頭の邪魔な文字
-	public static final String titlePrefixRemoveExpr = "^(\\[(新|無|字|終|HV|無料)\\]|無料≫|【無料】)+\\s*"; 
+	public static final String titlePrefixRemoveExpr = "^(\\[(新|無|字|終|HV|SS|無料)\\]|無料≫|【無料】)+\\s*"; 
 	public static final String epnoNormalizeExpr = "([第#(])(\\d\\D|\\d$)";
 
 	// 種族の特性

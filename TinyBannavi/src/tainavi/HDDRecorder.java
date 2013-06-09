@@ -119,7 +119,12 @@ public interface HDDRecorder {
 	public ArrayList<ReserveList> getReserves();
 	
 	/**
-	 * 予約一覧を返します。
+	 * 自動予約一覧を返します。
+	 */
+	public AutoReserveInfoList getAutoReserves();
+	
+	/**
+	 * 録画結果一覧を返します。
 	 */
 	public ArrayList<RecordedInfo> getRecorded();
 	
@@ -141,6 +146,11 @@ public interface HDDRecorder {
 	 * @see #GetRdReserveDetails()
 	 */
 	public boolean isThereAdditionalDetails();
+
+	/**
+	 * 自動予約の編集をサポートしているかどうかを返します。
+	 */
+	public boolean isEditAutoReserveSupported();
 	
 	/**
 	 * 自動エンコーダ選択を使用するかどうかを返します。
@@ -309,13 +319,19 @@ public interface HDDRecorder {
 	public boolean GetRdSettings(boolean force);
 	
 	/**
-	 * <P>レコーダから予約一覧（と各種設定の取得を行います。
+	 * <P>レコーダから予約一覧（と各種設定）の取得を行います。
 	 * <P>将来的には、各種設定の取得は別メソッドにわけたいところ。
 	 * @param force : trueの場合レコーダへのアクセスを強制します。falseの場合キャッシュファイルがあればそちらを利用します。
 	 * @see #GetRdSettings(boolean)
-	 * @see #GetRdReserveDetails()
 	 */
 	public boolean GetRdReserve(boolean force);
+	
+	/**
+	 * <P>レコーダから自動予約一覧の取得を行います。
+	 * @param force : trueの場合レコーダへのアクセスを強制します。falseの場合キャッシュファイルがあればそちらを利用します。
+	 * @see #isEditAutoReserveSupported()
+	 */
+	public boolean GetRdAutoReserve(boolean force);
 
 	/**
 	 * <P>レコーダから録画結果一覧の取得を行います。

@@ -13,6 +13,7 @@ import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.regex.Matcher;
@@ -50,8 +51,8 @@ public abstract class AbsToolBar extends JToolBar {
 
 	public static String getViewName() { return "ツールバー"; } 
 
-	public static void setDebug(boolean b) {debug = b; }
-	private static boolean debug = false;
+	public void setDebug(boolean b) {debug = b; }
+	private boolean debug = false;
 	
 	/*******************************************************************************
 	 * 抽象メソッド
@@ -226,6 +227,9 @@ public abstract class AbsToolBar extends JToolBar {
 	private JToggleButton jToggleButton_fullScreen = null;
 	private JButton jButton_update = null;
 	private JButton jButton_help = null;
+
+	// レコーダ選択イベント発生時にキックするリスナーのリスト
+	private final ArrayList<VWHDDRecorderSelectionListener> lsnrs_recsel = new ArrayList<VWHDDRecorderSelectionListener>();
 	
 	// その他
 	
@@ -586,14 +590,14 @@ public abstract class AbsToolBar extends JToolBar {
 	 */
 	public String getSelectedRecorder() {
 		if ( jComboBox_select_recorder == null ) {
-			return null;
+			return VWHDDRecorderSelectionListener.SELECTED_ALL;
 		}
 		String recId = (String)jComboBox_select_recorder.getSelectedItem();
 		if ( recId.equals(SELECTED_ALL) ) {
-			return null;
+			return VWHDDRecorderSelectionListener.SELECTED_ALL;
 		}
 		else if ( recId.equals(SELECTED_PICKUP) ) {
-			return "";
+			return VWHDDRecorderSelectionListener.SELECTED_PICKUP;
 		}
 		
 		return recId;
@@ -605,6 +609,7 @@ public abstract class AbsToolBar extends JToolBar {
 	 */
 	public void setSelectedRecorder(String myself) {
 		if ( jComboBox_select_recorder != null ) {
+			jComboBox_select_recorder.setSelectedItem(null);
 			jComboBox_select_recorder.setSelectedItem((myself == null)?(SELECTED_ALL):(myself));
 		}
 	}
@@ -633,7 +638,6 @@ public abstract class AbsToolBar extends JToolBar {
 		jComboBox_select_recorder.addItem(SELECTED_PICKUP);
 
 		jComboBox_select_recorder.addItemListener(il_recorderSelected);
-
 	}
 
 	/**
@@ -681,6 +685,20 @@ public abstract class AbsToolBar extends JToolBar {
 	}
 	
 	
+	/*******************************************************************************
+	 * リスナー追加／削除
+	 ******************************************************************************/
+	
+	public void addVWHDDRecorderSelectionListener(VWHDDRecorderSelectionListener l) {
+		if ( ! lsnrs_recsel.contains(l) ) {
+			lsnrs_recsel.add(l);
+		}
+	}
+
+	public void removeVWHDDRecorderSelectionListener(VWHDDRecorderSelectionListener l) {
+		lsnrs_recsel.remove(l);
+	}
+
 	/*******************************************************************************
 	 * リスナー
 	 ******************************************************************************/
@@ -779,8 +797,24 @@ public abstract class AbsToolBar extends JToolBar {
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
+				// 旧ロジック
 				recorderSelectorChanged();
+				
+				// 新ロジック
+				{
+					String selected = getSelectedRecorder();
+					HDDRecorderList recs = recorders.findInstance(selected);
+					
+					VWHDDRecorderSelectionEvent ev = new VWHDDRecorderSelectionEvent(e.getSource(),selected,recs);
+
+					if (debug) System.out.println(DBGID+"recorder selection rised selected="+selected);
+
+					for ( VWHDDRecorderSelectionListener l : lsnrs_recsel ) {
+						l.recorderSelected(ev);
+					}
+				}
 			}
+			
 		}
 	};
 	
@@ -1129,11 +1163,8 @@ public abstract class AbsToolBar extends JToolBar {
 			jComboBox_select_recorder.setMinimumSize(d);
 			//jComboBox_select_recorder.setEnabled(false);
 			
-			// 初期値
+			// 初期値（ItemListenerは↓の中で追加される）
 			updateRecorderComboBox();
-			
-			// 選択された
-			jComboBox_select_recorder.addItemListener(il_recorderSelected);
 		}
 		return(jComboBox_select_recorder);
 	}

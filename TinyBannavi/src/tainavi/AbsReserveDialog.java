@@ -614,7 +614,7 @@ abstract class AbsReserveDialog extends JDialog {
 	 */
 	public boolean open(String myself, String rsvId) {
 		
-		HDDRecorderList recs = recorders.getMyself(myself);
+		HDDRecorderList recs = recorders.findInstance(myself);
 		if ( recs.size() == 0 ) {
 			return false;	// ここに来たらバグ
 		}
@@ -666,7 +666,7 @@ abstract class AbsReserveDialog extends JDialog {
 			// レコーダの初期値の確認
 			myself = getSelectedRecorderOnToolbar();		// ツールバーで選択されているのはどれかな？
 			if ( myself != null && myself.length() > 0 ) {
-				myrec = recorders.getMyself(myself).get(0);		// "すべて"と"ピックアップ"以外
+				myrec = recorders.findInstance(myself).get(0);		// "すべて"と"ピックアップ"以外
 			}
 			else {
 				myrec = recorders.get(0);						// "すべて"と"ピックアップ"なら先頭を選んでおけばいい
@@ -1975,7 +1975,7 @@ abstract class AbsReserveDialog extends JDialog {
 		if ( myself == null ) {
 			return null;
 		}
-		HDDRecorderList recs = recorders.getMyself(myself);
+		HDDRecorderList recs = recorders.findInstance(myself);
 		if ( recs.size() == 0 ) {
 			return null;
 		}
@@ -2200,7 +2200,7 @@ abstract class AbsReserveDialog extends JDialog {
 			if ( myself == null ) {
 				return;
 			}
-			String myrecId = recorders.getMyself(myself).get(0).getRecorderId();
+			String myrecId = recorders.findInstance(myself).get(0).getRecorderId();
 			if ( ! isVARDIA(myrecId) ) {
 				return;
 			}
@@ -2241,7 +2241,7 @@ abstract class AbsReserveDialog extends JDialog {
 			if ( myself == null ) {
 				return;
 			}
-			String myrecId = recorders.getMyself(myself).get(0).getRecorderId();
+			String myrecId = recorders.findInstance(myself).get(0).getRecorderId();
 			if ( ! isVARDIA(myrecId) ) {
 				return;
 			}
@@ -2357,7 +2357,7 @@ abstract class AbsReserveDialog extends JDialog {
 		public void actionPerformed(ActionEvent e) {
 			ProgGenre key_genre = ProgGenre.get((String) jCBXPanel_genre.getSelectedItem());
 			String key_webChName = (String) jComboBox_ch.getSelectedItem();
-			String recId = recorders.getMyself((String) jComboBox_recorder.getSelectedItem()).get(0).getRecorderId();
+			String recId = recorders.findInstance((String) jComboBox_recorder.getSelectedItem()).get(0).getRecorderId();
 			setSelectedAVItems(recId, null, getSelectedAVs(key_genre, key_webChName, recId));
 			MWin.appendMessage(MSGID+"画質・音質等の設定を取得しました");
 		}
@@ -2474,7 +2474,7 @@ abstract class AbsReserveDialog extends JDialog {
 							vals.hide_tvd.progid = vals.hide_content_id;
 							vals.hide_tvd.setContentIdStr();
 						}
-						HDDRecorderList recs = recorders.getMyself((String) jComboBox_recorder.getSelectedItem());
+						HDDRecorderList recs = recorders.findInstance((String) jComboBox_recorder.getSelectedItem());
 						if ( recs.size() > 0 ) {
 							jCBXPanel_pursues.setEnabled(recs.get(0).isPursuesEditable());
 						}

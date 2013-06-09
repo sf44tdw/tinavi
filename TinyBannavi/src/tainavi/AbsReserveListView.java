@@ -18,7 +18,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -260,9 +259,11 @@ public abstract class AbsReserveListView extends JScrollPane {
 
 		private static final long serialVersionUID = 1L;
 		
+		private RowItemList<ReservedItem> rDat;
+		
 		@Override
 		public Object getValueAt(int row, int column) {
-			ReservedItem c = rowView.get(row); 
+			ReservedItem c = rDat.get(row); 
 			if ( c.getColumnCount() > column ) {
 				if ( column == RsvedColumn.DUPMARK.getColumn() ) {
 					return CommonSwingUtils.getColoredString(DUPMARK_COLOR,c.dupmark);
@@ -302,11 +303,14 @@ public abstract class AbsReserveListView extends JScrollPane {
 		
 		@Override
 		public int getRowCount() {
-			return rowView.size();
+			return (rDat!=null) ? rDat.size() : 0;	// ↓ のsuper()で呼ばれるのでnullチェックが必要
 		}
 
-		public ReservedTableModel(String[] colname, int i) {
+		public ReservedItem getRowItem(int row) { return rDat.get(row); }
+			
+		public ReservedTableModel(String[] colname, int i, RowItemList<ReservedItem> rowdata) {
 			super(colname,i);
+			this.rDat = rowdata;
 		}
 		
 	}
@@ -321,7 +325,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 	private DefaultTableModel rowheaderModel_rsved = null;
 	
 	// 表示用のテーブル
-	private final RowItemList<ReservedItem> rowView = new RowItemList<ReservedItem>();
+	private final RowItemList<ReservedItem> rowViewTemp = new RowItemList<ReservedItem>();
 	
 	// テーブルの実体
 	private final RowItemList<ReservedItem> rowData = new RowItemList<ReservedItem>();
@@ -334,7 +338,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 		
 		super();
 		
-		this.setRowHeaderView(jTable_rowheader = new JTableRowHeader(rowView));
+		this.setRowHeaderView(jTable_rowheader = new JTableRowHeader(rowViewTemp));
 		this.setViewportView(getNETable_rsved());
 		
 		Dimension d = new Dimension(jTable_rowheader.getPreferredSize().width,0);
@@ -377,7 +381,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 	 */
 	public void redrawReservedList() {
 		// ★★★　イベントにトリガーされた処理がかちあわないように synchronized()　★★★
-		synchronized ( rowView ) {
+		synchronized ( rowViewTemp ) {
 			_redrawReservedList();
 		}
 	}
@@ -389,7 +393,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 		
 		// 選択されたレコーダ
 		String myself = getSelectedRecorderOnToolbar();
-		HDDRecorderList recs = recorders.getMyself(myself);
+		HDDRecorderList recs = recorders.findInstance(myself);
 
 		// 現在日時
 		String curDateTime = CommonUtils.getDateTime(0);
@@ -456,9 +460,9 @@ public abstract class AbsReserveListView extends JScrollPane {
 		}
 		
 		// 表示用
-		rowView.clear();
+		rowViewTemp.clear();
 		for ( ReservedItem a : rowData ) {
-			rowView.add(a);
+			rowViewTemp.add(a);
 		}
 		
 		tableModel_rsved.fireTableDataChanged();
@@ -474,7 +478,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 	 */
 	public void redrawListByKeywordFilter(SearchKey keyword, String target) {
 		
-		rowView.clear();
+		rowViewTemp.clear();
 		
 		// 情報を一行ずつチェックする
 		if ( keyword != null ) {
@@ -488,13 +492,13 @@ public abstract class AbsReserveListView extends JScrollPane {
 				boolean isFind = SearchProgram.isMatchKeyword(keyword, "", tvd);
 				
 				if ( isFind ) {
-					rowView.add(a);
+					rowViewTemp.add(a);
 				}
 			}
 		}
 		else {
 			for ( ReservedItem a : rowData ) {
-				rowView.add(a);
+				rowViewTemp.add(a);
 			}
 		}
 		
@@ -558,12 +562,12 @@ public abstract class AbsReserveListView extends JScrollPane {
 	 */
 	private void setOverlapMark() {
 		
-		if ( rowView.size() < 2 ) {
+		if ( rowViewTemp.size() < 2 ) {
 			return;
 		}
 		
 		// 最初の一行はリセットしておかないとなんの処理も行われない場合がある
-		ReservedItem fr = rowView.get(jTable_rsved.convertRowIndexToModel(0));
+		ReservedItem fr = rowViewTemp.get(jTable_rsved.convertRowIndexToModel(0));
 		fr.dupmark = "";
 		fr.fireChanged();
 		
@@ -576,8 +580,8 @@ public abstract class AbsReserveListView extends JScrollPane {
 			int vrow = jTable_rsved.convertRowIndexToModel(i);
 			int vrow2 = jTable_rsved.convertRowIndexToModel(i+1);
 
-			ReservedItem ra = rowView.get(vrow);
-			ReservedItem rb = rowView.get(vrow2);
+			ReservedItem ra = rowViewTemp.get(vrow);
+			ReservedItem rb = rowViewTemp.get(vrow2);
 
 			if ( ! sDT2.equals("")) {
 				sDT = sDT2;
@@ -663,7 +667,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 		@Override
 		public void componentShown(ComponentEvent e) {
 			// ★★★　イベントにトリガーされた処理がかちあわないように synchronized()　★★★
-			synchronized ( rowView ) {
+			synchronized ( rowViewTemp ) {
 				// 終了した予約を整理する
 				for (HDDRecorder recorder : recorders) {
 					recorder.refreshReserves();
@@ -684,7 +688,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 			jTable_rsved.getSelectionModel().setSelectionInterval(vrow,vrow);
 			//
 			final int row = jTable_rsved.convertRowIndexToModel(vrow);
-			ReservedItem ra = rowView.get(row);
+			ReservedItem ra = rowViewTemp.get(row);
 			final boolean fexec = ra.exec;
 			final String start = ra.nextstart;
 			final String title = ra.title;
@@ -746,7 +750,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 		@Override
 		public void sorterChanged(RowSorterEvent e) {
 			if ( e.getType() == Type.SORTED ) {
-				if (rowView.size()>=2) setOverlapMark();
+				if (rowViewTemp.size()>=2) setOverlapMark();
 			}
 		}
 	}; 
@@ -766,7 +770,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 			}
 			String[] colname = cola.toArray(new String[0]);
 			
-			tableModel_rsved = new ReservedTableModel(colname, 0);
+			tableModel_rsved = new ReservedTableModel(colname, 0, rowViewTemp);
 			jTable_rsved = new JNETableReserved(tableModel_rsved, false);
 			jTable_rsved.setAutoResizeMode(JNETable.AUTO_RESIZE_OFF);
 			
@@ -905,7 +909,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 			}
 
 			int row = this.convertRowIndexToModel(prow);
-			ReservedItem c = rowView.get(row);
+			ReservedItem c = rowViewTemp.get(row);
 
 			{
 				// 実行可能かどうか
@@ -957,28 +961,33 @@ public abstract class AbsReserveListView extends JScrollPane {
 
 		private static final long serialVersionUID = 1L;
 
-		private final JButton renderButton = new JButton();
-		private final JButton editorButton = new JButton();
+		private static final String LABEL = "";	// ""にしないとボタンに文字が
+		
+		private final JButton renderButton;
+		private final JButton editorButton;
 		
 		public ButtonColumn() {
 			super();
+			renderButton = new JButton(LABEL);
 			renderButton.setMargin(new Insets(1, 0, 0, 0));
 			renderButton.setHorizontalAlignment(JLabel.CENTER);
 			renderButton.setVerticalAlignment(JLabel.CENTER);
-			editorButton.setAction(act);
+			
+			editorButton = new JButton(LABEL);
+			editorButton.addActionListener(al_toggle);
 		}
 		
-		private final AbstractAction act = new AbstractAction("") {
-
-			private static final long serialVersionUID = 1L;
-
+		private final ActionListener al_toggle = new ActionListener() {
+			
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				fireEditingStopped();
 				
 				int vrow = jTable_rsved.getSelectedRow();
 				int row = jTable_rsved.convertRowIndexToModel(vrow);
 				
-				ReservedItem c = rowData.get(row);
+				ReservedItem c = ((ReservedTableModel) jTable_rsved.getModel()).getRowItem(row);
+				
 				if ( doExecOnOff( ! c.exec, c.title, c.chname, c.hide_rsvid, c.recorder) ) {
 					c.exec = ! c.exec;
 					c.fireChanged();
