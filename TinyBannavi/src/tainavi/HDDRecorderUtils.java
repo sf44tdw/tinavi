@@ -283,7 +283,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	 * 自動予約一覧
 	 */
 	public AutoReserveInfoList getAutoReserves() { return AUTORESERVES; }
-	private AutoReserveInfoList AUTORESERVES = new AutoReserveInfoList();
+	private AutoReserveInfoList AUTORESERVES = new AutoReserveInfoList(Env.envDir,"dummy","0.0.0.0","0");
 	
 	/**
 	 * 録画済み一覧

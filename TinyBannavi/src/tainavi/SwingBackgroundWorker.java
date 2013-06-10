@@ -49,7 +49,24 @@ public abstract class SwingBackgroundWorker extends BackgroundWorker {
 			
 			@Override
 			protected void done() {
+				
+				// サブスレッドで発生するキャッチできない例外をキャッチしたい！うまくトラップできるといいな！
+				try {
+					get();
+				}
+				catch (final InterruptedException ex) {
+	            	//throw new RuntimeException(ex);
+	            	ex.printStackTrace();
+	            }
+				catch (final ExecutionException ex) {
+					//throw new RuntimeException(ex.getCause());
+	            	ex.printStackTrace();
+	            }
+				
+				// トラップできるようになったのはいいが、例外発生時に処理を終了できなくなって止まってしまう。困った。
+				
 				//if (debug) System.out.println("DONE");
+				
 				doFinally();
 				if (locking) lock.unlock();
 			}
@@ -76,6 +93,8 @@ public abstract class SwingBackgroundWorker extends BackgroundWorker {
 		//  dialog.setModal(true);　ではなく
 		//  dialog.setModalityType(ModalityType.DOCUMENT_MODAL);　を使うことで
 		// 他のダイアログへのブロッキングが発生しない！これはいい！！
+		
+		// ↑ 今読んだら、なんかJava APIの説明にdialog使えやって書いてあった(^^;;;
 	}
 	
 	public Object get() throws InterruptedException, ExecutionException {

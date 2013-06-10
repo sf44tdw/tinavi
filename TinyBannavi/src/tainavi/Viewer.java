@@ -2608,6 +2608,10 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 				
 				// 放送局のマッチング
 				if (r.getCh_name() == null) {
+					if ( r.getChannel() == null ) {
+						System.err.println(ERRID+"予約情報にCHコードが設定されていません。バグの可能性があります。 recid="+recorder.Myself()+" chname="+r.getCh_name());
+						continue;
+					}
 					if(r.getChannel().length() > 0) {
 						misCN.put(r.getChannel(),true);
 					}
@@ -4684,10 +4688,6 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 			System.exit(1);
 		}
 		
-		// LookAndFeelとフォントを変更する
-		//initLookAndFeelAndFont();
-		//updateComponentTreeUI();
-		
 		// 背景色設定ダイアログにフォント名の一覧を設定する
 		pcwin.setFontList(vwfont);
 		
@@ -4732,7 +4732,9 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 			System.exit(1);
 		}
 		
-		// ステータスエリアの開閉（不要）
+		// ★★★★★★★★★★
+		//int x = 2/0;	// サブスレッドの突然死のトラップを確認するためのコード
+		// ★★★★★★★★★★
 		
 		// トレイアイコンを作る
 		getTrayIcon();

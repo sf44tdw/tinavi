@@ -20,17 +20,17 @@ public class Env {
 	 ******************************************************************************/
 	
 	// 変更できないフォルダ
-	private static final String binDir = "bin";
+	public static final String binDir = "bin";
 	private static final String metainfDir = binDir+File.separator+"META-INF";
 	private static final String services = metainfDir+File.separator+"services";
 	
-	private static final String envDir = "env";
+	public static final String envDir = "env";
 	private static final String envFile = envDir+File.separator+"envs.xml";
 	private static final String envText = envDir+File.separator+"envs.txt";
 	private static final String lafFile = envDir+File.separator+"laf.txt";
 	private static final String GTKRC = envDir+File.separator+"_gtkrc-2.0";
 	
-	private static final String skinDir = "skin";
+	public static final String skinDir = "skin";
 	
 	private static final int PAGER_DEFAULT = 7;
 	

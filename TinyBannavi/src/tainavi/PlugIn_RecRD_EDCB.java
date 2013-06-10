@@ -484,10 +484,14 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		
 		errmsg = "";
 		
+		if ( ! force ) {
+			return true;	// 実装完了までの暫定
+		}
+		
 		// おまじない
 		Authenticator.setDefault(new MyAuthenticator(getUser(), getPasswd()));
 		
-		AutoReserveInfoList newAutoReserveList = new AutoReserveInfoList();
+		AutoReserveInfoList newAutoReserveList = new AutoReserveInfoList(Env.envDir,getRecorderId(),getIPAddr(),getPortNo());
 		if ( ! GetRdAutoReserveList(newAutoReserveList) ) {
 			return false;
 		}
@@ -1390,9 +1394,9 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	 */
 	private boolean GetRdAutoReserveList(AutoReserveInfoList newAutoReserveList) {
 		
-		int maxpage = 1;
-		String firstResp = null;	// ２回呼びたくない
-		
+		int maxpage = 1;			// 初期値は"1"！
+		String firstResp = null;	// ２回読み出したくない
+
 		String url = "http://"+getIPAddr()+":"+getPortNo()+"/autoaddepg.html&page=";
 		
 		{
@@ -1406,23 +1410,23 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 			firstResp = d[1];
 			
 			// maxpageの計算が入る
-			Matcher ma = Pattern.compile("\"autoaddepg\\.html\\?page=\"").matcher(firstResp);
+			Matcher ma = Pattern.compile("\"autoaddepg\\.html\\?page=").matcher(firstResp);
 			while ( ma.find() ) {
 				++maxpage;
 			}
 		}
 		
-		for ( int i=1; i<=maxpage; i++ ) {
+		for ( int i=0; i<maxpage; i++ ) {
 			
-			reportProgress(String.format("+自動予約一覧を取得します(%d/%d)",i,maxpage));
+			reportProgress(String.format("+自動予約一覧を取得します(%d/%d)",(i+1),maxpage));
 			
 			String response;
-			if ( i == 1 ) {
+			if ( i == 0 ) {
 				response = firstResp;
 			}
 			else {
 				// あとで
-				String[] d = reqGET(url+String.valueOf(i),null);
+				String[] d = reqGET(url+String.valueOf(i+1),null);
 				if (d[1] == null) {
 					errmsg = "レコーダーが反応しません";
 					return false;
