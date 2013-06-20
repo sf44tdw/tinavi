@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import taiSync.ReserveInfo;
+
 
 /**
  * 
@@ -303,6 +305,8 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		
 		System.out.println("レコーダの各種設定情報を取得します.");
 		
+		errmsg = "";
+		
 		/*
 		 *  CHコード設定
 		 */
@@ -422,8 +426,8 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	 *	レコーダーから予約一覧を取得する 
 	 */
 	@Override
-	public boolean GetRdReserve(boolean force)
-	{
+	public boolean GetRdReserve(boolean force) {
+	
 		System.out.println("レコーダから予約一覧を取得します("+force+")");
 		
 		errmsg = "";
@@ -446,7 +450,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		
 		// レコーダから読み出し（予約一覧）
 		ArrayList<ReserveList> newReserveList = new ArrayList<ReserveList>();
-		if ( ! GetRdReservedList(newReserveList) ) {
+		if ( ! getRsvListAPI(newReserveList) ) {
 			return(false);
 		}
 		
@@ -478,25 +482,46 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	 *	レコーダーから自動予約一覧を取得する 
 	 */
 	@Override
-	public boolean GetRdAutoReserve(boolean force)
-	{
+	public boolean GetRdAutoReserve(boolean force) {
+	
 		System.out.println("レコーダから自動予約一覧を取得します("+force+")");
 		
 		errmsg = "";
 		
-		if ( ! force ) {
-			return true;	// 実装完了までの暫定
+		AutoReserveInfoList newList = new AutoReserveInfoList(Env.envDir,null,getRecorderId(),getIPAddr(),getPortNo());
+		
+		if ( ! force && newList.exists() ) {
+			// 既存のファイルがあれば読み出す
+			if ( newList.load() ) {
+				setAutoReserves(newList);
+				return true;
+			}
+			
+			// ★★★ログだせよ！
+			
+			return false;	// 読めなかったよ
 		}
 		
 		// おまじない
 		Authenticator.setDefault(new MyAuthenticator(getUser(), getPasswd()));
 		
-		AutoReserveInfoList newAutoReserveList = new AutoReserveInfoList(Env.envDir,getRecorderId(),getIPAddr(),getPortNo());
-		if ( ! GetRdAutoReserveList(newAutoReserveList) ) {
-			return false;
+		// リモートから取得
+		if ( ! getAutoReserveList(newList) ) {
+			if ( newList.exists() ) {
+				// 過去に取得したことがあるなら通信エラーとして処理
+				return false;
+			}
+			else {
+				// 過去に取得したことがあるないのでスキップ扱い（にしないと移行時に録画結果一覧が表示されないよね）
+				return true;
+			}
 		}
 		
-		setAutoReserves(newAutoReserveList);
+		setAutoReserves(newList);
+		
+		if ( ! newList.save() ) {
+			// ★★★ログだせよ！
+		}
 		
 		return true;
 	}
@@ -531,10 +556,10 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 			return true;
 		}
 		
-		if ( ! GetRdRecordedList(newRecordedList) ) {
+		if ( ! getRecedList(newRecordedList) ) {
 			return false;
 		}
-		if ( ! GetRdRecordedListDetailAll(newRecordedList) ) {
+		if ( ! getRecedDetailAll(newRecordedList) ) {
 			return false;
 		}
 		setRecorded(newRecordedList);				// 置き換え
@@ -548,7 +573,15 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		return true;
 	}
 	
-	private boolean GetRdReservedList(ArrayList<ReserveList> newReserveList) {
+	
+	/*------------------------------------------------------------------------------
+	 * 予約一覧の取得
+	 *------------------------------------------------------------------------------/
+	
+	/**
+	 * 予約一覧＋詳細の取得【API版】
+	 */
+	private boolean getRsvListAPI(ArrayList<ReserveList> newReserveList) {
 		
 		//　RDから予約一覧を取り出す
 		String response="";
@@ -1002,29 +1035,46 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		return true;
 	}
 
-	private boolean GetRdReservedDetailByContentId(ReserveList r, int cnt) {
+	/**
+	 * 予約詳細の取得【HTML版】（番組IDキー）
+	 */
+	private boolean getRsvDetailByContentId(ReserveList r, int cnt) {
 		String pstr = genPoststrEPGA(r);
 		String url = "http://"+getIPAddr()+":"+getPortNo()+"/epginfo.html?"+pstr;
 		System.out.println("URL: "+url);
-		return _GetRdReservedDetail(r, url, cnt);
+		return getRsvDetail(r, url, cnt);
 	}
-	private boolean GetRdReservedDetailByReserveId(ReserveList r, int cnt) {
+	
+	/**
+	 * 予約詳細の取得【HTML版】（予約IDキー）
+	 */
+	private boolean getRsvDetailByReserveId(ReserveList r, int cnt) {
 		String url = "http://"+getIPAddr()+":"+getPortNo()+"/reserveinfo.html?id="+getRsvId(r.getId());
 		System.out.println("URL: "+url);
-		return _GetRdReservedDetail(r, url, cnt);
+		return getRsvDetail(r, url, cnt);
 	}
-	private boolean _GetRdReservedDetail(ReserveList r, String url, int cnt) {
+	
+	/**
+	 * 予約詳細の取得【HTML版】（共通）
+	 */
+	private boolean getRsvDetail(ReserveList r, String url, int cnt) {
 		
 		reportProgress("+予約詳細を取得します("+cnt+")");
 
 		String[] d = reqGET(url,null);
-		//String hdr = d[0];
-		String res = d[1];
-		Matcher mb = null;
-		
-		if (res == null) {
+		if ( d[1] == null ) {
 			return false;
 		}
+		
+		return decodeRsvDetail(r, d[1], url);
+	}
+
+	/**
+	 * 予約詳細のデコード【HTML版】
+	 */
+	private boolean decodeRsvDetail(ReserveList r, String res, String url) {
+
+		Matcher mb = null;
 		
 		try {
 			// 予約ID
@@ -1109,7 +1159,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		// (1-3)録画モード
 		{
 			String rec_mode = getSelectedSetting("recMode",res);
-			if ( rec_mode.equals(ITEM_REC_MODE_DISABLE) ) {
+			if ( rec_mode != null && rec_mode.equals(ITEM_REC_MODE_DISABLE) ) {
 				// "無効"は「予約実行」で扱うので
 				r.setExec(false);
 				setTextRecMode(r,getListRecMode().get(0).getText());
@@ -1202,7 +1252,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		ArrayList<String> pRecNamePlugIn = new ArrayList<String>();
 		
 		// 録画後実行bat
-		mb = Pattern.compile("録画後実行bat.*?:\\s*(.*?)<BR>",Pattern.DOTALL).matcher(d[1]);
+		mb = Pattern.compile("録画後実行bat.*?:\\s*(.*?)<BR>",Pattern.DOTALL).matcher(res);
 		if ( mb.find() ) {
 			batFilePath = mb.group(1);
 		}
@@ -1210,7 +1260,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		// オプショナル
 		{
 			// 録画フォルダ等
-			Matcher mc = Pattern.compile("録画フォルダ.*?(<TABLE.*?</TABLE>)\\s*<input type=hidden name=\"recFolderCount\" value=\"(\\d+?)\">",Pattern.DOTALL).matcher(d[1]);
+			Matcher mc = Pattern.compile("録画フォルダ.*?(<TABLE.*?</TABLE>)\\s*<input type=hidden name=\"recFolderCount\" value=\"(\\d+?)\">",Pattern.DOTALL).matcher(res);
 			if ( ! mc.find() ) {
 				errmsg = "情報が見つかりません："+RETVAL_KEY_RECFOLDERCOUNT;
 			}
@@ -1241,7 +1291,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 			}
 			
 			// 録画フォルダ等（ワンセグ）
-			mc = Pattern.compile("partialRecFlag.*?(<TABLE.*?</TABLE>)\\s*<input type=hidden name=\"partialFolderCount\" value=\"(\\d+?)\">",Pattern.DOTALL).matcher(d[1]);
+			mc = Pattern.compile("partialRecFlag.*?(<TABLE.*?</TABLE>)\\s*<input type=hidden name=\"partialFolderCount\" value=\"(\\d+?)\">",Pattern.DOTALL).matcher(res);
 			if ( ! mc.find() ) {
 				errmsg = "情報が見つかりません："+RETVAL_KEY_PARTIALFOLDERCOUNT;
 			}
@@ -1356,7 +1406,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		}
 		
 		// 番組ID
-		if ( r.getContentId() != null ) {
+		if ( r.getContentId() != null && r.getContentId().length() > 0 ) {
 			StringBuilder dt = new StringBuilder(r.getDetail());
 			dt.append("■番組ID：");
 			dt.append(ContentIdEDCB.stripMark(r.getContentId()));
@@ -1389,10 +1439,29 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	}
 	
 	
+	/*------------------------------------------------------------------------------
+	 * 自動予約一覧の取得
+	 *------------------------------------------------------------------------------/
+	
 	/**
 	 * 自動予約一覧を取得する
 	 */
-	private boolean GetRdAutoReserveList(AutoReserveInfoList newAutoReserveList) {
+	private boolean getAutoReserveList(AutoReserveInfoList newAutoReserveList) {
+		if ( ! getAutorsvList(newAutoReserveList) ) {
+			// 一覧が取得できなかった
+			return false;
+		}
+		if ( ! getAutorsvDetailAll(newAutoReserveList) ) {
+			// 詳細が取得できなかった
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * 自動予約一覧を取得する（リスト部）
+	 */
+	private boolean getAutorsvList(AutoReserveInfoList newAutoReserveList) {
 		
 		int maxpage = 1;			// 初期値は"1"！
 		String firstResp = null;	// ２回読み出したくない
@@ -1454,7 +1523,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 						}
 						break;
 					case 3:	// channel
-						c.getChannels().add(CommonUtils.unEscape(mb.group(1)));
+						//c.getChannels().add(CommonUtils.unEscape(mb.group(1)));
 						break;
 					case 1:	// mark
 					case 2:	// genre
@@ -1476,9 +1545,113 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	}
 	
 	/**
+	 * 自動予約一覧を取得する（詳細部）
+	 */
+	private boolean getAutorsvDetailAll(AutoReserveInfoList newAutoReserveList) {
+		
+		String url = "http://"+getIPAddr()+":"+getPortNo()+"/autoaddepginfo.html?id=";
+		
+		int cnt = 0;
+		for ( AutoReserveInfo c : newAutoReserveList ) {
+
+			++cnt;
+			
+			reportProgress(String.format("自動予約詳細を取得します(%d/%d)",cnt,newAutoReserveList.size()));
+			String[] d = reqGET(url+c.getId(),null);
+			if (d[1] == null) {
+				errmsg = "レコーダーが反応しません";
+				return false;
+			}
+			
+			if ( ! decodeAutorsvDetail(c, d[1]) ) {
+				// デコードできなかった
+				System.err.println("★★★　スクリプト解析まで仮置き　★★★　");
+				CommonUtils.printStackTrace();
+			}
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 自動予約詳細をデコードする
+	 */
+	private boolean decodeAutorsvDetail(AutoReserveInfo c, String str) {
+		
+		String[] data = str.split("<HR>録画設定<HR>");
+		if ( data.length != 2 ) {
+			return false;
+		}
+
+		// キーワード設定部
+		{
+			// テキストボックスの場合
+			{
+				Matcher mb = Pattern.compile("<input type=\"text\" name=\"(.+?)\" value=\"(.*?)\" size=", Pattern.DOTALL).matcher(data[0]);
+				while ( mb.find() ) {
+					if ( mb.group(1).equals("andKey") ) {
+						c.setLabel(CommonUtils.unEscape(mb.group(2)));
+						c.setKeyword(c.getLabel());
+					}
+					else if ( mb.group(1).equals("notKey") ) {
+						c.setExKeyword(CommonUtils.unEscape(mb.group(2)));
+					}
+					else if ( mb.group(1).equals("dateList") ) {
+						
+					}
+					else if ( mb.group(1).equals("chkRecDay") ) {
+						try {
+							c.setRecordedCheckTerm(Integer.valueOf(mb.group(2)));
+							continue;
+						}
+						catch ( NumberFormatException e) {
+							e.printStackTrace();
+						}
+						c.setRecordedCheckTerm(6);		// デフォルトバリュー
+					}
+				}
+			}
+			
+			// コンボボックスの場合
+			{
+				Matcher mb = Pattern.compile("<select name=\"(.+?)\" .*?size=\\d+?>(.*?)</select>", Pattern.DOTALL).matcher(data[0]);
+				while ( mb.find() ) {
+					if ( mb.group(1).equals("contentList") ) {
+						// ジャンル
+					}
+					else if ( mb.group(1).equals("serviceList") ) {
+						
+						// 放送局
+						Matcher mc = Pattern.compile("<option value=\"(\\d+?)\" selected>", Pattern.DOTALL).matcher(mb.group(2));
+						while ( mc.find() ) {
+							String chName = cc.getCH_CODE2WEB(mc.group(1));
+							c.getChannels().add((chName!=null) ? chName : mc.group(1));
+						}
+					}
+					
+				}
+			}
+		}
+		
+		// 録画設定部
+		{
+			ReserveInfo r = new ReserveInfo();
+			decodeRsvDetail(r, data[1], null);
+			c.setRecSetting(r);
+		}
+		
+		return true;
+	}
+	
+	
+	/*------------------------------------------------------------------------------
+	 * 録画結果一覧の取得
+	 *------------------------------------------------------------------------------/
+	 *
+	/**
 	 *	録画結果一覧を取得する
 	 */
-	private boolean GetRdRecordedList(ArrayList<RecordedInfo> newRecordedList) {
+	private boolean getRecedList(ArrayList<RecordedInfo> newRecordedList) {
 		
 		String critDate = null;
 		if ( newRecordedList.size() > 0 ) {
@@ -1523,7 +1696,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 				String[] d = reqGET("http://"+getIPAddr()+":"+getPortNo()+"/recinfo.html?page="+page,null,thisEncoding);
 				response = d[1];
 			}
-			if ( GetRdRecordedListSub(newRecordedList, response, critDate) <= 0) {
+			if ( decodeRecedList(newRecordedList, response, critDate) <= 0) {
 				// おわったぽ
 				break;
 			}
@@ -1532,7 +1705,10 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		return true;
 	}
 	
-	private int GetRdRecordedListSub(ArrayList<RecordedInfo> newRecordedList, String response, String critDate) {
+	/**
+	 * 録画一覧のデコード
+	 */
+	private int decodeRecedList(ArrayList<RecordedInfo> newRecordedList, String response, String critDate) {
 		
 		int cnt = 0;
 		
@@ -1620,7 +1796,10 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		return cnt;
 	}
 
-	private boolean GetRdRecordedListDetailAll(ArrayList<RecordedInfo> newRecordedList) {
+	/**
+	 * 録画詳細の取得
+	 */
+	private boolean getRecedDetailAll(ArrayList<RecordedInfo> newRecordedList) {
 		// 詳細情報を取得する
 		int i=0;
 		for ( RecordedInfo entry : newRecordedList ) {
@@ -1789,7 +1968,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 				ReserveList tmpr = new ReserveList();
 				tmpr.setContentId(reqr.getContentId());
 				setTextPresetID(tmpr, getTextPresetID(reqr));
-				if ( ! GetRdReservedDetailByContentId(tmpr,0) ) {
+				if ( ! getRsvDetailByContentId(tmpr,0) ) {
 					errmsg = "予約ページが開けません。";
 					return(false);
 				}
@@ -2222,7 +2401,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		// 更新後の情報を再取得
 		ReserveList newr = reqr.clone();
 		newr.setId(oldr.getId());
-		if ( ! GetRdReservedDetailByReserveId(newr,0) ) {
+		if ( ! getRsvDetailByReserveId(newr,0) ) {
 			errmsg = "更新後の情報を取得できませんでした。";
 			return null;
 		}
@@ -2387,7 +2566,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		// 予約IDを試してみる（EDCBがリブートしていなければこれでＯＫなはず）
 		if ( origr.getId() != null && origr.getId().length() > 0 ) {
 			ReserveList newr = origr.clone();
-			if ( GetRdReservedDetailByReserveId(newr,0) && isEqualsTR(origr, newr, -1) ) {
+			if ( getRsvDetailByReserveId(newr,0) && isEqualsTR(origr, newr, -1) ) {
 				//System.out.println("+-一致する予約です（予約ID直接）： "+newr.getId());
 				return newr;
 			}
@@ -2396,7 +2575,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		// 番組IDを試してみる（重複予約されていなければこれで大丈夫なはず）
 		if ( origr.getContentId() != null && ContentIdEDCB.isValid(origr.getContentId()) ) {
 			ReserveList newr = origr.clone();
-			if ( GetRdReservedDetailByContentId(newr,0) && isEqualsTR(origr, newr, 0) ) {
+			if ( getRsvDetailByContentId(newr,0) && isEqualsTR(origr, newr, 0) ) {
 				//System.out.println("+-一致する予約です（番組ID直接）： "+newr.getId());
 				return newr;
 			}
@@ -2404,7 +2583,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 
 		// 一覧取得しなおし(3.17.5b)
 		ArrayList<ReserveList> rl = new ArrayList<ReserveList>();
-		if ( ! GetRdReservedList(rl) ) {
+		if ( ! getRsvListAPI(rl) ) {
 			errmsg = "予約一覧の取得に失敗しました。";
 			return null;
 		}
@@ -2484,7 +2663,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		// 予約IDを試してみる（EDCBがリブートしていなければこれでＯＫなはず）
 		if ( origr.getId() != null && origr.getId().length() > 0 ) {
 			ReserveList newr = origr.clone();
-			if ( GetRdReservedDetailByReserveId(newr,0) && isEqualsDT(origr, newr, 0) ) {
+			if ( getRsvDetailByReserveId(newr,0) && isEqualsDT(origr, newr, 0) ) {
 				//System.out.println("+-一致する予約です（番組ID直接）： "+newr.getId());
 				return newr;
 			}
@@ -2492,7 +2671,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 
 		// 予約IDは固定ではないので再度取得しなおさないと(3.17.5b変更)
 		ArrayList<ReserveList> rl = new ArrayList<ReserveList>();
-		if ( ! GetRdReservedList(rl) ) {
+		if ( ! getRsvListAPI(rl) ) {
 			errmsg = "予約一覧の取得に失敗しました。";
 			return null;
 		}

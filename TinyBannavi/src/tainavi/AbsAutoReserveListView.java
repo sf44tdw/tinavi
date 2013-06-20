@@ -9,19 +9,19 @@ import java.util.HashMap;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-
-import com.sun.corba.se.impl.oa.poa.AOMEntry;
 
 
 /**
  * 自動予約一覧タブのクラス
  * @since 3.22.2β
  */
-public abstract class AbsAutoReserveListView extends JPanel implements VWHDDRecorderSelectionListener {
+public abstract class AbsAutoReserveListView extends JPanel implements HDDRecorderListener {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -72,7 +72,7 @@ public abstract class AbsAutoReserveListView extends JPanel implements VWHDDReco
 	
 	public static enum AutoRsvColumn {
 		EXEC		("実行",			50),
-		TITLE		("タイトル",		300),
+		TITLE		("タイトル",		500),
 		CHNAME		("チャンネル名",	150),
 		;
 
@@ -227,33 +227,49 @@ public abstract class AbsAutoReserveListView extends JPanel implements VWHDDReco
 		rowheaderModel_list.fireTableDataChanged();
 	}
 	
+	
 	/*******************************************************************************
-	 * リスナー
+	 * ハンドラ―メソッド
 	 ******************************************************************************/
 	
-	// ツールバーでレコーダの選択イベントが発生
+	/**
+	 * ツールバーでレコーダの選択イベントが発生
+	 */
 	@Override
-	public void recorderSelected(VWHDDRecorderSelectionEvent e) {
+	public void valueChanged(HDDRecorderSelectionEvent e) {
 		if (debug) System.out.println(DBGID+"recorder selection rised");
 		
 		// 選択中のレコーダ情報を保存する
-		ev_recsel = e;
+		src_recsel = (HDDRecorderSelectable) e.getSource();
 		
 		// テーブルを書き換える
 		redrawByRecorderSelected();
 	}
 	
-	@Override
-	public String getSelectedRecorder() {
-		return ( ev_recsel!=null ? ev_recsel.getSelected() : null );
+	private String getSelectedRecorder() {
+		return ( src_recsel!=null ? src_recsel.getSelectedId() : null );
 	}
 	
-	@Override
-	public HDDRecorderList getSelectedRecorderList() {
-		return ( ev_recsel!=null ? ev_recsel.getSelectedRecorderList() : null );
+	private HDDRecorderList getSelectedRecorderList() {
+		return ( src_recsel!=null ? src_recsel.getSelectedList() : null );
 	}
 	
-	private VWHDDRecorderSelectionEvent ev_recsel;
+	private HDDRecorderSelectable src_recsel;
+	
+	
+	/**
+	 * レコーダ情報の変更イベントが発生
+	 */
+	@Override
+	public void stateChanged(HDDRecorderChangeEvent e) {
+		// テーブルをリフレッシュする処理
+		redrawByRecorderSelected();
+	}
+	
+	/*******************************************************************************
+	 * リスナー
+	 ******************************************************************************/
+	
 	
 	/*******************************************************************************
 	 * コンポーネント

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import tainavi.HDDRecorder.RecType;
 
+
 /**
  * {@link HDDRecorder} のリストを実現するクラスです. 
  * @version 3.15.4β～
@@ -11,8 +12,9 @@ import tainavi.HDDRecorder.RecType;
 public class HDDRecorderList extends ArrayList<HDDRecorder> {
 
 	private static final long serialVersionUID = 1L;
-
-	private static final HDDRecorderList mylist = new HDDRecorderList();
+	
+	// ↓ 自己フィールド生成を行うor自己フィールド生成によるスタックオーバーフローを回避する(static修飾)ための異常なコード（自戒のためにコメントとして残す）
+	//private static final HDDRecorderList mylist = new HDDRecorderList();
 	
 	// レコーダIDから種類を調べる
 	public RecType getRecId2Type(String recId) {
@@ -24,33 +26,39 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 	}
 	
 	/**
-	 *  レコーダIDに合ったプラグイン（種族）を探す
+	 *  レコーダIDに合ったプラグイン（一族郎党）を探す
 	 */
 	public HDDRecorderList findPlugin(String recId) {
 		if ( recId == null ) {
 			return this;
 		}
-		HDDRecorderList list = new HDDRecorderList();
+		
+		HDDRecorderList mylist = new HDDRecorderList();
 		for ( HDDRecorder rec : this ) {
 			if ( recId.equals(rec.getRecorderId()) ) {
-				list.add(rec);
+				mylist.add(rec);
 			}
 		}
-		return list;
+		return mylist;
 	}
 	
 	/**
 	 * 実レコーダのプラグイン（個体）を探す
-	 * @return 本来{@link HDDRecorder}を返すべきだが、呼び出し側の処理を書きやすくするために{@link HDDRecorderList}を返す。よって、==nullではなく.size()==0で確認する。
-	 * @param myself 「すべて」を指定する場合はNULLをどうぞ
+	 * @param mySelf 「すべて」を指定する場合はNULLをどうぞ
+	 * @return
+	 * <P> 「すべて」「ピックアップのみ」→全部のインスタンスを返す 
+	 * <P> 「個別指定」→本来{@link HDDRecorder}を返すべきだが、呼び出し側の処理を書きやすくするために{@link HDDRecorderList}を返す。よって、==nullではなく.size()==0で確認する。
 	 */
-	public HDDRecorderList findInstance(String myself) {
-		if (myself == null || myself.length() == 0) {
+	public HDDRecorderList findInstance(String mySelf) {
+		if (mySelf == null || mySelf.length() == 0) {
+			// 「すべて」「ピックアップのみ」→全部のインスタンスを返す
 			return this;
 		}
-		mylist.clear();
+		
+		// 個別指定
+		HDDRecorderList mylist = new HDDRecorderList();
 		for ( HDDRecorder rec : this ) {
-			if ( rec.isMyself(myself) ) {
+			if ( rec.isMyself(mySelf) ) {
 				mylist.add(rec);
 				break;
 			}

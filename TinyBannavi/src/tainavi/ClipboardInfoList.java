@@ -41,7 +41,7 @@ public class ClipboardInfoList extends ArrayList<ClipboardInfo> {
 				ArrayList<clipboardItem> clx = (ArrayList<clipboardItem>) CommonUtils.readXML(cbFileOld);
 				for ( clipboardItem cx : clx ) {
 					ClipboardInfo c = new ClipboardInfo();
-					CommonUtils.FieldCopy(c, cx);
+					FieldUtils.deepCopy(c, cx);
 					cl.add(c);
 				}
 			}

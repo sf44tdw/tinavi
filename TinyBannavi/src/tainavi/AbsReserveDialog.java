@@ -108,6 +108,9 @@ abstract class AbsReserveDialog extends JDialog {
 	
 	private static final int LIKERSVTABLE_NOTSELECTED = -1;
 	
+	private static final String LIKERSVID_NONE			= "（類似予約なし）";
+	private static final String LIKERSVID_NOTSELECTED	= "類似予約を選択しない";
+	
 	// レイアウト関連
 	
 	private static final int TITLE_WIDTH = 370;
@@ -2118,8 +2121,14 @@ abstract class AbsReserveDialog extends JDialog {
 				myavs = getSelectedAVs(vals.hide_tvd.genre, mychname, myrec.getRecorderId());
 				
 				if ( ContentIdEDCB.isValid(vals.hide_tvd.progid) ) {
+					// 番組表の番組IDがあれば利用する
 					vals.hide_content_id = vals.hide_tvd.progid;
 					setGetEventIdButton(vals.hide_content_id,false);
+				}
+				else {
+					// なければ空にする
+					vals.hide_content_id = null;
+					setGetEventIdButton(vals.hide_content_id,true);
 				}
 			}
 			
@@ -3275,10 +3284,10 @@ abstract class AbsReserveDialog extends JDialog {
 			if ( row == 0 ) {
 				if ( column == LikeRsvColumn.TITLE.ordinal() ) {
 					if ( vals.likeRsvList.size() == 0 ) {
-						return "（類似予約なし）";
+						return LIKERSVID_NONE;
 					}
 					else {
-						return "類似予約を選択しない";
+						return LIKERSVID_NOTSELECTED;
 					}
 				}
 				else if ( column == LikeRsvColumn.START.ordinal() ) {

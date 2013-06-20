@@ -988,7 +988,7 @@ public class Env {
     	if ( fx.exists() ) {
     		Env b = (Env) CommonUtils.readXML(envFile);
     		if ( b != null ) {
-    			CommonUtils.FieldCopy(this, b);
+    			FieldUtils.deepCopy(this, b);
     			
 				// テキスト形式がなければ作るよ
 				if ( FieldUtils.save(envText,this) ) {

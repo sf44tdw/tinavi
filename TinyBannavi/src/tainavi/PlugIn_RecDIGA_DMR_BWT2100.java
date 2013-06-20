@@ -549,7 +549,7 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 		
 		if ( rec_type_epg ) {
 			ReserveList newr = new ReserveList();
-			CommonUtils.FieldCopy(newr, reqr);
+			FieldUtils.deepCopy(newr, reqr);
 			if ( getDigaReserveDetail(newr, reqr.getId()) == null ) {
 				// 情報を取得できなかったので、鯛ナビの情報をそのままで
 				errmsg = "登録した予約の情報を取得しなおそうとしましたが、失敗しました。";

@@ -30,8 +30,6 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import tainavi.HDDRecorder.RecType;
 import tainavi.SearchKey.TargetId;
@@ -45,7 +43,7 @@ import tainavi.Viewer.LoadRsvedFor;;
  * ツールバーのクラス
  * @version 3.16.3β Viewer.classから分離
  */
-public abstract class AbsToolBar extends JToolBar {
+public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -151,11 +149,6 @@ public abstract class AbsToolBar extends JToolBar {
 
 	private static final String ICONFILE_PULLDOWNMENU	= "icon/down-arrow.png";
 
-	// ページャーに追加する特殊選択肢
-	
-	private final String SELECTED_ALL = "すべて";
-	private final String SELECTED_PICKUP = "ピックアップのみ";
-	
 	// ツールチップ関連
 	
 	private static final String TIPS_KEYWORD			= "<HTML><B>検索ボックスの書式</B><BR>検索：(オプション1) (オプション2) キーワード <BR>過去ログ検索：開始日[(YYYY/)MM/DD] 終了日[(YYYY/)MM/DD] (オプション2) キーワード<BR>過去ログ閲覧：日付[YYYY/MM/DD]<BR>※オプション1：@filter..絞込検索（過去ログは対象外）<BR>※オプション2：#title..番組名一致、#detail..番組詳細一致、なし..番組名＆番組詳細一致<BR></HTML>";
@@ -229,9 +222,15 @@ public abstract class AbsToolBar extends JToolBar {
 	private JButton jButton_help = null;
 
 	// レコーダ選択イベント発生時にキックするリスナーのリスト
-	private final ArrayList<VWHDDRecorderSelectionListener> lsnrs_recsel = new ArrayList<VWHDDRecorderSelectionListener>();
+	private final ArrayList<HDDRecorderListener> lsnrs_recsel = new ArrayList<HDDRecorderListener>();
+	
+	// 各種情報の変更イベント発生時にキックするリスナーのリスト
+	private final ArrayList<HDDRecorderListener> lsnrs_infochg = new ArrayList<HDDRecorderListener>();
 	
 	// その他
+	
+	private String selectedRecorderId = null;
+	private HDDRecorderList selectedRecorderList = null;
 	
 	private boolean statusarea_shown = bounds.getShowStatus();
 	
@@ -589,15 +588,16 @@ public abstract class AbsToolBar extends JToolBar {
 	 * @return 「すべて」が選択されている場合はNULL、「ピックアップ」が選択されている場合は""を返す
 	 */
 	public String getSelectedRecorder() {
+		
 		if ( jComboBox_select_recorder == null ) {
-			return VWHDDRecorderSelectionListener.SELECTED_ALL;
+			return HDDRecorderListener.SELECTED_ALL;
 		}
 		String recId = (String)jComboBox_select_recorder.getSelectedItem();
-		if ( recId.equals(SELECTED_ALL) ) {
-			return VWHDDRecorderSelectionListener.SELECTED_ALL;
+		if ( recId.equals(HDDRecorder.SELECTED_ALL) ) {
+			return HDDRecorderListener.SELECTED_ALL;
 		}
-		else if ( recId.equals(SELECTED_PICKUP) ) {
-			return VWHDDRecorderSelectionListener.SELECTED_PICKUP;
+		else if ( recId.equals(HDDRecorder.SELECTED_PICKUP) ) {
+			return HDDRecorderListener.SELECTED_PICKUP;
 		}
 		
 		return recId;
@@ -610,7 +610,7 @@ public abstract class AbsToolBar extends JToolBar {
 	public void setSelectedRecorder(String myself) {
 		if ( jComboBox_select_recorder != null ) {
 			jComboBox_select_recorder.setSelectedItem(null);
-			jComboBox_select_recorder.setSelectedItem((myself == null)?(SELECTED_ALL):(myself));
+			jComboBox_select_recorder.setSelectedItem((myself == null)?(HDDRecorder.SELECTED_ALL):(myself));
 		}
 	}
 	
@@ -620,9 +620,12 @@ public abstract class AbsToolBar extends JToolBar {
 	public void updateRecorderComboBox() {
 		
 		jComboBox_select_recorder.removeItemListener(il_recorderSelected);
+
+		// レコーダの選択情報をリセット
+		setSelectedRecorderInfo(null);
 		
 		jComboBox_select_recorder.removeAllItems();
-		jComboBox_select_recorder.addItem(SELECTED_ALL);
+		jComboBox_select_recorder.addItem(HDDRecorder.SELECTED_ALL);
 		for (HDDRecorder r : recorders) {
 			switch ( r.getType() ) {
 			case RECORDER:
@@ -635,7 +638,7 @@ public abstract class AbsToolBar extends JToolBar {
 				break;
 			}
 		}
-		jComboBox_select_recorder.addItem(SELECTED_PICKUP);
+		jComboBox_select_recorder.addItem(HDDRecorder.SELECTED_PICKUP);
 
 		jComboBox_select_recorder.addItemListener(il_recorderSelected);
 	}
@@ -689,16 +692,79 @@ public abstract class AbsToolBar extends JToolBar {
 	 * リスナー追加／削除
 	 ******************************************************************************/
 	
-	public void addVWHDDRecorderSelectionListener(VWHDDRecorderSelectionListener l) {
+	/**
+	 * レコーダ選択イベントリスナー
+	 */
+	@Override
+	public void addHDDRecorderSelectionListener(HDDRecorderListener l) {
 		if ( ! lsnrs_recsel.contains(l) ) {
 			lsnrs_recsel.add(l);
 		}
 	}
 
-	public void removeVWHDDRecorderSelectionListener(VWHDDRecorderSelectionListener l) {
+	@Override
+	public void removeHDDRecorderSelectionListener(HDDRecorderListener l) {
 		lsnrs_recsel.remove(l);
 	}
+	
+	@Override
+	public String getSelectedId() {
+		return selectedRecorderId;
+	}
+	
+	@Override
+	public HDDRecorderList getSelectedList() {
+		return selectedRecorderList;
+	}
+	
+	/**
+	 * 情報変更イベントリスナー（番組表リロード、レコーダ情報リロード、etc）
+	 */
+	@Override
+	public void addHDDRecorderChangeListener(HDDRecorderListener l) {
+		if ( ! lsnrs_infochg.contains(l) ) {
+			lsnrs_infochg.add(l);
+		}
+	}
 
+	@Override
+	public void removeHDDRecorderChangeListener(HDDRecorderListener l) {
+		lsnrs_infochg.remove(l);
+	}
+
+	
+	/*******************************************************************************
+	 * イベントトリガー
+	 ******************************************************************************/
+
+	/**
+	 * レコーダ選択イベントトリガー
+	 */
+	private void fireHDDRecorderSelected() {
+		
+		HDDRecorderSelectionEvent e = new HDDRecorderSelectionEvent(this);
+
+		if (debug) System.out.println(DBGID+"recorder selection rised.");
+
+		for ( HDDRecorderListener l : lsnrs_recsel ) {
+			l.valueChanged(e);
+		}
+	}
+	
+	/**
+	 * レコーダ選択イベントトリガー
+	 */
+	private void fireHDDRecorderChanged() {
+		
+		HDDRecorderChangeEvent e = new HDDRecorderChangeEvent(this);
+
+		if (debug) System.out.println(DBGID+"change rised.");
+
+		for ( HDDRecorderListener l : lsnrs_infochg ) {
+			l.stateChanged(e);
+		}
+	}
+	
 	/*******************************************************************************
 	 * リスナー
 	 ******************************************************************************/
@@ -792,36 +858,43 @@ public abstract class AbsToolBar extends JToolBar {
 		}
 	};
 
-	// レコーダコンボボックスが選択された
+	/**
+	 * レコーダコンボボックスが選択された
+	 */
 	private final ItemListener il_recorderSelected = new ItemListener() {
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
+				
+				// 選択中のレコーダ情報を保存
+				setSelectedRecorderInfo(getSelectedRecorder());
+				
+				// 各タブへの反映
+				
 				// 旧ロジック
 				recorderSelectorChanged();
 				
 				// 新ロジック
-				{
-					String selected = getSelectedRecorder();
-					HDDRecorderList recs = recorders.findInstance(selected);
-					
-					VWHDDRecorderSelectionEvent ev = new VWHDDRecorderSelectionEvent(e.getSource(),selected,recs);
-
-					if (debug) System.out.println(DBGID+"recorder selection rised selected="+selected);
-
-					for ( VWHDDRecorderSelectionListener l : lsnrs_recsel ) {
-						l.recorderSelected(ev);
-					}
-				}
+				fireHDDRecorderSelected();
 			}
 			
 		}
 	};
 	
+	/**
+	 * 選択中のレコーダ情報を保存
+	 */
+	private void setSelectedRecorderInfo(String recid) {
+		selectedRecorderId = recid;
+		selectedRecorderList = recorders.findInstance(recid);
+	}
+	
 	// 予約一覧の再取得
 	private final ActionListener al_reloadReserved = new ActionListener(){
 		public void actionPerformed(ActionEvent e){
 			reLoadRdReserve(getSelectedRecorder());
+			
+			fireHDDRecorderChanged();		// 各タブへの反映
 		}
 	};
 	

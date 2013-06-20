@@ -2777,7 +2777,7 @@ public abstract class AbsListedView extends JPanel implements VWTimerRiseListene
 				}
 			}
 			//trKeys = newTrKeys;
-			CommonUtils.FieldCopy(trKeys, newTrKeys);
+			FieldUtils.deepCopy(trKeys, newTrKeys);
 			trKeys.save();
 			
 			if ( oList.size() < oCnt ) {
@@ -2909,7 +2909,7 @@ public abstract class AbsListedView extends JPanel implements VWTimerRiseListene
 				}
 			}
 			//srKeys = newSrKeys;
-			CommonUtils.FieldCopy(srKeys, newSrKeys);
+			FieldUtils.deepCopy(srKeys, newSrKeys);
 			srKeys.save();
 			
 			// ツリーを更新
@@ -3157,7 +3157,7 @@ public abstract class AbsListedView extends JPanel implements VWTimerRiseListene
 				}
 			}
 			//extKeys = newExtKeys;
-			CommonUtils.FieldCopy(extKeys, newExtKeys);
+			FieldUtils.deepCopy(extKeys, newExtKeys);
 			extKeys.save();
 			
 			// ツリーを更新

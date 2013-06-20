@@ -53,7 +53,7 @@ public class TVProgramUtils implements Cloneable {
 			//p.setProgressArea(null);
 			//p.setChConv(null);
 			
-			CommonUtils.FieldCopy(p, this); // ディープコピーするよ
+			FieldUtils.deepCopy(p, this); // ディープコピーするよ
 			
 			p.pcenter = new ArrayList<ProgList>();
 			

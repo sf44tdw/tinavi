@@ -8,7 +8,9 @@ import java.util.ArrayList;
  */
 public interface HDDRecorder {
 
-	// 定数
+	/*******************************************************************************
+	 * 定数
+	 ******************************************************************************/
 	
 	/**
 	 * 繰り返し予約を表す文字列定数。（毎日曜日～毎日）
@@ -33,7 +35,15 @@ public interface HDDRecorder {
 	 */
 	public static final int SCOPEMAX = 366;
 
-	// 種族の特性
+	// 特殊なレコーダID
+	public static final String SELECTED_ALL = "すべて";
+	public static final String SELECTED_PICKUP = "ピックアップのみ";
+
+	
+	/*******************************************************************************
+	 * 種族の特性
+	 ******************************************************************************/
+
 	public String getRecorderId();
 	
 	public RecType getType();

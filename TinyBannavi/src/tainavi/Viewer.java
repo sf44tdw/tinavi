@@ -4776,9 +4776,13 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		// タイトル更新
 		setTitleBar();
 		
-		// [ツールバー/レコーダ選択] 自動予約一覧
-		toolBar.addVWHDDRecorderSelectionListener(autores);
+		// [ツールバー/共通] レコーダ情報変更
+		toolBar.addHDDRecorderChangeListener(autores);
 		
+		// [ツールバー/レコーダ選択] 自動予約一覧
+		toolBar.addHDDRecorderSelectionListener(autores);
+
+
 		// レコーダ選択イベントキック
 		toolBar.setSelectedRecorder(bounds.getSelectedRecorderId());
 		

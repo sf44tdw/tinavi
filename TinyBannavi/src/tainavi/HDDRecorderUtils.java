@@ -38,7 +38,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	public HDDRecorderUtils clone() {
 		try {
 			HDDRecorderUtils ru = (HDDRecorderUtils) super.clone();
-			CommonUtils.FieldCopy(ru, this); // ディープコピーするよ
+			FieldUtils.deepCopy(ru, this); // ディープコピーするよ
 			return ru;
 		} catch (CloneNotSupportedException e) {
 			throw new InternalError(e.toString());
@@ -283,7 +283,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	 * 自動予約一覧
 	 */
 	public AutoReserveInfoList getAutoReserves() { return AUTORESERVES; }
-	private AutoReserveInfoList AUTORESERVES = new AutoReserveInfoList(Env.envDir,"dummy","0.0.0.0","0");
+	private AutoReserveInfoList AUTORESERVES = new AutoReserveInfoList(Env.envDir,null,"dummy","0.0.0.0","0");
 	
 	/**
 	 * 録画済み一覧

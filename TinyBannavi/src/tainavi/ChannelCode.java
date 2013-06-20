@@ -257,7 +257,7 @@ public class ChannelCode extends ArrayList<String> implements Cloneable {
 	@Override
 	public ChannelCode clone() {
 		ChannelCode cc = (ChannelCode) super.clone();
-		CommonUtils.FieldCopy(cc, this); // ディープコピーするよ
+		FieldUtils.deepCopy(cc, this); // ディープコピーするよ
 		return cc;
 	}
 }

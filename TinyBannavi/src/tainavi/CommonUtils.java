@@ -2,7 +2,6 @@
 package tainavi;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Desktop;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
@@ -23,21 +22,13 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.text.SimpleDateFormat;
-import java.util.AbstractList;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.ConcurrentModificationException;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -947,287 +938,6 @@ public class CommonUtils {
 	 * オブジェクト操作関連
 	 ******************************************************************************/
 
-	/**
-	 * <P>オブジェクトからオブジェクトへフィールドのコピー（ディープコピー）を行います。
-	 * <P>新しく作ったインスタンスに入れ替えたいけど、ポインタを変えたくないので中身だけコピーできないか？という時に使います。
-	 * <P>fromにあってtoにないフィールドについては無視して最後まで処理を続行します（というか型違いとかも無視します）。
-	 * <P>多分遅いので、設定ファイルの読み出しなど使用頻度の少ないところで利用します。
-	 * @param to : HashMapクラスの場合は、コピー先にインスタンスが存在している必要があります（nullはだめ）
-	 * @param from
-	 * @version 3.15.4β～
-	 */
-	public static boolean FieldCopy(final Object to, final Object from) {
-		try {
-			return FieldCopy(to,from,null);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-	
-	@SuppressWarnings("rawtypes")
-	private static boolean FieldCopy(final Object to, final Object from, final Field fn) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ConcurrentModificationException, InstantiationException  {
-		
-		// 継承しているクラスのリストを作成する
-		ArrayList<Class> fromCL = new ArrayList<Class>();
-		ArrayList<Class> toCL = new ArrayList<Class>();
-		for ( Class c=from.getClass(); c!=null && ! Object.class.equals(c); c=c.getSuperclass() ) {
-			//if (debug) System.out.println("[DEBUG] FROM "+c.getName());
-			fromCL.add(c);
-		}
-		for ( Class c=to.getClass(); c!=null && ! Object.class.equals(c); c=c.getSuperclass() ) {
-			//if (debug) System.out.println("[DEBUG] TO "+c.getName());
-			toCL.add(c);
-		}
-
-		// 両方の開始位置をそろえる
-		while ( fromCL.size() > 0 && ! toCL.contains(fromCL.get(0)) ) {
-			if (debuglv2) System.out.println("[DEBUG] removed FROM "+fromCL.get(0).getName());
-			fromCL.remove(0);
-		}
-		while ( toCL.size() > 0 && ! fromCL.contains(toCL.get(0)) ) {
-			if (debuglv2) System.out.println("[DEBUG] removed TO "+toCL.get(0).getName());
-			toCL.remove(0);
-		}
-		
-		int i=0;
-		for ( Class c : fromCL ) {
-			
-			i++;
-			
-			String ctype = (i>1)?(" (super class)"):("");
-			String cname = c.getName();
-			String fname = (fn!=null)?(" name="+fn.getName()):("");
-			
-			if ( isHashMap(to,from,c,fn) ) {
-				if (debuglv2) System.err.println("[DEBUG] FieldCopy("+cname+") *** TERM *** deep copy"+ctype+fname);
-				return true;
-			}
-			
-			if ( isLeaf(to,from,c,fn) ) {
-				if (debuglv2) System.err.println("[DEBUG] FieldCopy("+cname+") *** TERM *** leaf"+ctype+fname);
-				return true;
-			}
-			
-			Field[] fd = c.getDeclaredFields();
-			
-			// フィールドなんかねーよ
-			if ( fd.length == 0 ) {
-				if ( fn == null ) {
-					// 継承だけして追加のフィールドがない場合にここに入る
-					if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") no field"+ctype+fname);
-					continue;
-				}
-				
-				if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") *** TERM *** no field"+ctype+fname);
-				return isCopyable(to,from,c,fn);	// 終端
-			}
-			
-			// （フィールド）たんけんぼくのまち。チョーさん生きてるよ！
-			for ( Field f : fd ) {
-				f.setAccessible(true);
-				
-				String xcname = f.getType().getName();
-				String xfname = " name="+f.getName();
-				
-				int mod = f.getModifiers();
-				
-				if ( Modifier.isFinal(mod) ) {
-					if (debuglv2) System.err.println("[DEBUG] FieldCopy("+xcname+") : FINAL field "+ctype+xfname);
-					continue;
-				}
-				if ( Modifier.isStatic(mod) ) {
-					if (debug) System.err.println("[DEBUG] FieldCopy("+xcname+") : STATIC field "+ctype+xfname);
-					continue;
-				}
-				
-				
-				Object o = f.get(from);
-				if ( o == null ) {
-					if (debug) System.err.println("[DEBUG] FieldCopy("+xcname+") *** TERM *** null value FROM"+ctype+xfname);
-					f.set(to, null);
-					continue;	// 終端
-				}
-				
-				Class xc = o.getClass();
-				xcname = xc.getName();
-				
-				if ( isHashMap(to,o,xc,f) ) {
-					if (debuglv2) System.err.println("[DEBUG] FieldCopy("+xcname+") *** TERM *** deep copy"+ctype+xfname);
-					continue;
-				}
-				
-				if ( isLeaf(to,o,xc,f) ) {
-					if (debuglv2) System.err.println("[DEBUG] FieldCopy("+xcname+") *** TERM *** leaf"+ctype+xfname);
-					continue;
-				}
-				
-				isCopyable(to,o,xc,f);	// 終端
-			}
-		}
-		
-		return true;
-	}
-	
-	// HashMapとか、コピーする
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static boolean isHashMap(Object to, Object from, Class c, Field f) throws InstantiationException, IllegalAccessException, ConcurrentModificationException  {
-		
-		String cname = c.getName();
-		String fname = " name="+((f==null)?("<TOP>"):(f.getName()));
-		
-		for ( Class cx : unCloneables ) {
-			if ( cx.equals(c) ) {
-				if ( HashMap.class.equals(c) || ArrayList.class.equals(c) ) {
-		
-					final Object px = (f==null)?(to):(f.get(to));
-					if ( px == null ) {
-						// コピー先にインスタンスが存在している必要がある
-						if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / isCloneable() : must have been initialized"+fname);
-						return true;
-					}
-					
-					// 個別（キャスト！）
-		
-					if ( HashMap.class.equals(c) ) {
-						HashMap<Object, Object> o = (HashMap<Object, Object>) from;
-						HashMap<Object, Object> p;
-						if ( f != null ) {
-							// フィールドならclone()では社ローコピーのせいで同じものを指してるに違いない、新しいインスタンスを作らないといけない
-							p = (HashMap<Object, Object>) c.newInstance();
-						}
-						else {
-							// 自身（orスーパークラス）なら別物だろうからキャストで大丈夫だろう
-							p = (HashMap<Object, Object>) to;
-						}
-						
-						p.clear(); // とりあえず消す
-						if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / isHashMap() : HashMap "+cname+fname+" size="+o.size());
-						for ( Entry<Object, Object> entry: o.entrySet() ) {
-							if (debuglv2) System.err.println("[DEBUG] FieldCopy("+cname+") / isHashMap() : copy"+fname+" key="+entry.getKey()+" value="+entry.getValue());
-							p.put(entry.getKey(), entry.getValue());
-						}
-						
-						if ( f != null ) {
-							f.set(to, p);
-						}
-					}
-					else if ( ArrayList.class.equals(c) ) {
-						ArrayList<Object> o = (ArrayList<Object>) from;
-						ArrayList<Object> p = null;
-						if ( f != null ) {
-							p = (ArrayList<Object>) c.newInstance();
-						}
-						else {
-							p = (ArrayList<Object>) to;
-						}
-						
-						p.clear(); // とりあえず消す
-						if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / isHashMap() : ArrayList "+cname+fname+" size="+o.size());
-						for ( Object entry: o ) {
-							if (debuglv2) System.err.println("[DEBUG] FieldCopy("+cname+") / isHashMap() : copy"+fname+" value="+entry);
-							p.add(entry);
-						}
-						
-						if ( f != null ) {
-							f.set(to, p);
-						}
-					}
-				}
-				else {
-					if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / isHashMap() : unsupported"+fname);
-				}
-				return true;
-			}			
-		}
-		return false;
-	}
-	
-	@SuppressWarnings("rawtypes")
-	private static final Class[] unCloneables = { HashMap.class, AbstractMap.class, ArrayList.class, AbstractList.class };
-	
-	// Integerとか、コピーする
-	@SuppressWarnings("rawtypes")
-	private static boolean isLeaf(Object to, Object from, Class c, Field f) throws IllegalArgumentException, IllegalAccessException {
-		
-		String cname = c.getName();
-		String fname = " name="+((f==null)?("<TOP>"):(f.getName()));
-		
-		if ( from instanceof String || from instanceof Boolean || from instanceof Number || from instanceof Color || from instanceof Enum || from instanceof Component ) {
-			if ( f == null ) {
-				if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / isLeaf() : <Top> is not allowed");
-				return true;
-			}
-				
-			//if (debuglv2) System.err.println("[DEBUG] FieldCopy("+cname+") / isLeaf() : leaf field"+fname);
-			f.set(to, from);
-			return true;
-		}
-		
-		return false;
-	}
-	
-	//
-	@SuppressWarnings("rawtypes")
-	private static boolean isCopyable(Object to, Object from, Class c, Field f) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
-		
-		String cname = c.getName();
-		String fname = " name="+((f==null)?("<TOP>"):(f.getName()));
-		
-		// コピーに失敗して例外の発生したフィールドについては無視します
-		
-		if ( c.isPrimitive() ) {
-			if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / isCopyable() : primitive"+fname);
-			f.set(to, from);
-		}
-		else if ( c.isArray() ) {
-			if ( f == null ) {
-				// 自分自身だとコピーするしかないが、しない。redim()があればなんとかできたのに！
-				if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / isCopyable() : not copyable array"+fname);
-			}
-			else {
-				// フィールドなら入れ物は作る。要素はコピー
-				Class comp = c.getComponentType();
-				if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / isCopyable() : array of "+comp.getName()+fname+" lenth="+Array.getLength(from));
-				Object[] o = (Object[]) from;
-				Object[] p = (Object[]) Array.newInstance(comp, Array.getLength(from));
-				
-				for ( int i=o.length-1; i>=0; i-- ) {
-					if (debuglv2) System.err.println("[DEBUG] FieldCopy("+comp.getName()+") / isCopyable() : copy"+fname+" value="+o[i]);
-					p[i] = o[i];
-				}
-			}
-		}
-		else {
-			// そのほかは可能な限りcloneする
-			invokeClone(to,from,c,f);
-		}
-		
-		return true;
-	}
-	
-	//
-	@SuppressWarnings("rawtypes")
-	private static boolean invokeClone(Object to, Object from, Class c, Field f) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		
-		final String cname = c.getName();
-		final String fname = " name="+((f==null)?("<TOP>"):(f.getName())); // よく考えたらここにf==nullで入ってくることはない
-		
-		try {
-			@SuppressWarnings("unchecked")
-			Method m = c.getMethod("clone");
-			f.set(to, m.invoke(from));
-			if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / invokeClone() : invoke clone "+cname+fname);
-			return true;
-		}
-		catch (NoSuchMethodException e) {
-			// ちょっとこわいのでコピーせずに無視
-			if (debug) System.err.println("[DEBUG] FieldCopy("+cname+") / invokeClone() : clone unsupported and ignored "+fname);
-		}
-		return false;
-	}
-	
 	/*******************************************************************************
 	 * JavaVM関連
 	 ******************************************************************************/
@@ -1789,7 +1499,7 @@ public class CommonUtils {
 	}
 	
 	/**
-	 *  XMLDecorderでシリアライズしたファイルを読みだす
+	 * XMLDecorderでシリアライズしたファイルを読みだす（オブジェクトを返す場合）
 	 */
 	public static Object readXML(String fname) {
 		{
@@ -1815,6 +1525,19 @@ public class CommonUtils {
 		return null;
 	}
 	
+	/**
+	 * XMLDecorderでシリアライズしたファイルを読みだす（既存のオブジェクトに値を入れて返す場合）
+	 */
+	public static boolean readXML(String fname, Object obj) {
+		
+		Object tmp = readXML(fname);
+		if ( tmp == null ) {
+			return false;
+		}
+		
+		return FieldUtils.deepCopy(obj, tmp);
+	}
+
 	/*
 	 * finallyブロックで書き間違えそうなので
 	 */

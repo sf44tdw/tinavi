@@ -203,7 +203,7 @@ public class SearchGroupList implements Iterator<SearchGroup>, Iterable<SearchGr
 			@SuppressWarnings("unchecked")
 			ArrayList<SearchGroup> tmpList = (ArrayList<SearchGroup>) CommonUtils.readXML(gFile);
 			if ( tmpList != null ) {
-				CommonUtils.FieldCopy(gList, tmpList);
+				FieldUtils.deepCopy(gList, tmpList);
 				return true;
 			}
 		}

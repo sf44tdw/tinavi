@@ -202,7 +202,7 @@ public class Bounds {
 	public void setFrameBufferSize(int n) { frameBufferSize = n; }
 	
 	//
-	private boolean loaded;
+	private static boolean loaded;
 	public boolean isLoaded() { return loaded; }
 	public void setLoaded(boolean b) { loaded = b; }
 	
@@ -236,7 +236,7 @@ public class Bounds {
 			if ( b != null ) {
 				b.setListedColumnWidth(b.getListedColumnWidth());	// 旧型式→新形式に変換
 				b.setRsvedColumnWidth(b.getRsvedColumnWidth());		// 旧型式→新形式に変換
-				CommonUtils.FieldCopy(this, b);
+				FieldUtils.deepCopy(this, b);
 				
 				// テキスト形式がなければ作るよ
 				if ( FieldUtils.save(BOUNDS_TEXT,this) ) {

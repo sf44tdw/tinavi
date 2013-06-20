@@ -58,7 +58,7 @@ public class RecorderInfoList extends ArrayList<RecorderInfo> {
 			ArrayList<RecorderList> rlx = (ArrayList<RecorderList>) CommonUtils.readXML(rFileOld);
 			for ( RecorderList rx : rlx ) {
 				RecorderInfo r = new RecorderInfo();
-				CommonUtils.FieldCopy(r, rx);
+				FieldUtils.deepCopy(r, rx);
 				rl.add(r);
 			}
 		}

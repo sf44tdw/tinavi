@@ -170,7 +170,7 @@ public class TVProgramList extends ArrayList<TVProgram> implements Cloneable {
 	@Override
 	public TVProgramList clone() {
 		TVProgramList p = (TVProgramList) super.clone();
-		CommonUtils.FieldCopy(p, this); // ディープコピーするよ
+		FieldUtils.deepCopy(p, this); // ディープコピーするよ
 		return p;
 	}
 }

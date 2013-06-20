@@ -245,9 +245,9 @@ abstract class AbsPaperColorsDialog extends JDialog {
 					System.err.println("[DEBUG] before orig papercolorsmap "+key+"="+origpc.get(key));
 				}
 			}
-			CommonUtils.FieldCopy(tmpenv, origenv);
-			CommonUtils.FieldCopy(tmpbnd, origbnd);
-			CommonUtils.FieldCopy(tmppc, origpc);
+			FieldUtils.deepCopy(tmpenv, origenv);
+			FieldUtils.deepCopy(tmpbnd, origbnd);
+			FieldUtils.deepCopy(tmppc, origpc);
 			setColors();
 			setFonts();
 			setBounds();

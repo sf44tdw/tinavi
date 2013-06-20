@@ -72,7 +72,7 @@ public class PaperColorsMap extends HashMap<ProgGenre,Color> implements Cloneabl
 			PaperColorsMap cl = (PaperColorsMap) CommonUtils.readXML(cFile);
 			if ( cl != null ) {
 				System.out.println("ジャンル別背景色設定を読み込みました.");
-				CommonUtils.FieldCopy(this, cl);
+				FieldUtils.deepCopy(this, cl);
 				return true;
 			}
 		}
