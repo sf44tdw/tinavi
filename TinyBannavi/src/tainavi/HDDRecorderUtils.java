@@ -984,9 +984,17 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	}
 
 	/**
-	 * 自動予約一覧の置き換え
+	 * <P>自動予約一覧の置き換え
+	 * <P>chCode→chName変換もこの中でやる
 	 */
 	protected void setAutoReserves(AutoReserveInfoList l) {
+		for ( AutoReserveInfo r : l ) {
+			r.clearChNames();
+			for ( String chCode : r.getChCodes() ) {
+				String chName = getChCode().getCH_CODE2WEB(chCode);
+				r.addChName((chName!=null) ? chName : chCode);
+			}
+		}
 		AUTORESERVES = l;
 	}
 	

@@ -12,7 +12,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class JComboBoxPanel extends JPanel implements ItemSelectable {
+public class JComboBoxPanel extends JPanel implements ItemSelectable,WideComponent {
 
 	private static final long serialVersionUID = 1L;
 
@@ -140,6 +140,11 @@ public class JComboBoxPanel extends JPanel implements ItemSelectable {
 	}
 	
 	// オーバーライド
+
+	@Override
+	public void addPopupWidth(int w) {
+		this.jcombobox.addPopupWidth(w);
+	}
 	
 	@Override
 	public void addItemListener(ItemListener l) {

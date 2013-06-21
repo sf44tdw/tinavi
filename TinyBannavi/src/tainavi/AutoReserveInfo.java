@@ -69,6 +69,8 @@ public class AutoReserveInfo implements Cloneable {
 	 *  SHOWN PARAMS
 	 */
 	
+	private boolean exec;				// 有効・無効
+	
 	private String label;					// 一覧表示用
 	
 	private String keyword;					// 絞り込みキーワード
@@ -84,12 +86,14 @@ public class AutoReserveInfo implements Cloneable {
 	private boolean recordedCheck;			// 録画済み無効[E]
 	private int recordedCheckTerm;			// 録画済み無効遡り範囲[E]
 	
-	private String adate;					// 開始日[T]
-	private String zdate;					// 終了日[T]
+	private String adate;					// 条件の開始日[T]
+	private String zdate;					// 条件の終了日[T]
 	
-	private ArrayList<String> chNames = new ArrayList<String>();				// チャンネル名　※CHコード：[E]予約操作時と同じ、[T]コントローラの値と同じ（ただしこちらはHEX表記）
+	private ArrayList<String> chNames = new ArrayList<String>();				// チャンネル名　※Web番組表の放送局名でどうぞ
+	private ArrayList<String> chCodes = new ArrayList<String>();				// CHコード ※[E]予約操作時と同じ、[T]コントローラの値と同じ（ただしこちらはHEX表記でのやりとりとなる）
+	
 	private ArrayList<ProgSubgenre> subgenres = new ArrayList<ProgSubgenre>();	// ジャンル
-	private ArrayList<ProgOption> options =  new ArrayList<ProgOption>();		// 番組属性　※[E]無料／有料のみ
+	private ArrayList<ProgOption> options =  new ArrayList<ProgOption>();		// 番組属性　※[E]無料／有料のみ、[T]そこはかとなく任意
 	
 	private ReserveInfo recSetting;				// 録画設定
 
@@ -100,6 +104,9 @@ public class AutoReserveInfo implements Cloneable {
 	
 	public String getId() { return id; }
 	public void setId(String s) { id = s; }
+	
+	public boolean getExec() { return exec; }
+	public void setExec(boolean b) { exec = b; }
 	
 	public String getLabel() { return label; }
 	public void setLabel(String s) { label = s; }
@@ -126,7 +133,13 @@ public class AutoReserveInfo implements Cloneable {
 	 * 使用しない曜日の場合はnullを代入する
 	 */
 	public ArrayList<String> getTimeslots() { return timeslots; }
-	public ArrayList<String> getChannels() { return chNames; }
+	public void setTimeslots(ArrayList<String> a) { timeslots = a; }
+	
+	//public ArrayList<String> getChannels() { return chNames; }	// 表示用のデータなのでファイル出力しない
+	//public void getChannels(ArrayList<String> a) { chNames = a; }
+	
+	public ArrayList<String> getChCodes() { return chCodes; }
+	public void setChCodes(ArrayList<String> a) { chCodes = a; }
 	
 	public ReserveInfo getRecSetting() { return recSetting; }
 	public void setRecSetting(ReserveInfo r) { recSetting = r; } 
@@ -135,7 +148,25 @@ public class AutoReserveInfo implements Cloneable {
 	 * extra
 	 ******************************************************************************/
 	
-	public String getChNames() { return (chNames.size() > 0) ? chNames.get(0) : null; }
-
+	/**
+	 * CHコード→放送局名変換の結果を設定する
+	 */
+	public void addChName(String chName) { chNames.add(chName); }
+	public void clearChNames() { chNames.clear(); }
+	
+	/**
+	 * テーブルの放送局欄に表示する値を取得する
+	 */
+	public String getChName() {
+		if ( chNames.size() >= 2 ) {
+			return chNames.get(0)+" ほか";	// 複数局あるなら何個かピックアップしたいよね
+		}
+		else if ( chNames.size() >= 1 ) {
+			return chNames.get(0);
+		}
+		else {
+			return null;
+		}
+	}
 
 }

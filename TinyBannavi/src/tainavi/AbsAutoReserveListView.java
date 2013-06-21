@@ -2,17 +2,19 @@ package tainavi;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
@@ -45,6 +47,7 @@ public abstract class AbsAutoReserveListView extends JPanel implements HDDRecord
 	private static final String ERRID = "[ERROR]"+MSGID;
 	private static final String DBGID = "[DEBUG]"+MSGID;
 	
+	private static final String ICONFILE_EXEC			= "icon/media-record-3.png";
 	
 	/*******************************************************************************
 	 * 部品
@@ -54,6 +57,7 @@ public abstract class AbsAutoReserveListView extends JPanel implements HDDRecord
 	private final Env env = getEnv();
 	private final Bounds bounds = getBoundsEnv();
 	
+	private final ImageIcon execicon = new ImageIcon(ICONFILE_EXEC);
 	
 	/**
 	 * カラム定義
@@ -117,6 +121,10 @@ public abstract class AbsAutoReserveListView extends JPanel implements HDDRecord
 		@Override
 		protected void myrefresh(RowItem o) {
 			AutoRsvItem c = (AutoRsvItem) o;
+			
+			c.addData(c.autorsv.getExec());
+			c.addData(c.autorsv.getLabel());
+			c.addData(c.autorsv.getChName());
 		}
 		
 		public AutoRsvItem clone() {
@@ -135,18 +143,15 @@ public abstract class AbsAutoReserveListView extends JPanel implements HDDRecord
 		@Override
 		public Object getValueAt(int row, int column) {
 			AutoRsvItem c = rDat.get(row);
-			AutoRsvColumn v = AutoRsvColumn.getColumnValue(column);
-			switch (v) {
-			case EXEC:
-				break;
-			case TITLE:
-				return c.autorsv.getLabel();
-			case CHNAME:
-				return c.autorsv.getChNames();
-			default:
-				break;
+			if ( c.getColumnCount() > column ) {
+				return c.get(column);
 			}
 			return null;
+		}
+		
+		@Override
+		public void setValueAt(Object aValue, int row, int column) {
+			// ダミー
 		}
 		
 		@Override
@@ -354,6 +359,12 @@ public abstract class AbsAutoReserveListView extends JPanel implements HDDRecord
 				//column.setPreferredWidth(bounds.getRecordedColumnSize().get(rc.toString()));
 				column.setPreferredWidth(rc.getIniWidth());
 			}
+
+			// 特殊なカラムの設定
+			ButtonColumn buttonColumn = new ButtonColumn(execicon);
+			jt_list.getColumn(AutoRsvColumn.EXEC.getName()).setCellRenderer(buttonColumn);
+			jt_list.getColumn(AutoRsvColumn.EXEC.getName()).setCellEditor(buttonColumn);
+			jt_list.getColumn(AutoRsvColumn.EXEC.getName()).setResizable(false);
 			
 			// 詳細表示
 			//jt_list.getSelectionModel().addListSelectionListener(lsSelectListner);
@@ -382,6 +393,59 @@ public abstract class AbsAutoReserveListView extends JPanel implements HDDRecord
 
 		private static final long serialVersionUID = 1L;
 		
+		public void setDisabledColor(Color c) { disabledColor = c; }
+		private Color disabledColor = new Color(180,180,180);
+		
+		private int prechkrow = -1;
+		private boolean prechkdisabled = false;
+		
+		@Override
+		public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
+			Component c = super.prepareRenderer(tcr, row, column);
+			Color bgColor = null;
+			if(isRowSelected(row)) {
+				bgColor = this.getSelectionBackground();
+			}
+			else {
+				isRowPassed(row);
+				if ( prechkdisabled ) {
+					bgColor = disabledColor;
+				}
+				else {
+					bgColor = (isSepRowColor && row%2 == 1)?(evenColor):(super.getBackground());
+				}
+			}
+			c.setBackground(bgColor);
+			return c;
+		}
+		
+		// 連続して同じ行へのアクセスがあったら計算を行わず前回のままにする
+		private boolean isRowPassed(int prow) {
+			
+			if(prechkrow == prow) {
+				return prechkdisabled;
+			}
+
+			int row = this.convertRowIndexToModel(prow);
+			AutoRsvItem c = rowViewTemp.get(row);
+
+			{
+				// 実行可能かどうか
+				prechkrow = prow;
+				prechkdisabled = ! c.autorsv.getExec();
+			}
+			
+			return true;
+		}
+		
+		@Override
+		public boolean isCellEditable(int row, int column) {
+			if ( column == AutoRsvColumn.EXEC.getColumn() ) {
+				return true;
+			}
+			return false;
+		}
+		
 		// コンストラクタ
 		
 		public JNETableAutoReserve(boolean b) {
@@ -392,5 +456,37 @@ public abstract class AbsAutoReserveListView extends JPanel implements HDDRecord
 		}
 		
 	}
-	
+
+	/**
+	 * EXECボタン
+	 */
+	private class ButtonColumn extends AbstractExecButtonColumn {
+
+		private static final long serialVersionUID = 1L;
+
+		public ButtonColumn(ImageIcon icon) {
+			super(icon);
+		}
+
+		@Override
+		protected void toggleAction(ActionEvent e) {
+			
+			fireEditingStopped();
+			
+			int vrow = jt_list.getSelectedRow();
+			int row = jt_list.convertRowIndexToModel(vrow);
+			
+			AutoRsvItem c = rowViewTemp.get(row);
+
+			//if ( doExecOnOff( ! c.exec, c.title, c.chname, c.hide_rsvid, c.recorder) )
+			{
+				c.autorsv.setExec( ! c.autorsv.getExec());
+				c.fireChanged();
+			}
+			
+			jt_list.clearSelection();
+			jt_list.setRowSelectionInterval(vrow, vrow);
+		}
+	}
+
 }

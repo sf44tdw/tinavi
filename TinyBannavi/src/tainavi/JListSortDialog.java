@@ -50,7 +50,9 @@ public class JListSortDialog extends JDialog {
 		// タイトルバーの高さも考慮する必要がある
 		Dimension d = jpan.getPreferredSize();
 		this.pack();
-		this.setPreferredSize(new Dimension(d.width, d.height+this.getInsets().top));
+		this.setPreferredSize(new Dimension(
+				d.width+(this.getInsets().left+this.getInsets().right),
+				d.height+(this.getInsets().top+this.getInsets().bottom)));
 		this.setResizable(false);
 	}
 	

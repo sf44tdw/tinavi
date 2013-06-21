@@ -324,7 +324,11 @@ public class VWTraceKeyDialog extends JDialog {
 		// タイトルバーの高さも考慮する必要がある
 		Dimension d = getJPanel().getPreferredSize();
 		this.pack();
-		this.setBounds(x, y, d.width, d.height+this.getInsets().top);
+		this.setBounds(
+				x,
+				y, 
+				d.width+(this.getInsets().left+this.getInsets().right),
+				d.height+(this.getInsets().top+this.getInsets().bottom));
 		this.setResizable(false);
 		//
 		this.setTitle("番組追跡の設定");

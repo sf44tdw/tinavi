@@ -1,5 +1,6 @@
 package tainavi;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -113,31 +114,34 @@ abstract class AbsReserveDialog extends JDialog {
 	
 	// レイアウト関連
 	
-	private static final int TITLE_WIDTH = 370;
-	private static final int CHNAME_WIDTH = 240;
-	private static final int RECORDER_WIDTH = 300;
-	private static final int ENCODER_WIDTH = 150;
-	private static final int BOX_WIDTH = 730;
-	private static final int LIKELIST_WIDTH = BOX_WIDTH;
-	private static final int LIKELIST_ROWS = 4;
-	
 	private static final int PARTS_HEIGHT = 25;
 	private static final int SEP_WIDTH = 10;
 	private static final int SEP_WIDTH_NARROW = 5;
 	private static final int SEP_HEIGHT = 10;
 	private static final int SEP_HEIGHT_NALLOW = 5;
-
-	private static final int LABEL_WIDTH = 150;
+	
 	private static final int COMBO_WIDTH = 115;
 	private static final int COMBO_WIDTH_WIDE = 155;
 	private static final int COMBO_HEIGHT = 50;
 
-	private static final int PANEL_WIDTH = 760;
+	private static final int TITLE_WIDTH = COMBO_WIDTH_WIDE+COMBO_WIDTH*2+SEP_WIDTH*2;
+	private static final int CHNAME_WIDTH = COMBO_WIDTH*2+SEP_WIDTH;
+	private static final int DETAIL_WIDTH = TITLE_WIDTH+CHNAME_WIDTH+SEP_WIDTH;
+	private static final int DETAIL_HEIGHT = 100;
+	private static final int DATE_WIDTH = 175;
+	private static final int LIKELIST_WIDTH = 730;
+	private static final int LIKELIST_ROWS = 4;
+	
+	private static final int LABEL_WIDTH = 150;
+	private static final int BUTTON_WIDTH = 75;
+
+	private static final int RECORDER_WIDTH = COMBO_WIDTH_WIDE*2+SEP_WIDTH_NARROW;
+	private static final int ENCODER_WIDTH = COMBO_WIDTH*2+SEP_WIDTH_NARROW;
 	
 	private static final int LRT_HEADER_WIDTH = 20;
 	private static final int LRT_TITLE_WIDTH = 325;
 	private static final int LRT_START_WIDTH = 115;
-	private static final int LRT_RECORDER_WIDTH = 185;
+	private static final int LRT_RECORDER_WIDTH = 200;
 	private static final int LRT_ENCODER_WIDTH = 60;
 	
 	public static enum LikeRsvColumn {
@@ -190,46 +194,63 @@ abstract class AbsReserveDialog extends JDialog {
 	
 	private JPanel jContentPane_rsv = null;
 
+	// 番組設定
+	
+	private JPanel jPane_title = null;
+	
 	private JLabel jLabel_title = null;
-	private JComboBox jComboBox_ch = null;
-	private JLabel jLabel_ch= null;
-	private JLabel jLabel_encoder = null;
-	private JComboBoxWithPopup jComboBox_title = null;
-	private JWideComboBox jComboBox_encoder = null;
 	private JButton jButton_getEventId = null;
+	private JButton jButton_addDate = null;
+	private JComboBoxWithPopup jComboBox_title = null;
+	private JLabel jLabel_ch = null;
+	private JComboBox jComboBox_ch = null;
+	
+	private JComboBoxPanel jCBXPanel_recorder = null;
+	private JComboBoxPanel jCBXPanel_encoder = null;
 	private JLabel jLabel_encoderemptywarn = null;
+	
 	private JLabel jLabel_date = null;
-	private JLabel jLabel_ahh = null;
-	private JLabel jLabel_zhh = null;
-	private JLabel jLabel_recorders = null;
-	private JComboBox jComboBox_recorder = null;
 	private JComboBox jComboBox_date = null;
+	
+	private JLabel jLabel_ahh = null;
 	private JTextField jTextField_ahh = null;
-	private JTextField jTextField_amm = null;
 	private JLabel jLabel_asep = null;
+	private JTextField jTextField_amm = null;
 	private JButton jButton_amm_up = null;
 	private JButton jButton_amm_down = null;
 	private JTextField jTextField_Xahh = null;
-	private JTextField jTextField_Xamm = null;
 	private JLabel jLabel_Xasep = null;
+	private JTextField jTextField_Xamm = null;
+	
+	private JLabel jLabel_zhh = null;
 	private JTextField jTextField_zhh = null;
-	private JTextField jTextField_zmm = null;
 	private JLabel jLabel_zsep = null;
+	private JTextField jTextField_zmm = null;
 	private JButton jButton_zmm_up = null;
 	private JButton jButton_zmm_down = null;
 	private JTextField jTextField_Xzhh = null;
-	private JTextField jTextField_Xzmm = null;
 	private JLabel jLabel_Xzsep = null;
+	private JTextField jTextField_Xzmm = null;
+	
 	private JButton jButton_Xreset = null;
+	
 	private JLabel jLabel_detail = null;
 	private JScrollPane jScrollPane_detail = null;
 	private JTextAreaWithPopup jTextArea_detail = null;
+	
 	private JCheckBoxPanel jCheckBox_OverlapDown2 = null;
 	private JCheckBoxPanel jCheckBox_spoex_extend = null;
-	private JLabel jLabel_rectype = null;
-	private JButton jButton_load = null;
-	private JButton jButton_save = null;
-	private JButton jButton_savedefault = null;
+	
+	private JCheckBoxPanel jCheckBox_Exec = null;
+	private JCheckBoxPanel jCheckBox_Autocomplete = null;
+
+	private JButton jButton_update = null;
+	private JButton jButton_record = null;
+	private JButton jButton_cancel = null;
+
+	// 録画設定
+	private JPanel jPane_recsetting = null;
+
 	private JComboBoxPanel jCBXPanel_genre = null;
 	private JComboBoxPanel jCBXPanel_subgenre = null;
 	private JComboBoxPanel jCBXPanel_videorate = null;
@@ -242,20 +263,21 @@ abstract class AbsReserveDialog extends JDialog {
 	private JComboBoxPanel jCBXPanel_lvoice = null;
 	private JComboBoxPanel jCBXPanel_autodel = null;
 	private JComboBoxPanel jCBXPanel_pursues = null;
-	private JButton jButton_update = null;
-	private JButton jButton_record = null;
-	private JButton jButton_cancel = null;
-	private JCheckBoxPanel jCheckBox_Exec = null;
-	private JCheckBoxPanel jCheckBox_Autocomplete = null;
-	private JButton jButton_addDate = null;
-	
-	private LikeRsvRowHeader likersvrowheader = null;
-	private JScrollPane likersvpane = null;
-	private LikeRsvTable likersvtable = null;
-	
 	private JComboBoxPanel jCBXPanel_xChapter = null;
 	private JComboBoxPanel jCBXPanel_msChapter = null;
 	private JComboBoxPanel jCBXPanel_mvChapter = null;
+	
+	private JLabel jLabel_rectype = null;
+	private JButton jButton_load = null;
+	private JButton jButton_save = null;
+	private JButton jButton_savedefault = null;
+	
+	// 類似予約
+	
+	private JScrollPane jPane_likersv = null;
+	
+	private LikeRsvTable likersvtable = null;
+	private LikeRsvRowHeader likersvrowheader = null;
 	
 	/*
 	 * その他
@@ -325,7 +347,11 @@ abstract class AbsReserveDialog extends JDialog {
 		// タイトルバーの高さも考慮する必要がある
 		Dimension d = getJContentPane_rsv().getPreferredSize();
 		this.pack();
-		this.setBounds(x, y, d.width, d.height+this.getInsets().top);
+		this.setBounds(
+				x,
+				y,
+				d.width+(this.getInsets().left+this.getInsets().right),
+				d.height+(this.getInsets().top+this.getInsets().bottom));
 		this.setResizable(false);
 		//
 		this.setTitle("録画設定");
@@ -357,7 +383,7 @@ abstract class AbsReserveDialog extends JDialog {
 		r.setZhh(String.format("%02d", Integer.valueOf(getJTextField_zhh().getText())));
 		r.setZmm(String.format("%02d", Integer.valueOf(getJTextField_zmm().getText())));
 		r.setRec_min("");			// PostRdEntry()中で取得するのでここはダミー
-		r.setTuner((String)jComboBox_encoder.getSelectedItem());
+		r.setTuner((String)jCBXPanel_encoder.getSelectedItem());
 		r.setRec_mode((String)jCBXPanel_videorate.getSelectedItem());
 		r.setRec_audio((String)jCBXPanel_audiorate.getSelectedItem());
 		r.setRec_folder((String)jCBXPanel_folder.getSelectedItem());
@@ -397,7 +423,7 @@ abstract class AbsReserveDialog extends JDialog {
 			@Override
 			protected Object doWorks() throws Exception {
 				for ( HDDRecorder recorder : recorders ) {
-					if (recorder.isMyself((String)jComboBox_recorder.getSelectedItem()) == true) {
+					if (recorder.isMyself((String)jCBXPanel_recorder.getSelectedItem()) == true) {
 						StWin.appendMessage(MSGID+"予約を登録します："+r.getTitle());
 						//recorder.setProgressArea(StWin);
 						if (recorder.PostRdEntry(r)) {
@@ -472,7 +498,7 @@ abstract class AbsReserveDialog extends JDialog {
 		newRsv.setZhh(String.format("%02d", Integer.valueOf(getJTextField_zhh().getText())));
 		newRsv.setZmm(String.format("%02d", Integer.valueOf(getJTextField_zmm().getText())));
 		newRsv.setRec_min("");			// UpdateRdEntry()中で取得するのでここはダミー
-		newRsv.setTuner((String)jComboBox_encoder.getSelectedItem());
+		newRsv.setTuner((String)jCBXPanel_encoder.getSelectedItem());
 		newRsv.setRec_mode((String)jCBXPanel_videorate.getSelectedItem());;
 		newRsv.setRec_audio((String)jCBXPanel_audiorate.getSelectedItem());
 		newRsv.setRec_folder((String)jCBXPanel_folder.getSelectedItem());
@@ -779,20 +805,20 @@ abstract class AbsReserveDialog extends JDialog {
 	private void setInitFixies(HDDRecorder myrec, ReserveList myrsv) {
 		// レコーダコンボボックスの設定
 		{
-			jComboBox_recorder.removeAllItems();
+			jCBXPanel_recorder.removeAllItems();
 			for ( HDDRecorder rec : recorders ) {
 				if ( rec.isBackgroundOnly() ) {
 					continue;	// Googleカレンダープラグインとかははずす
 				}
-				jComboBox_recorder.addItem(rec.Myself());
+				jCBXPanel_recorder.addItem(rec.Myself());
 			}
-			jComboBox_recorder.setEnabled( jComboBox_recorder.getItemCount() > 0 );
+			jCBXPanel_recorder.setEnabled( jCBXPanel_recorder.getItemCount() > 0 );
 			
 			if ( vals.hide_atreservedlist ) {
-				jComboBox_recorder.setEnabled(false);
+				jCBXPanel_recorder.setEnabled(false);
 			}
 			else {
-				jComboBox_recorder.setEnabled(true);
+				jCBXPanel_recorder.setEnabled(true);
 			}
 		}
 		
@@ -1052,11 +1078,11 @@ abstract class AbsReserveDialog extends JDialog {
 		
 		// エンコーダ
 		{
-			jComboBox_encoder.removeAllItems();
+			jCBXPanel_encoder.removeAllItems();
 			for ( String enc : getFilteredEncoders(myrec, vals.hide_tvd.center) ) {
-				jComboBox_encoder.addItem(enc);
+				jCBXPanel_encoder.addItem(enc);
 			}
-			jComboBox_encoder.setEnabled( jComboBox_encoder.getItemCount() > 0 );
+			jCBXPanel_encoder.setEnabled( jCBXPanel_encoder.getItemCount() > 0 );
 		}
 		
 		// 日付
@@ -1163,7 +1189,7 @@ abstract class AbsReserveDialog extends JDialog {
 		}
 
 		// レコーダ
-		jComboBox_recorder.setSelectedItem(myrec.Myself());
+		jCBXPanel_recorder.setSelectedItem(myrec.Myself());
 		
 		// エンコーダ（移動しました）
 		
@@ -1189,9 +1215,9 @@ abstract class AbsReserveDialog extends JDialog {
 		{
 			
 			if ( vals.hide_atreservedlist ) {
-				jComboBox_encoder.setSelectedItem(myrsv.getTuner());
+				jCBXPanel_encoder.setSelectedItem(myrsv.getTuner());
 			}
-			else if ( jComboBox_encoder.getItemCount() > 0 ) {
+			else if ( jCBXPanel_encoder.getItemCount() > 0 ) {
 				// 裏番組チェックとかやるよ
 				String vrate = ( isVARDIA(myrec.getRecorderId()) ) ? ((String) jCBXPanel_videorate.getSelectedItem()) : (null);
 				String starttm = vals.hide_tvd.start;
@@ -1213,21 +1239,21 @@ abstract class AbsReserveDialog extends JDialog {
 				
 				if ( myrsv != null ) {
 					// 類似予約最優先
-					jComboBox_encoder.setSelectedItem(myrsv.getTuner());
+					jCBXPanel_encoder.setSelectedItem(myrsv.getTuner());
 				}
 				else if ( myrec.isAutoEncSelectEnabled() && ! vals.hide_atreservedlist ) {
 					// 番組情報に近い予約を探してエンコーダを絞り込む
-					jComboBox_encoder.setSelectedItem(enc);
+					jCBXPanel_encoder.setSelectedItem(enc);
 					showUraList(myrec.Myself());
 				}
-				else if ( jComboBox_encoder.getItemCount() > 0 ) {
+				else if ( jCBXPanel_encoder.getItemCount() > 0 ) {
 					// 類似予約や自動選択がない場合は極力もとのエンコーダを選択したい
 					if ( myenc != null ) {
-						jComboBox_encoder.setSelectedItem(myenc);
-						myenc = (String) jComboBox_encoder.getSelectedItem();
+						jCBXPanel_encoder.setSelectedItem(myenc);
+						myenc = (String) jCBXPanel_encoder.getSelectedItem();
 					}
 					if ( myenc == null ) {
-						jComboBox_encoder.setSelectedIndex(0);
+						jCBXPanel_encoder.setSelectedIndex(0);
 					}
 					showUraList(myrec.Myself());
 				}
@@ -1410,25 +1436,25 @@ abstract class AbsReserveDialog extends JDialog {
 	 */
 	private void setEnabledSelectionListeners(boolean b) {
 		// 重複呼び出しがこわいので一回全部削除してしまう
-		jComboBox_encoder.removeItemListener(il_encoderChanged);
+		jCBXPanel_encoder.removeItemListener(il_encoderChanged);
 		jCBXPanel_videorate.removeItemListener(il_videorateChanged);
-		jComboBox_recorder.removeItemListener(il_recorderChanged);
+		jCBXPanel_recorder.removeItemListener(il_recorderChanged);
 		jCBXPanel_genre.removeItemListener(il_genreChanged);
 		likersvtable.removeMouseListener(ml_likelistSelected);
 		if ( b ) {
 			// 必要なら追加する
-			jComboBox_encoder.addItemListener(il_encoderChanged);
+			jCBXPanel_encoder.addItemListener(il_encoderChanged);
 			jCBXPanel_videorate.addItemListener(il_videorateChanged);
-			jComboBox_recorder.addItemListener(il_recorderChanged);
+			jCBXPanel_recorder.addItemListener(il_recorderChanged);
 			jCBXPanel_genre.addItemListener(il_genreChanged);
 			likersvtable.addMouseListener(ml_likelistSelected);
 		}
 	}
 	
 	private void removeAllSelectionItems() {
-		jComboBox_encoder.removeAllItems();
+		jCBXPanel_encoder.removeAllItems();
 		jCBXPanel_videorate.removeAllItems();
-		jComboBox_recorder.removeAllItems();
+		jCBXPanel_recorder.removeAllItems();
 		jCBXPanel_genre.removeAllItems();
 		//likersvtable.removeAllItems();
 	}
@@ -1955,18 +1981,18 @@ abstract class AbsReserveDialog extends JDialog {
 	 */
 	private void setEncoderComboBoxByVrate(String enc1, String enc2) {
 		int index = -1;
-		for (int i=0; i<jComboBox_encoder.getItemCount(); i++) {
-			if (enc1 != null && jComboBox_encoder.getItemAt(i).equals(enc1)) {
+		for (int i=0; i<jCBXPanel_encoder.getItemCount(); i++) {
+			if (enc1 != null && jCBXPanel_encoder.getItemAt(i).equals(enc1)) {
 				index = i;
 				break;
 			}
-			if (enc2 != null && jComboBox_encoder.getItemAt(i).equals(enc2)) {
+			if (enc2 != null && jCBXPanel_encoder.getItemAt(i).equals(enc2)) {
 				index = i;
 				break;
 			}
 		}
 		if (index >= 0) {
-			jComboBox_encoder.setSelectedIndex(index);
+			jCBXPanel_encoder.setSelectedIndex(index);
 		}
 	}
 	
@@ -1974,7 +2000,7 @@ abstract class AbsReserveDialog extends JDialog {
 	 * 自分のかツールバーのかわかりにくいので名前にMyって付け足した
 	 */
 	private HDDRecorder getMySelectedRecorder() {
-		String myself = (String) jComboBox_recorder.getSelectedItem();
+		String myself = (String) jCBXPanel_recorder.getSelectedItem();
 		if ( myself == null ) {
 			return null;
 		}
@@ -2141,12 +2167,12 @@ abstract class AbsReserveDialog extends JDialog {
 			// 選択中のレコーダ
 			myrec = getMySelectedRecorder();
 			if ( myrec == null ) {
-				System.err.println(ERRID+"選択したレコーダの情報が登録されていません： "+(String) jComboBox_recorder.getSelectedItem());
+				System.err.println(ERRID+"選択したレコーダの情報が登録されていません： "+(String) jCBXPanel_recorder.getSelectedItem());
 				return;
 			}
 		
 			// 選択中のエンコーダ
-			myenc = (String) jComboBox_encoder.getSelectedItem();
+			myenc = (String) jCBXPanel_encoder.getSelectedItem();
 			
 			if ( env.getGivePriorityToReserved() ) {
 				// 類似予約の選択（選択中のレコーダに一致するものがあれば）
@@ -2205,7 +2231,7 @@ abstract class AbsReserveDialog extends JDialog {
 				return;
 			}
 
-			String myself = (String) jComboBox_recorder.getSelectedItem();
+			String myself = (String) jCBXPanel_recorder.getSelectedItem();
 			if ( myself == null ) {
 				return;
 			}
@@ -2214,7 +2240,7 @@ abstract class AbsReserveDialog extends JDialog {
 				return;
 			}
 			
-			String encoder = (String) jComboBox_encoder.getSelectedItem();
+			String encoder = (String) jCBXPanel_encoder.getSelectedItem();
 			if ( encoder == null ) {
 				return;
 			}
@@ -2246,7 +2272,7 @@ abstract class AbsReserveDialog extends JDialog {
 				return;
 			}
 
-			String myself = (String) jComboBox_recorder.getSelectedItem();
+			String myself = (String) jCBXPanel_recorder.getSelectedItem();
 			if ( myself == null ) {
 				return;
 			}
@@ -2366,7 +2392,7 @@ abstract class AbsReserveDialog extends JDialog {
 		public void actionPerformed(ActionEvent e) {
 			ProgGenre key_genre = ProgGenre.get((String) jCBXPanel_genre.getSelectedItem());
 			String key_webChName = (String) jComboBox_ch.getSelectedItem();
-			String recId = recorders.findInstance((String) jComboBox_recorder.getSelectedItem()).get(0).getRecorderId();
+			String recId = recorders.findInstance((String) jCBXPanel_recorder.getSelectedItem()).get(0).getRecorderId();
 			setSelectedAVItems(recId, null, getSelectedAVs(key_genre, key_webChName, recId));
 			MWin.appendMessage(MSGID+"画質・音質等の設定を取得しました");
 		}
@@ -2377,7 +2403,7 @@ abstract class AbsReserveDialog extends JDialog {
 	 */
 	private final ActionListener al_saveAction = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-			Matcher ma = Pattern.compile("^.+?:.+?:(.+?)$").matcher((String)jComboBox_recorder.getSelectedItem());
+			Matcher ma = Pattern.compile("^.+?:.+?:(.+?)$").matcher((String)jCBXPanel_recorder.getSelectedItem());
 			if (ma.find()) {
 				if (env.getEnableCHAVsetting()) {
 					String key_webChName = (String) jComboBox_ch.getSelectedItem();
@@ -2396,7 +2422,7 @@ abstract class AbsReserveDialog extends JDialog {
 	 */
 	private final ActionListener al_saveDefault = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-			Matcher ma = Pattern.compile("^.+?:.+?:(.+?)$").matcher((String)jComboBox_recorder.getSelectedItem());
+			Matcher ma = Pattern.compile("^.+?:.+?:(.+?)$").matcher((String)jCBXPanel_recorder.getSelectedItem());
 			if (ma.find()) {
 				_save_avsettings(ma.group(1),null);
 			}
@@ -2483,7 +2509,7 @@ abstract class AbsReserveDialog extends JDialog {
 							vals.hide_tvd.progid = vals.hide_content_id;
 							vals.hide_tvd.setContentIdStr();
 						}
-						HDDRecorderList recs = recorders.findInstance((String) jComboBox_recorder.getSelectedItem());
+						HDDRecorderList recs = recorders.findInstance((String) jCBXPanel_recorder.getSelectedItem());
 						if ( recs.size() > 0 ) {
 							jCBXPanel_pursues.setEnabled(recs.get(0).isPursuesEditable());
 						}
@@ -2673,156 +2699,214 @@ abstract class AbsReserveDialog extends JDialog {
 	private JPanel getJContentPane_rsv() {
 		if (jContentPane_rsv == null) {
 			jContentPane_rsv = new JPanel();
-			jContentPane_rsv.setLayout(new SpringLayout());
 			
-			int y = 0;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_title("予約名"), 40, PARTS_HEIGHT, 5, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_getEventId("番組ID取得"), LABEL_WIDTH, PARTS_HEIGHT, 55, y);
+			jContentPane_rsv.setLayout(new BorderLayout());
 			
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_addDate("日付追加"), 100, PARTS_HEIGHT, 270, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_ch("CH"), LABEL_WIDTH, PARTS_HEIGHT, 335+60, y);
-			
-			int spHeight2 = y;
-			
-			y += PARTS_HEIGHT;
-			int x = 10;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJComboBox_title(), TITLE_WIDTH, PARTS_HEIGHT, x, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJComboBox_ch(), CHNAME_WIDTH, PARTS_HEIGHT, x+=TITLE_WIDTH+SEP_WIDTH, y);
-
-			y += PARTS_HEIGHT;
-			x = 35;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_recorders("レコーダ"), LABEL_WIDTH, PARTS_HEIGHT, x, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_encoder("エンコーダ"), LABEL_WIDTH, PARTS_HEIGHT, x+=RECORDER_WIDTH, y);
-			
-			y += PARTS_HEIGHT;
-			x = 35+SEP_WIDTH_NARROW;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJComboBox_recorder(), RECORDER_WIDTH, PARTS_HEIGHT, x, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJComboBox_encoder(), ENCODER_WIDTH, PARTS_HEIGHT, x+=RECORDER_WIDTH+SEP_WIDTH, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_encoderemptywarn(""),LABEL_WIDTH,PARTS_HEIGHT,x+=ENCODER_WIDTH+SEP_WIDTH,y);
-
-			y += PARTS_HEIGHT;
-			x = 35;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_date("録画日付"), LABEL_WIDTH, PARTS_HEIGHT, x, y);
-			
-			int hmx = 210;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_ahh("開始時刻"), 75, PARTS_HEIGHT, hmx-SEP_WIDTH_NARROW, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_zhh("終了時刻"), 75, PARTS_HEIGHT, hmx+120-SEP_WIDTH_NARROW, y);
-		
-			y += PARTS_HEIGHT;
-			x = 35+SEP_WIDTH_NARROW;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJComboBox_date(), LABEL_WIDTH, PARTS_HEIGHT, x, y);
-			
-			hmx = 210;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJTextField_ahh(), 40, PARTS_HEIGHT, hmx, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_asep(":"), 10, PARTS_HEIGHT, hmx+=40, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJTextField_amm(), 40, PARTS_HEIGHT, hmx+=10, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_amm_up(), 20, 12, hmx+=42, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_amm_down(), 20, 12, hmx, y+13);
-			
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJTextField_zhh(), 40, PARTS_HEIGHT, hmx+=28, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_zsep(":"), 10, PARTS_HEIGHT, hmx+=40, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJTextField_zmm(), 40, PARTS_HEIGHT, hmx+=10, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_zmm_up(), 20, 12, hmx+=42, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_zmm_down(), 20, 12, hmx, y+13);
-
-			int exy = y-12;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJCheckBox_spoex_extend("スポーツ延長",LABEL_WIDTH,true), 200, PARTS_HEIGHT, hmx+=28, exy);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJCheckBox_OverlapDown2("終了時刻１分短縮",LABEL_WIDTH,true), 200, PARTS_HEIGHT, hmx, exy+PARTS_HEIGHT);
-
-			y += PARTS_HEIGHT+2;
-			hmx = 210;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJTextField_Xahh(), 40, 21, hmx, y+2);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_Xasep(":"), 10, 21, hmx+=40, y+2);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJTextField_Xamm(), 40, 21, hmx+=10, y+2);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJTextField_Xzhh(), 40, 21, hmx+=70, y+2);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_Xzsep(":"), 10, 21, hmx+=40, y+2);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJTextField_Xzmm(), 40, 21, hmx+=10, y+2);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_Xreset(""), 20, 15, hmx+=42, y+5);
-			
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_detail("番組詳細"), 100, PARTS_HEIGHT, 35, y);
-			
-			y += PARTS_HEIGHT;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJScrollPane_detail(), 600, 95, 40, y);
-			
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCheckBox_Exec = new JCheckBoxPanel("予約実行",LABEL_WIDTH,true), 200, PARTS_HEIGHT, 650, y);
-			jCheckBox_Exec.setSelected(true);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCheckBox_Autocomplete = new JCheckBoxPanel("ﾀｲﾄﾙ自動補完",LABEL_WIDTH,true), 200, PARTS_HEIGHT, 650, y+PARTS_HEIGHT);
-			jCheckBox_Autocomplete.setSelected(env.getUseAutocomplete());
-			//CommonSwingUtils.putComponentOn(jContentPane_rsv, jCheckBox_Pursues = new JCheckBoxPanel("番組追従",LABEL_WIDTH,true), 200, PARTS_HEIGHT, 650, y+50);
-			//jCheckBox_Pursues.setSelected(false);
-			//jCheckBox_Pursues.setEnabled(false);
-			
-			y += 95;
-			int BoxTop = y+5;
-			
-			y += 10;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_genre = new JComboBoxPanel("ジャンル",110,150), COMBO_WIDTH_WIDE, COMBO_HEIGHT, 25, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_subgenre = new JComboBoxPanel("サブジャンル",110,150), COMBO_WIDTH_WIDE, COMBO_HEIGHT, 190, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_autodel = new JComboBoxPanel("自動削除",110,100), COMBO_WIDTH, COMBO_HEIGHT, 420, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_xChapter = new JComboBoxPanel("無音部分ﾁｬﾌﾟﾀ分割",110,100), COMBO_WIDTH, COMBO_HEIGHT, 535, y);
-			
-			y += PARTS_HEIGHT+PARTS_HEIGHT;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_videorate = new JComboBoxPanel("画質",110,150), COMBO_WIDTH_WIDE, COMBO_HEIGHT, 25, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_audiorate = new JComboBoxPanel("音質",110,100), COMBO_WIDTH, COMBO_HEIGHT, 190, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_bvperf = new JComboBoxPanel("高ﾚｰﾄ節約",110,100), COMBO_WIDTH, COMBO_HEIGHT, 305, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_lvoice = new JComboBoxPanel("ﾗｲﾝ音声選択",110,100), COMBO_WIDTH, COMBO_HEIGHT, 420, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_msChapter = new JComboBoxPanel("DVD/ｼｰﾝﾁｬﾌﾟﾀ分割",110,100), COMBO_WIDTH, COMBO_HEIGHT, 535, y);
-			
-			int spHeight1 = y;
-			
-			y += PARTS_HEIGHT+PARTS_HEIGHT;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_folder = new JComboBoxPanel("記録先フォルダ",100,150), COMBO_WIDTH_WIDE, COMBO_HEIGHT, 25, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_device = new JComboBoxPanel("記録先デバイス",110,100), COMBO_WIDTH, COMBO_HEIGHT, 190, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_dvdcompat = new JComboBoxPanel("BD/DVD互換モード",110,100), COMBO_WIDTH, COMBO_HEIGHT, 305, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_aspect = new JComboBoxPanel("DVD記録時画面比",110,100), COMBO_WIDTH, COMBO_HEIGHT, 420, y);
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_mvChapter = new JComboBoxPanel("音多/本編ﾁｬﾌﾟﾀ分割",110,100), COMBO_WIDTH, COMBO_HEIGHT, 535, y);
-
-			y += PARTS_HEIGHT+PARTS_HEIGHT;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jCBXPanel_pursues = new JComboBoxPanel("番組追従",110,100), COMBO_WIDTH, COMBO_HEIGHT, 535, y);
-
-			y += PARTS_HEIGHT+PARTS_HEIGHT;
-
-			// 録画設定を囲む枠線
-			JLabel jl = null;
-			int BoxBottom = y+SEP_HEIGHT;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, jl = new JLabel(), BOX_WIDTH, BoxBottom-BoxTop, 15, BoxTop);
-			jl.setBorder(new LineBorder(Color.GRAY,1));
-
-			y = BoxBottom+SEP_HEIGHT_NALLOW;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getLikeRsvPane(), LIKELIST_WIDTH, PARTS_HEIGHT*LIKELIST_ROWS, 15, y);
-			
-			y += PARTS_HEIGHT*LIKELIST_ROWS+SEP_HEIGHT;
-			Dimension d = new Dimension(PANEL_WIDTH,y);
-			jContentPane_rsv.setPreferredSize(d);
-
-			// 特殊配置(1)
-			y = spHeight1+8;
-			if (env.getEnableCHAVsetting()) {
-				CommonSwingUtils.putComponentOn(jContentPane_rsv, new JLabel("放送局別"), LABEL_WIDTH, PARTS_HEIGHT, 655, y);
-			}
-			else {
-				CommonSwingUtils.putComponentOn(jContentPane_rsv, new JLabel("ジャンル別"), LABEL_WIDTH, PARTS_HEIGHT, 655, y);
-			}
-			y+=17;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJLabel_rectype("録画設定の選択"), LABEL_WIDTH, PARTS_HEIGHT, 655, y);
-			y += PARTS_HEIGHT;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_load("開く"), 75, PARTS_HEIGHT, 660, y);
-			y += 30;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_save("保存"), 75, PARTS_HEIGHT, 660, y);
-			y += 40;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_savedefault("既定化"), 75, PARTS_HEIGHT, 660, y);
-			
-			// 特殊配置(2)
-			y = spHeight2+20;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, new JLabel("予約"), LABEL_WIDTH, PARTS_HEIGHT, 655, y);
-			y += PARTS_HEIGHT;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_record("新規"), 75, PARTS_HEIGHT, 660, y);
-			y += 30;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_update("更新"), 75, PARTS_HEIGHT, 660, y);
-			y += 30;
-			CommonSwingUtils.putComponentOn(jContentPane_rsv, getJButton_cancel("ｷｬﾝｾﾙ"), 75, PARTS_HEIGHT, 660, y);
+			jContentPane_rsv.add(getJPane_title(),BorderLayout.NORTH);
+			jContentPane_rsv.add(getJPane_recsetting(),BorderLayout.CENTER);
+			jContentPane_rsv.add(getJPane_likersv(),BorderLayout.SOUTH);
 		}
 		return jContentPane_rsv;
+	}
+	
+	/**
+	 * 番組情報のエリア
+	 */
+	private JPanel getJPane_title() {
+		if ( jPane_title == null ) {
+			jPane_title = new JPanel();
+			//jPane_title.setBorder(new LineBorder(Color.BLACK, 1));
+			jPane_title.setLayout(new SpringLayout());
+			
+			int y = SEP_HEIGHT_NALLOW;
+			int x = SEP_WIDTH_NARROW;
+			
+			CommonSwingUtils.putComponentOn(jPane_title, getJLabel_title("予約名"), 40, PARTS_HEIGHT, x, y);
+			CommonSwingUtils.putComponentOn(jPane_title, getJComboBox_title(), TITLE_WIDTH, PARTS_HEIGHT, x+SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
+			
+			CommonSwingUtils.putComponentOn(jPane_title, getJButton_getEventId("番組ID取得"), LABEL_WIDTH, PARTS_HEIGHT, x+50, y);
+			CommonSwingUtils.putComponentOn(jPane_title, getJButton_addDate("日付追加"),	100, PARTS_HEIGHT, 270, y);
+			
+			CommonSwingUtils.putComponentOn(jPane_title, getJLabel_ch("CH"), LABEL_WIDTH, PARTS_HEIGHT, x+TITLE_WIDTH+SEP_WIDTH, y);
+			CommonSwingUtils.putComponentOn(jPane_title, getJComboBox_ch(), CHNAME_WIDTH, PARTS_HEIGHT, x+TITLE_WIDTH+SEP_WIDTH+SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
+
+			y += PARTS_HEIGHT*2+SEP_HEIGHT_NALLOW;
+			
+			{
+				int hmx = x;
+				CommonSwingUtils.putComponentOn(jPane_title, getJLabel_date("録画日付"),	LABEL_WIDTH,	PARTS_HEIGHT,	hmx,y);
+				CommonSwingUtils.putComponentOn(jPane_title, getJComboBox_date(),		DATE_WIDTH,		PARTS_HEIGHT,	hmx+=SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
+				
+				hmx += DATE_WIDTH+SEP_WIDTH;
+				CommonSwingUtils.putComponentOn(jPane_title, getJLabel_ahh("開始時刻"),	75,	PARTS_HEIGHT,	hmx, y);
+				CommonSwingUtils.putComponentOn(jPane_title, getJTextField_ahh(),		40,	PARTS_HEIGHT,	hmx+=SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJLabel_asep(":"),		10,	PARTS_HEIGHT,	hmx+=40, y+PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJTextField_amm(),		40,	PARTS_HEIGHT,	hmx+=10, y+PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJButton_amm_up(),		20,	12,				hmx+=42, y+PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJButton_amm_down(),		20,	12,				hmx, y+PARTS_HEIGHT+13);
+				
+				hmx += 20+SEP_WIDTH_NARROW;
+				CommonSwingUtils.putComponentOn(jPane_title, getJLabel_zhh("終了時刻"),	75,	PARTS_HEIGHT,	hmx, y);
+				CommonSwingUtils.putComponentOn(jPane_title, getJTextField_zhh(),		40,	PARTS_HEIGHT,	hmx+=SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJLabel_zsep(":"),		10,	PARTS_HEIGHT,	hmx+=40, y+PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJTextField_zmm(),		40,	PARTS_HEIGHT,	hmx+=10, y+PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJButton_zmm_up(),		20,	12,				hmx+=42, y+PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJButton_zmm_down(),		20,	12,				hmx, y+PARTS_HEIGHT+13);
+			
+				hmx += 20+SEP_WIDTH;
+				
+				CommonSwingUtils.putComponentOn(jPane_title, jCheckBox_Autocomplete = new JCheckBoxPanel("ﾀｲﾄﾙ自動補完",LABEL_WIDTH,true),	200, PARTS_HEIGHT, hmx, y);
+				CommonSwingUtils.putComponentOn(jPane_title, getJCheckBox_spoex_extend("スポーツ延長",LABEL_WIDTH,true),						200, PARTS_HEIGHT, hmx, y+PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJCheckBox_OverlapDown2("終了時刻１分短縮",LABEL_WIDTH,true),					200, PARTS_HEIGHT, hmx, y+PARTS_HEIGHT*2);
+				
+				jCheckBox_Autocomplete.setSelected(env.getUseAutocomplete());
+			}
+			
+			getJTextField_Xahh();
+			getJTextField_Xamm();
+			getJTextField_Xzhh();
+			getJTextField_Xzmm();
+			
+			/*
+			y += PARTS_HEIGHT+2;
+			hmx = 210;
+			CommonSwingUtils.putComponentOn(jPane_title, getJTextField_Xahh(), 40, 21, hmx, y+2);
+			CommonSwingUtils.putComponentOn(jPane_title, getJLabel_Xasep(":"), 10, 21, hmx+=40, y+2);
+			CommonSwingUtils.putComponentOn(jPane_title, getJTextField_Xamm(), 40, 21, hmx+=10, y+2);
+			CommonSwingUtils.putComponentOn(jPane_title, getJTextField_Xzhh(), 40, 21, hmx+=70, y+2);
+			CommonSwingUtils.putComponentOn(jPane_title, getJLabel_Xzsep(":"), 10, 21, hmx+=40, y+2);
+			CommonSwingUtils.putComponentOn(jPane_title, getJTextField_Xzmm(), 40, 21, hmx+=10, y+2);
+			CommonSwingUtils.putComponentOn(jPane_title, getJButton_Xreset(""), 20, 15, hmx+=42, y+5);
+			*/
+
+			y += PARTS_HEIGHT*2+SEP_WIDTH_NARROW;
+
+			CommonSwingUtils.putComponentOn(jPane_title, getJLabel_detail("番組詳細"), 100, PARTS_HEIGHT, x, y);
+			CommonSwingUtils.putComponentOn(jPane_title, getJScrollPane_detail(), DETAIL_WIDTH, DETAIL_HEIGHT, x+SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
+			
+			y += PARTS_HEIGHT;
+			
+			
+			
+			y += DETAIL_HEIGHT+SEP_HEIGHT_NALLOW;
+			
+			// 特殊配置
+			{
+				int spy = SEP_HEIGHT_NALLOW+PARTS_HEIGHT;
+				x = SEP_WIDTH_NARROW+DETAIL_WIDTH+SEP_WIDTH*2;
+				
+				CommonSwingUtils.putComponentOn(jPane_title, new JLabel("予約"),				BUTTON_WIDTH, PARTS_HEIGHT, x, spy);
+				CommonSwingUtils.putComponentOn(jPane_title, getJButton_record("新規"),		BUTTON_WIDTH, PARTS_HEIGHT, x+SEP_WIDTH_NARROW, spy+=PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJButton_update("更新"),		BUTTON_WIDTH, PARTS_HEIGHT, x+SEP_WIDTH_NARROW, spy+=PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_title, getJButton_cancel("ｷｬﾝｾﾙ"),	BUTTON_WIDTH, PARTS_HEIGHT, x+SEP_WIDTH_NARROW, spy+=PARTS_HEIGHT);
+			}
+			
+			x+=BUTTON_WIDTH+SEP_WIDTH_NARROW*2;
+			
+			Dimension d = new Dimension(x,y);
+			jPane_title.setPreferredSize(d);
+		}
+		return jPane_title;
+	}
+	
+	/**
+	 * 録画設定のエリア
+	 */
+	private JPanel getJPane_recsetting() {
+		if ( jPane_recsetting == null ) {
+			jPane_recsetting = new JPanel();
+			jPane_recsetting.setBorder(new LineBorder(Color.BLACK, 1));
+			jPane_recsetting.setLayout(new SpringLayout());
+			
+			//int y = SEP_HEIGHT_NALLOW;
+			int y = 0;
+			int x = SEP_WIDTH_NARROW;
+			
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_recorder = new JComboBoxPanel("レコーダ",RECORDER_WIDTH,RECORDER_WIDTH),	RECORDER_WIDTH+5,	COMBO_HEIGHT, x, y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_encoder = new JComboBoxPanel("エンコーダ",ENCODER_WIDTH,ENCODER_WIDTH),		ENCODER_WIDTH+5,	COMBO_HEIGHT, x+=RECORDER_WIDTH+5+SEP_WIDTH, y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, getJLabel_encoderemptywarn(""), LABEL_WIDTH, PARTS_HEIGHT, x+=ENCODER_WIDTH+5+SEP_WIDTH+5, y+PARTS_HEIGHT);
+
+			// ポップアップした時に追加される幅
+			jCBXPanel_recorder.addPopupWidth(100);
+			jCBXPanel_encoder.addPopupWidth(100);
+
+			y += COMBO_HEIGHT+SEP_HEIGHT*2;
+			x = SEP_WIDTH_NARROW;
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_genre = new JComboBoxPanel("ジャンル",110,150),				COMBO_WIDTH_WIDE,	COMBO_HEIGHT, x, y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_subgenre = new JComboBoxPanel("サブジャンル",110,150),			COMBO_WIDTH_WIDE,	COMBO_HEIGHT, x+=(COMBO_WIDTH_WIDE+SEP_WIDTH), y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_autodel = new JComboBoxPanel("自動削除",110,110),			COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH+SEP_WIDTH)*2, y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_xChapter = new JComboBoxPanel("無音部分ﾁｬﾌﾟﾀ分割",110,110),	COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH+SEP_WIDTH), y);
+			
+			y += COMBO_HEIGHT;
+			x = SEP_WIDTH_NARROW;
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_videorate = new JComboBoxPanel("画質",110,150),				COMBO_WIDTH_WIDE,	COMBO_HEIGHT, x, y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_audiorate = new JComboBoxPanel("音質",110,110),				COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH_WIDE+SEP_WIDTH), y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_bvperf = new JComboBoxPanel("高ﾚｰﾄ節約",110,110),			COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH+SEP_WIDTH), y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_lvoice = new JComboBoxPanel("ﾗｲﾝ音声選択",110,110),			COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH+SEP_WIDTH), y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_msChapter = new JComboBoxPanel("DVD/ｼｰﾝﾁｬﾌﾟﾀ分割",110,110),	COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH+SEP_WIDTH), y);
+			
+			y += COMBO_HEIGHT;
+			x = SEP_WIDTH_NARROW;
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_folder = new JComboBoxPanel("記録先フォルダ",100,150),			COMBO_WIDTH_WIDE,	COMBO_HEIGHT, x, y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_device = new JComboBoxPanel("記録先デバイス",110,110),			COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH_WIDE+SEP_WIDTH), y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_dvdcompat = new JComboBoxPanel("BD/DVD互換モード",110,110),	COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH+SEP_WIDTH), y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_aspect = new JComboBoxPanel("DVD記録時画面比",110,110),		COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH+SEP_WIDTH), y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_mvChapter = new JComboBoxPanel("音多/本編ﾁｬﾌﾟﾀ分割",110,110),	COMBO_WIDTH,		COMBO_HEIGHT, x+=(COMBO_WIDTH+SEP_WIDTH), y);
+
+			y += COMBO_HEIGHT;
+			//x = SEP_WIDTH_NARROW;
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_pursues = new JComboBoxPanel("番組追従",110,110), COMBO_WIDTH, COMBO_HEIGHT, x, y);
+			
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCheckBox_Exec = new JCheckBoxPanel("予約実行",75,true), 75, PARTS_HEIGHT, x+COMBO_WIDTH+SEP_WIDTH*2, y+PARTS_HEIGHT);
+			
+			jCheckBox_Exec.setSelected(true);
+
+			y += COMBO_HEIGHT;
+			
+			// 特殊配置
+			{
+				int spy = SEP_HEIGHT_NALLOW+(PARTS_HEIGHT+SEP_HEIGHT_NALLOW)*2;
+				x = SEP_WIDTH_NARROW+(COMBO_WIDTH_WIDE+SEP_WIDTH)+(COMBO_WIDTH+SEP_WIDTH)*4+SEP_WIDTH;
+				
+				if (env.getEnableCHAVsetting()) {
+					CommonSwingUtils.putComponentOn(jPane_recsetting, new JLabel("放送局別の"), LABEL_WIDTH, PARTS_HEIGHT, x, spy);
+				}
+				else {
+					CommonSwingUtils.putComponentOn(jPane_recsetting, new JLabel("ジャンル別の"), LABEL_WIDTH, PARTS_HEIGHT, x, spy);
+				}
+				
+				spy+=PARTS_HEIGHT-5;
+				CommonSwingUtils.putComponentOn(jPane_recsetting, getJLabel_rectype("録画設定の選択"),	LABEL_WIDTH,  PARTS_HEIGHT, x, spy);
+				CommonSwingUtils.putComponentOn(jPane_recsetting, getJButton_load("開く"),				BUTTON_WIDTH, PARTS_HEIGHT, x+SEP_WIDTH_NARROW, spy+=PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_recsetting, getJButton_save("保存"),				BUTTON_WIDTH, PARTS_HEIGHT, x+SEP_WIDTH_NARROW, spy+=PARTS_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPane_recsetting, getJButton_savedefault("既定化"),		BUTTON_WIDTH, PARTS_HEIGHT, x+SEP_WIDTH_NARROW, spy+=(PARTS_HEIGHT+SEP_HEIGHT));
+			}
+			
+			x+=BUTTON_WIDTH+SEP_WIDTH_NARROW*2;
+			
+			Dimension d = new Dimension(x,y);
+			jPane_recsetting.setPreferredSize(d);
+
+		}
+		return jPane_recsetting;
+	}
+
+	private JScrollPane getJPane_likersv() {
+		if (jPane_likersv == null ) {
+			jPane_likersv = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			//jPane_likersv.setBorder(new LineBorder(Color.BLACK, 1));
+			jPane_likersv.setRowHeaderView(likersvrowheader = new LikeRsvRowHeader());
+			jPane_likersv.setViewportView(getLikeRsvTable());
+			
+			Dimension dh = new Dimension(LRT_HEADER_WIDTH,0);
+			jPane_likersv.getRowHeader().setPreferredSize(dh);
+			
+			jPane_likersv.getRowHeader().setVisible(true);
+			
+			Dimension d = new Dimension(LIKELIST_WIDTH, PARTS_HEIGHT*LIKELIST_ROWS);
+			jPane_likersv.setPreferredSize(d);
+		}
+		return jPane_likersv;
 	}
 	
 	private JLabel getJLabel_date(String s)
@@ -2940,15 +3024,6 @@ abstract class AbsReserveDialog extends JDialog {
 		return(jLabel_ch);
 	}
 	
-	private JLabel getJLabel_encoder(String s)
-	{
-		if (jLabel_encoder == null) {
-			jLabel_encoder = new JLabel();
-			jLabel_encoder.setText(s);
-		}
-		return(jLabel_encoder);
-	}
-	
 	private JLabel getJLabel_encoderemptywarn(String s)
 	{
 		if (jLabel_encoderemptywarn == null) {
@@ -2961,15 +3036,6 @@ abstract class AbsReserveDialog extends JDialog {
 		return(jLabel_encoderemptywarn);
 	}
 
-	private JLabel getJLabel_recorders(String s)
-	{
-		if (jLabel_recorders == null) {
-			jLabel_recorders = new JLabel();
-			jLabel_recorders.setText(s);
-		}
-		return(jLabel_recorders);
-	}
-	
 	private JLabel getJLabel_ahh(String s)
 	{
 		if (jLabel_ahh == null) {
@@ -3028,21 +3094,6 @@ abstract class AbsReserveDialog extends JDialog {
 		return jComboBox_ch;
 	}
 	
-	private JComboBox getJComboBox_encoder() {
-		if (jComboBox_encoder == null) {
-			jComboBox_encoder = new JWideComboBox();
-			jComboBox_encoder.addPopupWidth(100);
-		}
-		return jComboBox_encoder;
-	}
-	
-	private JComboBox getJComboBox_recorder() {
-		if (jComboBox_recorder == null) {
-			jComboBox_recorder = new JComboBox();
-		}
-		return jComboBox_recorder;
-	}
-
 	// 開始時刻
 	private JTextField getJTextField_Xahh() {
 		if (jTextField_Xahh == null) {
@@ -3187,20 +3238,6 @@ abstract class AbsReserveDialog extends JDialog {
 			jButton_Xreset.addMouseListener(ml_resetStartEnd);
 		}
 		return(jButton_Xreset);
-	}
-	
-	private JScrollPane getLikeRsvPane() {
-		if (likersvpane == null ) {
-			likersvpane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-			likersvpane.setRowHeaderView(likersvrowheader = new LikeRsvRowHeader());
-			likersvpane.setViewportView(getLikeRsvTable());
-			
-			Dimension d = new Dimension(LRT_HEADER_WIDTH,0);
-			likersvpane.getRowHeader().setPreferredSize(d);
-			
-			likersvpane.getRowHeader().setVisible(true);
-		}
-		return likersvpane;
 	}
 	
 	private LikeRsvTable getLikeRsvTable() {

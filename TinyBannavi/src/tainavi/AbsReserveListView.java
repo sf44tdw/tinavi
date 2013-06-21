@@ -138,7 +138,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 	//private void StWinSetVisible(boolean b) { StWin.setVisible(b); }
 	//private void StWinSetLocationCenter(Component frame) { CommonSwingUtils.setLocationCenter(frame, (VWStatusWindow)StWin); }
 
-	ImageIcon execicon = new ImageIcon(ICONFILE_EXEC);
+	private final ImageIcon execicon = new ImageIcon(ICONFILE_EXEC);
 			
 	/**
 	 * カラム定義
@@ -820,7 +820,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 			VWColorCharCellRenderer renderer = new VWColorCharCellRenderer(JLabel.CENTER); 
 			if ( CommonUtils.isMac() ) renderer.setMacMarkFont();
 			jTable_rsved.getColumn(RsvedColumn.DUPMARK.toString()).setCellRenderer(renderer);
-			ButtonColumn buttonColumn = new ButtonColumn();
+			ButtonColumn buttonColumn = new ButtonColumn(execicon);
 			jTable_rsved.getColumn(RsvedColumn.EXEC.toString()).setCellRenderer(buttonColumn);
 			jTable_rsved.getColumn(RsvedColumn.EXEC.toString()).setCellEditor(buttonColumn);
 			jTable_rsved.getColumn(RsvedColumn.EXEC.toString()).setResizable(false);
@@ -957,61 +957,32 @@ public abstract class AbsReserveListView extends JScrollPane {
 	/**
 	 * EXECボタン
 	 */
-	private class ButtonColumn extends AbstractCellEditor implements TableCellRenderer, TableCellEditor { 
+	private class ButtonColumn extends AbstractExecButtonColumn {
 
 		private static final long serialVersionUID = 1L;
 
-		private static final String LABEL = "";	// ""にしないとボタンに文字が
-		
-		private final JButton renderButton;
-		private final JButton editorButton;
-		
-		public ButtonColumn() {
-			super();
-			renderButton = new JButton(LABEL);
-			renderButton.setMargin(new Insets(1, 0, 0, 0));
-			renderButton.setHorizontalAlignment(JLabel.CENTER);
-			renderButton.setVerticalAlignment(JLabel.CENTER);
-			
-			editorButton = new JButton(LABEL);
-			editorButton.addActionListener(al_toggle);
+		// コンストラクタ
+		public ButtonColumn(ImageIcon icon) {
+			super(icon);
 		}
 		
-		private final ActionListener al_toggle = new ActionListener() {
+		@Override
+		protected void toggleAction(ActionEvent e) {
 			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				fireEditingStopped();
-				
-				int vrow = jTable_rsved.getSelectedRow();
-				int row = jTable_rsved.convertRowIndexToModel(vrow);
-				
-				ReservedItem c = ((ReservedTableModel) jTable_rsved.getModel()).getRowItem(row);
-				
-				if ( doExecOnOff( ! c.exec, c.title, c.chname, c.hide_rsvid, c.recorder) ) {
-					c.exec = ! c.exec;
-					c.fireChanged();
-				}
-				
-				jTable_rsved.clearSelection();
-				jTable_rsved.setRowSelectionInterval(vrow, vrow);
+			fireEditingStopped();
+			
+			int vrow = jTable_rsved.getSelectedRow();
+			int row = jTable_rsved.convertRowIndexToModel(vrow);
+			
+			ReservedItem c = ((ReservedTableModel) jTable_rsved.getModel()).getRowItem(row);
+			
+			if ( doExecOnOff( ! c.exec, c.title, c.chname, c.hide_rsvid, c.recorder) ) {
+				c.exec = ! c.exec;
+				c.fireChanged();
 			}
-		};
-		
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-			renderButton.setIcon((Boolean) value ? execicon : null);
-			renderButton.setPressedIcon((Boolean) value ? execicon : null);
-			return renderButton;
-		}
-		
-		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) { 
-			editorButton.setIcon((Boolean) value ? execicon : null);
-			editorButton.setPressedIcon((Boolean) value ? execicon : null);
-			return editorButton;
-		}
-		
-		public Object getCellEditorValue() {
-			return renderButton.getIcon() != null; 
+			
+			jTable_rsved.clearSelection();
+			jTable_rsved.setRowSelectionInterval(vrow, vrow);
 		}
 	}
 }

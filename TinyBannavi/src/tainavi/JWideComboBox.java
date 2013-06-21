@@ -12,7 +12,7 @@ import javax.swing.JList;
 /**
  * コンボボックスの幅よりポップアップの幅を広げる
  */
-public class JWideComboBox extends JComboBox {
+public class JWideComboBox extends JComboBox implements WideComponent {
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -52,12 +52,13 @@ public class JWideComboBox extends JComboBox {
     
 	private int w = 50;
 	
+	@Override
 	public void addPopupWidth(int w) {
 		this.w = w;
 	}
 	
 	@Override
-	public void doLayout() { 
+	public void doLayout() {
 		try { 
 			layingOut = true; 
 			super.doLayout(); 

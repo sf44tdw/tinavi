@@ -1550,6 +1550,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	private boolean getAutorsvDetailAll(AutoReserveInfoList newAutoReserveList) {
 		
 		String url = "http://"+getIPAddr()+":"+getPortNo()+"/autoaddepginfo.html?id=";
+		String pstr = "presetID=65535&dataID=";
 		
 		int cnt = 0;
 		for ( AutoReserveInfo c : newAutoReserveList ) {
@@ -1557,7 +1558,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 			++cnt;
 			
 			reportProgress(String.format("自動予約詳細を取得します(%d/%d)",cnt,newAutoReserveList.size()));
-			String[] d = reqGET(url+c.getId(),null);
+			String[] d = reqPOST(url+c.getId(), pstr+c.getId(), null);
 			if (d[1] == null) {
 				errmsg = "レコーダーが反応しません";
 				return false;
@@ -1624,8 +1625,10 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 						// 放送局
 						Matcher mc = Pattern.compile("<option value=\"(\\d+?)\" selected>", Pattern.DOTALL).matcher(mb.group(2));
 						while ( mc.find() ) {
-							String chName = cc.getCH_CODE2WEB(mc.group(1));
-							c.getChannels().add((chName!=null) ? chName : mc.group(1));
+							String chCode = mc.group(1);
+							c.getChCodes().add(chCode);
+							
+							// code->name変換は setAutoReserves() 内で行う
 						}
 					}
 					
@@ -1638,6 +1641,8 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 			ReserveInfo r = new ReserveInfo();
 			decodeRsvDetail(r, data[1], null);
 			c.setRecSetting(r);
+			
+			c.setExec(r.getExec());
 		}
 		
 		return true;
