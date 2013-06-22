@@ -1,16 +1,15 @@
 package tainavi;
 
-import java.awt.Dimension;
 import java.awt.ItemSelectable;
-import java.awt.Rectangle;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
 
-import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SpringLayout;
+
 
 public class JComboBoxPanel extends JPanel implements ItemSelectable,WideComponent {
 
@@ -19,55 +18,65 @@ public class JComboBoxPanel extends JPanel implements ItemSelectable,WideCompone
 	private JComboBoxWithPopup jcombobox = null;
 	private JLabel jlabel = null;
 	
-	private final int h = 25;
-
 	// 旧版
 	public JComboBoxPanel(String s, int labelWidth, int comboboxWidth) {
-		makeComboBoxPanel(s, labelWidth, comboboxWidth, false);
+		super();
+		makeComboBoxPanel(s, labelWidth, false);
 	}
 
 	// 新版
 	public JComboBoxPanel(String s, int labelWidth, int comboboxWidth, boolean horizontal) {
-		makeComboBoxPanel(s, labelWidth, comboboxWidth,  horizontal);
+		super();
+		makeComboBoxPanel(s, labelWidth, horizontal);
 	}
 	
-	private void makeComboBoxPanel(String s, int labelWidth, int comboboxWidth, boolean horizontal) {
+	private void makeComboBoxPanel(String s, int labelWidth, boolean horizontal) {
+		
+		SpringLayout layout = new SpringLayout();
+		setLayout(layout);
+		
+		jlabel = new JLabel(s);
+		jcombobox = new JComboBoxWithPopup();
+
+		this.add(jlabel);
+		this.add(jcombobox);
+		
 		if ( horizontal == true ) {
 			// 左・右
-			this.setLayout(new BoxLayout(this,BoxLayout.LINE_AXIS));
+			layout.putConstraint(SpringLayout.NORTH, jlabel, 1, SpringLayout.NORTH, this);
+			layout.putConstraint(SpringLayout.WEST, jlabel, 1, SpringLayout.WEST, this);
+			layout.putConstraint(SpringLayout.SOUTH, jlabel, -1, SpringLayout.SOUTH, this);
+			layout.putConstraint(SpringLayout.EAST, jlabel, labelWidth, SpringLayout.WEST, this);
 			
-			jlabel = new JLabel(s);
-			Dimension d = jlabel.getPreferredSize();
-			d.width = labelWidth;
-			d.height = 100;
-			jlabel.setMaximumSize(d);
-			this.add(jlabel);
-			
-			jcombobox = new JComboBoxWithPopup();
-			d = jcombobox.getPreferredSize();
-			d.width = comboboxWidth;
-			d.height = 100;
-			jcombobox.setMaximumSize(d);
-			this.add(jcombobox);
+			layout.putConstraint(SpringLayout.NORTH, jcombobox, 1, SpringLayout.NORTH, this);
+			layout.putConstraint(SpringLayout.WEST, jcombobox, 0, SpringLayout.EAST, jlabel);
+			layout.putConstraint(SpringLayout.SOUTH, jcombobox, -1, SpringLayout.SOUTH, this);
+			layout.putConstraint(SpringLayout.EAST, jcombobox, -1, SpringLayout.EAST, this);
 		}
 		else {
 			// 上・下
-			this.setLayout(null);
+			layout.putConstraint(SpringLayout.NORTH, jlabel, 1, SpringLayout.NORTH, this);
+			layout.putConstraint(SpringLayout.WEST, jlabel, 1, SpringLayout.WEST, this);
+			//
+			layout.putConstraint(SpringLayout.EAST, jlabel, -1, SpringLayout.EAST, this);
 			
-			this.add(jlabel = new JLabel(s));
-			//Dimension d1 = jlabel.getPreferredSize();
-			jlabel.setBounds(new Rectangle(0,0,labelWidth,h));
-			
-			this.add(jcombobox = new JComboBoxWithPopup());
-			//Dimension d2 = jcombobox.getPreferredSize();
-			jcombobox.setBounds(new Rectangle(5,25,comboboxWidth,h));
-			
-			this.setPreferredSize(new Dimension(comboboxWidth+5,h*2+5));
+			layout.putConstraint(SpringLayout.NORTH, jcombobox, 1, SpringLayout.SOUTH, jlabel);
+			layout.putConstraint(SpringLayout.WEST, jcombobox, 5, SpringLayout.NORTH, this);
+			layout.putConstraint(SpringLayout.SOUTH, jcombobox, -1, SpringLayout.SOUTH, this);
+			layout.putConstraint(SpringLayout.EAST, jcombobox, -1, SpringLayout.EAST, this);
 		}
 	}
 
 	public void removeAllItems() {
 		this.jcombobox.removeAllItems();
+	}
+	
+	public void removeItemAt(int anIndex) {
+		this.jcombobox.removeItemAt(anIndex);
+	}
+	
+	public void insertItemAt(Object anObject, int index) {
+		this.jcombobox.insertItemAt(anObject, index);
 	}
 	
 	public void addItem(Object o) {

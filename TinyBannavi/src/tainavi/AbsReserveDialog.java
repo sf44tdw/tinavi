@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -30,6 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JViewport;
 import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
@@ -48,7 +51,7 @@ import tainavi.TVProgram.ProgSubgenre;
  * 予約ダイアログのクラス
  * @since 3.15.4β　ReserveDialogからクラス名変更
  */
-abstract class AbsReserveDialog extends JDialog {
+abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener {
 
 	private static final long serialVersionUID = 1L;
 
@@ -76,8 +79,7 @@ abstract class AbsReserveDialog extends JDialog {
 	protected abstract void ringBeep();
 
 	// クラス内のイベントから呼び出されるもの
-	protected abstract void searchLikeRsv(LikeReserveList likeRsvList, ProgDetailList tvd, String keyword, int threshold);
-	protected abstract String getSelectedRecorderOnToolbar();
+	protected abstract LikeReserveList findLikeReserves(ProgDetailList tvd, String keyword, int threshold);
 	
 	/*******************************************************************************
 	 * 呼び出し元から引き継いだもの
@@ -95,6 +97,7 @@ abstract class AbsReserveDialog extends JDialog {
 	private final Component parent = getParentComponent();	// これは起動時に作成されたまま変更されないオブジェクト
 	
 	private final GetEventId geteventid = new GetEventId();	// 番組IDの取得
+	
 	
 	/*******************************************************************************
 	 * 定数
@@ -122,7 +125,7 @@ abstract class AbsReserveDialog extends JDialog {
 	
 	private static final int COMBO_WIDTH = 115;
 	private static final int COMBO_WIDTH_WIDE = 155;
-	private static final int COMBO_HEIGHT = 50;
+	private static final int COMBO_HEIGHT = 43;
 
 	private static final int TITLE_WIDTH = COMBO_WIDTH_WIDE+COMBO_WIDTH*2+SEP_WIDTH*2;
 	private static final int CHNAME_WIDTH = COMBO_WIDTH*2+SEP_WIDTH;
@@ -130,7 +133,7 @@ abstract class AbsReserveDialog extends JDialog {
 	private static final int DETAIL_HEIGHT = 100;
 	private static final int DATE_WIDTH = 175;
 	private static final int LIKELIST_WIDTH = 730;
-	private static final int LIKELIST_ROWS = 4;
+	private static final int LIKELIST_ROWS = 5;
 	
 	private static final int LABEL_WIDTH = 150;
 	private static final int BUTTON_WIDTH = 75;
@@ -140,9 +143,9 @@ abstract class AbsReserveDialog extends JDialog {
 	
 	private static final int LRT_HEADER_WIDTH = 20;
 	private static final int LRT_TITLE_WIDTH = 325;
-	private static final int LRT_START_WIDTH = 115;
+	private static final int LRT_START_WIDTH = 120;
 	private static final int LRT_RECORDER_WIDTH = 200;
-	private static final int LRT_ENCODER_WIDTH = 60;
+	private static final int LRT_ENCODER_WIDTH = 80;
 	
 	public static enum LikeRsvColumn {
 		TITLE		("予約名",	LRT_TITLE_WIDTH),
@@ -186,6 +189,7 @@ abstract class AbsReserveDialog extends JDialog {
 	private static final String ERRID = "[ERROR]"+MSGID;
 	private static final String DBGID = "[DEBUG]"+MSGID;
 	
+	
 	/*******************************************************************************
 	 * 部品
 	 ******************************************************************************/
@@ -212,27 +216,19 @@ abstract class AbsReserveDialog extends JDialog {
 	private JLabel jLabel_date = null;
 	private JComboBox jComboBox_date = null;
 	
-	private JLabel jLabel_ahh = null;
+	private JButton jButton_aTime = null;
 	private JTextField jTextField_ahh = null;
 	private JLabel jLabel_asep = null;
 	private JTextField jTextField_amm = null;
 	private JButton jButton_amm_up = null;
 	private JButton jButton_amm_down = null;
-	private JTextField jTextField_Xahh = null;
-	private JLabel jLabel_Xasep = null;
-	private JTextField jTextField_Xamm = null;
 	
-	private JLabel jLabel_zhh = null;
+	private JButton jButton_zTime = null;
 	private JTextField jTextField_zhh = null;
 	private JLabel jLabel_zsep = null;
 	private JTextField jTextField_zmm = null;
 	private JButton jButton_zmm_up = null;
 	private JButton jButton_zmm_down = null;
-	private JTextField jTextField_Xzhh = null;
-	private JLabel jLabel_Xzsep = null;
-	private JTextField jTextField_Xzmm = null;
-	
-	private JButton jButton_Xreset = null;
 	
 	private JLabel jLabel_detail = null;
 	private JScrollPane jScrollPane_detail = null;
@@ -276,8 +272,8 @@ abstract class AbsReserveDialog extends JDialog {
 	
 	private JScrollPane jPane_likersv = null;
 	
-	private LikeRsvTable likersvtable = null;
-	private LikeRsvRowHeader likersvrowheader = null;
+	private LikeRsvTable jtbl_likersv = null;
+	private LikeRsvRowHeader jrhdr_likersv = null;
 	
 	/*
 	 * その他
@@ -289,7 +285,7 @@ abstract class AbsReserveDialog extends JDialog {
 	private class Vals {
 		
 		// 検索した類似予約を保持する
-		final LikeReserveList likeRsvList = new LikeReserveList();
+		LikeReserveList likeRsvList = null;
 		LikeReserveItem selectedLikeRsv = null; 
 		
 		// 類似予約抽出条件（タイトル）
@@ -301,6 +297,11 @@ abstract class AbsReserveDialog extends JDialog {
 		String byDateIni = "";
 		// オープン時の週次予約の値（状態リセット用）
 		String byWeeklyIni = "";
+		// オープン時の時刻の値
+		String ahh = "";
+		String amm = "";
+		String zhh = "";
+		String zmm = "";
 		
 		// 延長警告分のばすかどうか
 		boolean isExtended = false;
@@ -333,6 +334,7 @@ abstract class AbsReserveDialog extends JDialog {
 
 	private boolean doneReserve = false;
 
+	
 	/*******************************************************************************
 	 * コンストラクタ
 	 ******************************************************************************/
@@ -358,6 +360,7 @@ abstract class AbsReserveDialog extends JDialog {
 		
 		this.addWindowListener(wl_opened);
 	}
+	
 	
 	/*******************************************************************************
 	 * アクション
@@ -422,42 +425,41 @@ abstract class AbsReserveDialog extends JDialog {
 			
 			@Override
 			protected Object doWorks() throws Exception {
-				for ( HDDRecorder recorder : recorders ) {
-					if (recorder.isMyself((String)jCBXPanel_recorder.getSelectedItem()) == true) {
-						StWin.appendMessage(MSGID+"予約を登録します："+r.getTitle());
-						//recorder.setProgressArea(StWin);
-						if (recorder.PostRdEntry(r)) {
+				
+				String myself = (String)jCBXPanel_recorder.getSelectedItem();
+				for ( HDDRecorder recorder : recorders.findInstance(myself) ) {
+					
+					StWin.appendMessage(MSGID+"予約を登録します："+r.getTitle());
+					
+					if ( recorder.PostRdEntry(r) ) {
+						
+						MWin.appendMessage(MSGID+"正常に登録できました："+r.getTitle()+"("+r.getCh_name()+")");
+						doneReserve = true;
+						
+						// カレンダーに登録する
+						if ( recorder.getUseCalendar() && jCheckBox_Exec.isSelected() ) {
 							
-							// 成功したよ
-							MWin.appendMessage(MSGID+"正常に登録できました："+r.getTitle()+"("+r.getCh_name()+")");
-							doneReserve = true;
-							
-							// カレンダーに登録する
-							if ( recorder.getUseCalendar()) {
-								if ( jCheckBox_Exec.isSelected() ) {
-									for ( HDDRecorder calendar : recorders ) {
-										if (calendar.getType() == RecType.CALENDAR) {
-											StWin.appendMessage(MSGID+"カレンダーに予約情報を登録します");
-											//calendar.setProgressArea(StWin);
-											if ( ! calendar.PostRdEntry(r)) {
-												MWin.appendError(ERRID+"[カレンダー] "+calendar.getErrmsg());
-												ringBeep();
-											}
-										}
-									}
+							for ( HDDRecorder calendar : recorders.findInstance(RecType.CALENDAR) ) {
+								
+								StWin.appendMessage(MSGID+"カレンダーに予約情報を登録します");
+								
+								if ( ! calendar.PostRdEntry(r)) {
+									MWin.appendError(ERRID+"[カレンダー] "+calendar.getErrmsg());
+									ringBeep();
 								}
 							}
 						}
-						else {
-							MWin.appendError(ERRID+"登録に失敗しました："+r.getTitle()+"("+r.getCh_name()+")");
-						}
-						//
-						if ( ! recorder.getErrmsg().equals("")) {
-							MWin.appendMessage(MSGID+"[追加情報] "+recorder.getErrmsg());
-							ringBeep();
-						}
-						break;
 					}
+					else {
+						MWin.appendError(ERRID+"登録に失敗しました："+r.getTitle()+"("+r.getCh_name()+")");
+					}
+					
+					if ( ! recorder.getErrmsg().equals("")) {
+						MWin.appendMessage(MSGID+"[追加情報] "+recorder.getErrmsg());
+						ringBeep();
+					}
+					
+					break;	// 一回限り
 				}
 				return null;
 			}
@@ -538,24 +540,25 @@ abstract class AbsReserveDialog extends JDialog {
 			
 			@Override
 			protected Object doWorks() throws Exception {
+				
 				StWin.appendMessage(MSGID+"予約を更新します："+newRsv.getTitle());
-				//likeRsvRecorder.setProgressArea(StWin);
-				if (vals.selectedLikeRsv.getRec().UpdateRdEntry(vals.selectedLikeRsv.getRsv(), newRsv)) {
+				
+				if ( vals.selectedLikeRsv.getRec().UpdateRdEntry(vals.selectedLikeRsv.getRsv(), newRsv) ) {
 					
 					// 成功したよ
 					MWin.appendMessage(MSGID+"正常に更新できました："+vals.selectedLikeRsv.getRsv().getTitle()+"("+vals.selectedLikeRsv.getRsv().getCh_name()+")");
+					
 					doneReserve = true;
 					
 					// カレンダーを更新する
 					if ( vals.selectedLikeRsv.getRec().getUseCalendar() ) {
-						for ( HDDRecorder calendar : recorders ) {
-							if (calendar.getType() == RecType.CALENDAR) {
-								StWin.appendMessage(MSGID+"カレンダーの予約情報を更新します");
-								//calendar.setProgressArea(StWin);
-								if ( ! calendar.UpdateRdEntry(vals.selectedLikeRsv.getRsv(), (jCheckBox_Exec.isSelected())?(newRsv):(null))) {
-									MWin.appendError(ERRID+"[カレンダー] "+calendar.getErrmsg());
-									ringBeep();
-								}
+						for ( HDDRecorder calendar : recorders.findInstance(RecType.CALENDAR) ) {
+							
+							StWin.appendMessage(MSGID+"カレンダーの予約情報を更新します");
+							
+							if ( ! calendar.UpdateRdEntry(vals.selectedLikeRsv.getRsv(), (jCheckBox_Exec.isSelected())?(newRsv):(null))) {
+								MWin.appendError(ERRID+"[カレンダー] "+calendar.getErrmsg());
+								ringBeep();
 							}
 						}
 					}
@@ -563,7 +566,7 @@ abstract class AbsReserveDialog extends JDialog {
 				else {
 					MWin.appendError(ERRID+"更新に失敗しました："+vals.selectedLikeRsv.getRsv().getTitle()+"("+vals.selectedLikeRsv.getRsv().getCh_name()+")");
 				}
-				//
+				
 				if ( ! vals.selectedLikeRsv.getRec().getErrmsg().equals("")) {
 					MWin.appendMessage(MSGID+"[追加情報] "+vals.selectedLikeRsv.getRec().getErrmsg());
 					ringBeep();
@@ -586,6 +589,7 @@ abstract class AbsReserveDialog extends JDialog {
 		dispose();
 	}
 	
+	
 	/*******************************************************************************
 	 * ダイアログオープン
 	 ******************************************************************************/
@@ -595,27 +599,24 @@ abstract class AbsReserveDialog extends JDialog {
 	 * ※これがあるので、各openでは vals != null チェックの必要がある
 	 */
 	public void setOnlyUpdateExec(boolean b) {
+		
 		if (vals == null) vals = new Vals();
+		
 		vals.isUpdateOnlyExec = true;
 		jCheckBox_Exec.setSelected(b);
-	}
-	
-	/**
-	 *  類似予約抽出条件ありオープン
-	 */
-	public boolean open(ProgDetailList tvd, String keywordVal, int thresholdVal) {
-		if (thresholdVal > 0) {
-			if (vals == null) vals = new Vals();
-			vals.keyword = keywordVal;
-			vals.threshold = thresholdVal;
-		}
-		return open(tvd);
 	}
 	
 	/**
 	 *  類似予約抽出条件なしオープン
 	 */
 	public boolean open(ProgDetailList tvd) {
+		return open(tvd,null,0);
+	}
+	
+	/**
+	 *  類似予約抽出条件ありオープン
+	 */
+	public boolean open(ProgDetailList tvd, String keywordVal, int thresholdVal) {
 		
 		if (recorders.size() == 0) {
 			return false;	// レコーダがひとつもないのはやばい
@@ -624,22 +625,73 @@ abstract class AbsReserveDialog extends JDialog {
 			return false;	// これは「番組情報がありません」だろう
 		}
 		
-		// 隠しパラメータ
+		// 初期パラメータの保存場所
 		if (vals == null) vals = new Vals();
+		
+		// 番組ID取得ボタン
+		getEventIdOnOpen(tvd);
+		setGetEventIdButton(tvd.progid,true);
+		
+		// 選択中のレコーダ
+		String myself = getSelectedRecorderId();				// ツールバーで選択されているのはどれかな？
+		HDDRecorder myrec = getSelectedRecorderList().get(0);	// 先頭を選んでおけばおけ
+		
+		// 隠しパラメータ
 		vals.hide_tvd = tvd;
 		vals.hide_content_id = tvd.progid;
 		vals.hide_startdatetime = tvd.startDateTime;
 		vals.hide_atreservedlist = false;
 		
-		// 番組ID取得ボタン
-		getEventIdOnOpen(tvd);
-		setGetEventIdButton(vals.hide_content_id,true);
+		// 類似予約抽出条件
+		if ( thresholdVal > 0 ) {
+			vals.keyword = keywordVal;
+			vals.threshold = thresholdVal;
+		}
 
-		return _open(null, null);
+		// 類似予約情報
+		ReserveList myrsv = null;
+		vals.likeRsvList = findLikeReserves(vals.hide_tvd, vals.keyword, vals.threshold);
+		if ( env.getGivePriorityToReserved() ) {
+			// 類似予約が優先される場合
+			if ( vals.likeRsvList.size() > 0 ) {
+				LikeReserveItem lr = vals.likeRsvList.getClosest(myself);
+				if ( lr != null ) {
+					// 選択中のレコーダの類似予約があれば
+					myrec = lr.getRec();
+					myrsv = lr.getRsv();
+					vals.selectedLikeRsv = lr;
+					
+					if ( myself == HDDRecorder.SELECTED_ALL || myself == HDDRecorder.SELECTED_PICKUP ) {
+						// "すべて" or "ピックアップのみ"
+						if (debug) System.out.println(DBGID+"選択中のレコーダがないので先頭の類似予約を使う： "+myself);
+					}
+				}
+				else {
+					// 類似予約があってもコンボボックスで選択したレコーダのものがない場合は無視
+					if (debug) System.out.println(DBGID+"類似予約に選択中のレコーダのものはなかった： "+myself);
+				}
+			}
+		}
+		
+		// ジャンル別ＡＶ設定の確認
+		AVs myavs = null;
+		if ( myrsv == null ) {
+			// 類似予約がないか、あっても優先されない場合
+			myavs = getSelectedAVs(vals.hide_tvd.genre, vals.hide_tvd.center, myrec.getRecorderId());
+		}
+		else {
+			MWin.appendMessage(MSGID+"画質・音質は類似予約の設定が継承されます");
+		}
+		
+		// 予約情報
+		vals.hide_default_recorder = myrec;
+		
+		return _open(myself, myrec, myrsv, myavs);
+				
 	}
 	
 	/**
-	 *  本体予約一覧からのオープン、または予約ＯＮ／ＯＦＦメニュー
+	 * 本体予約一覧からのオープン、または予約ＯＮ／ＯＦＦメニュー
 	 */
 	public boolean open(String myself, String rsvId) {
 		
@@ -654,9 +706,13 @@ abstract class AbsReserveDialog extends JDialog {
 			return false;	// ここに来たらバグ
 		}
 
+		// 初期パラメータの保存場所
+		if (vals == null) vals = new Vals();
+		
 		// 番組ID取得ボタンを無効にする
 		setGetEventIdButton(null,false);
 
+		// 予約情報から番組情報を組み立てる
 		ProgDetailList tvd = new ProgDetailList();
 		CommonUtils.getNextDate(myrsv);
 		tvd.center = myrsv.getCh_name();
@@ -669,94 +725,32 @@ abstract class AbsReserveDialog extends JDialog {
 		tvd.genre = ProgGenre.get(myrsv.getRec_genre());
 		tvd.subgenre = ProgSubgenre.get(tvd.genre,myrsv.getRec_subgenre());
 		
+		// 予約情報から類似予約情報を組み立てる
+		LikeReserveItem likersv = new LikeReserveItem(myrec,myrsv,0);
+		
 		// 隠しパラメータ
-		if (vals == null) vals = new Vals();
 		vals.hide_tvd = tvd;
 		vals.hide_content_id = null;
 		vals.hide_startdatetime = null;	// 予約一覧からは番組IDの取得はできないので開始日時は保存しない
 		vals.hide_atreservedlist = true;
 
-		return _open(myrec, myrsv);
+		// 予約情報
+		vals.selectedLikeRsv = likersv; 
+		vals.likeRsvList = new LikeReserveList();
+		vals.likeRsvList.add(vals.selectedLikeRsv);
+
+		vals.hide_default_recorder = myrec;
+
+		return _open(myself, myrec, myrsv, null);
 	}
 	
 	/**
 	 * ダイアログオープン（共通処理）
 	 */
-	private boolean _open(HDDRecorder rsvdrec, ReserveList rsvdrsv) {
+	private boolean _open(String myself, HDDRecorder myrec, ReserveList myrsv, AVs myavs) {
 		
 		// 予約は行われてないよー
 		doneReserve = false;
-		
-		String myself = null;
-		HDDRecorder myrec = null;
-		ReserveList myrsv = null;
-		AVs myavs = null;
-		if ( rsvdrec == null ) {
-			// レコーダの初期値の確認
-			myself = getSelectedRecorderOnToolbar();		// ツールバーで選択されているのはどれかな？
-			if ( myself != null && myself.length() > 0 ) {
-				myrec = recorders.findInstance(myself).get(0);		// "すべて"と"ピックアップ"以外
-			}
-			else {
-				myrec = recorders.get(0);						// "すべて"と"ピックアップ"なら先頭を選んでおけばいい
-			}
-			
-			// リセット用データ収集(1)
-			{
-				vals.hide_default_recorder = myrec;
-			}
-			
-			// 類似予約の確認
-			searchLikeRsv(vals.likeRsvList, vals.hide_tvd, vals.keyword, vals.threshold);
-			
-			if ( env.getGivePriorityToReserved() && vals.likeRsvList.size() > 0 ) {
-				// 類似予約が有効かつ存在しているならば
-				for ( int i=0; i<vals.likeRsvList.size(); i++ ) {
-					HDDRecorder rec = vals.likeRsvList.getRec(i);
-					if ( rec.isMyself(myself) ) {
-						myrec = rec;	// 類似予約の中にコンボボックスと一致するものがあったわ
-						myself = myrec.Myself();
-						myrsv = vals.likeRsvList.getRsv(i);
-						vals.selectedLikeRsv = new LikeReserveItem(myrec, myrsv);
-						break;
-					}
-				}
-				if ( myrsv == null && myself != null && myself.length() != 0 ) {
-					// 類似予約があってもコンボボックスで選択したレコーダのものがない場合は無視
-					if (debug) System.out.println(DBGID+"類似予約に選択中のレコーダのものはなかった： "+myself);
-				}
-				else {
-					if ( myrsv == null ) {
-						// "すべて"と"ピックアップのみ"なら選択できるものはないね
-						myrec = vals.likeRsvList.getRec(0);
-						myself = myrec.Myself();
-						myrsv = vals.likeRsvList.getRsv(0);
-						vals.selectedLikeRsv = new LikeReserveItem(myrec, myrsv);
-						if (debug) System.out.println(DBGID+"選択中のレコーダがないので先頭の類似予約を使う： "+myself);
-					}
-				}
-			}
-			
-			// ジャンル別ＡＶ設定の確認
-			if ( myrsv == null || ! env.getGivePriorityToReserved() ) {
-				myavs = getSelectedAVs(vals.hide_tvd.genre, vals.hide_tvd.center, myrec.getRecorderId());
-			}
-			else {
-				MWin.appendMessage(MSGID+"画質・音質は類似予約の設定が継承されます");
-			}
-		}
-		else {
-			myrec = rsvdrec;
-			myrsv = rsvdrsv;
-			myself = myrec.Myself();
-			vals.selectedLikeRsv = new LikeReserveItem(myrec,myrsv);
-			vals.likeRsvList.add(vals.selectedLikeRsv);
-			
-			// リセット用データ収集(1)
-			{
-				vals.hide_default_recorder = myrec;
-			}
-		}
 		
 		if ( vals.hide_content_id == null || ! ContentIdEDCB.isValid(vals.hide_content_id) ) {
 			if ( myrsv != null && ContentIdEDCB.isValid(myrsv.getContentId()) ) {
@@ -783,16 +777,19 @@ abstract class AbsReserveDialog extends JDialog {
 		// リスナーを全部戻す
 		setEnabledSelectionListeners(true);
 		
+		// 選択行が表示されるようにする
+		CommonSwingUtils.setSelectedRowShown(jtbl_likersv);
+		
 		// リセット用データ収集
 		{
 			vals.isExtended = jCheckBox_spoex_extend.isSelected();
 			vals.isClipped = jCheckBox_OverlapDown2.isSelected();
 			vals.byDateIni = (String) jComboBox_date.getItemAt(0);
 			vals.byWeeklyIni = (String) jComboBox_date.getItemAt(1);
-			jTextField_Xahh.setText(jTextField_ahh.getText());
-			jTextField_Xamm.setText(jTextField_amm.getText());
-			jTextField_Xzhh.setText(jTextField_zhh.getText());
-			jTextField_Xzmm.setText(jTextField_zmm.getText());
+			vals.ahh = jTextField_ahh.getText();
+			vals.amm = jTextField_amm.getText();
+			vals.zhh = jTextField_zhh.getText();
+			vals.zmm = jTextField_zmm.getText();
 		}
 		
 		return(true);
@@ -995,7 +992,7 @@ abstract class AbsReserveDialog extends JDialog {
 				if ( vals.likeRsvList.size() > 0 ) {
 					//jButton_update.setForeground(Color.RED);
 					//jButton_update.setEnabled(true);
-					likersvtable.setEnabled(true);
+					jtbl_likersv.setEnabled(true);
 					
 					// 類似予約中の一番近い予約を探す
 					long score = 86400;
@@ -1013,24 +1010,24 @@ abstract class AbsReserveDialog extends JDialog {
 
 				}
 				else {
-					likersvtable.setEnabled(false);
+					jtbl_likersv.setEnabled(false);
 				}
 			}
 			else {
 				// 本体予約一覧の場合は１個だけ追加すればよい
 				jButton_record.setForeground(Color.GRAY);
 				jButton_record.setEnabled(false);
-				likersvtable.setEnabled(false);
+				jtbl_likersv.setEnabled(false);
 				selectedrow = 0;
 				//vals.likeRsvList.add(new LikeReserveItem(myrec,myrsv));
 			}
 
-			((DefaultTableModel)likersvtable.getModel()).fireTableDataChanged();
-			((DefaultTableModel)likersvrowheader.getModel()).fireTableDataChanged();
+			((DefaultTableModel)jtbl_likersv.getModel()).fireTableDataChanged();
+			((DefaultTableModel)jrhdr_likersv.getModel()).fireTableDataChanged();
 			
-			likersvtable.setRowSelectionInterval(selectedrow,selectedrow);
+			jtbl_likersv.setRowSelectionInterval(selectedrow,selectedrow);
 
-			setEnabledUpdateButton(likersvtable.getSelectedRow());
+			setEnabledUpdateButton(jtbl_likersv.getSelectedRow());
 		}
 	}
 	
@@ -1134,7 +1131,20 @@ abstract class AbsReserveDialog extends JDialog {
 			jCheckBox_Exec.setSelected(myrsv.getExec());
 			jCheckBox_Exec.setForeground((myrsv.getExec())?(Color.BLACK):(Color.RED));
 		}
-
+		
+		// タイトル
+		if ( myrsv == null ) {
+			jComboBox_title.setSelectedIndex(0);
+		}
+		else {
+			for ( int i=0; i<jComboBox_title.getItemCount(); i++ ) {
+				if ( myrsv.getTitle().equals(jComboBox_title.getItemAt(i)) ) {
+					jComboBox_title.setSelectedIndex(i);
+					break;
+				}
+			}
+		}
+		
 		// タイトル自動補完
 		jCheckBox_Autocomplete.setEnabled(myrec.isAutocompleteSupported());
 		if ( myrec.isAutocompleteSupported() ) {
@@ -1275,7 +1285,7 @@ abstract class AbsReserveDialog extends JDialog {
 			jComboBox_date.setSelectedIndex(dateid);
 		}
 	}
-	
+
 	private void setSelectedAVItems(String myrecid, ReserveList myrsv, AVs myavs) {
 		if ( myrsv != null ) {
 			selCBX(jCBXPanel_videorate, myrsv.getRec_mode());
@@ -1406,6 +1416,7 @@ abstract class AbsReserveDialog extends JDialog {
 		val = recorder.getLabel_Autodel();
 		jCBXPanel_autodel.setText((val!=null)?(val):("自動削除"));
 	}
+	
 
 	/*******************************************************************************
 	 * 共通部品的な
@@ -1440,14 +1451,14 @@ abstract class AbsReserveDialog extends JDialog {
 		jCBXPanel_videorate.removeItemListener(il_videorateChanged);
 		jCBXPanel_recorder.removeItemListener(il_recorderChanged);
 		jCBXPanel_genre.removeItemListener(il_genreChanged);
-		likersvtable.removeMouseListener(ml_likelistSelected);
+		jtbl_likersv.removeMouseListener(ml_likelistSelected);
 		if ( b ) {
 			// 必要なら追加する
 			jCBXPanel_encoder.addItemListener(il_encoderChanged);
 			jCBXPanel_videorate.addItemListener(il_videorateChanged);
 			jCBXPanel_recorder.addItemListener(il_recorderChanged);
 			jCBXPanel_genre.addItemListener(il_genreChanged);
-			likersvtable.addMouseListener(ml_likelistSelected);
+			jtbl_likersv.addMouseListener(ml_likelistSelected);
 		}
 	}
 	
@@ -1458,6 +1469,7 @@ abstract class AbsReserveDialog extends JDialog {
 		jCBXPanel_genre.removeAllItems();
 		//likersvtable.removeAllItems();
 	}
+	
 	
 	/*******************************************************************************
 	 * ネットから番組IDを取得する
@@ -1502,6 +1514,7 @@ abstract class AbsReserveDialog extends JDialog {
 		
 		return myavs;
 	}
+	
 	
 	/*******************************************************************************
 	 * ネットから番組IDを取得する
@@ -1684,6 +1697,7 @@ abstract class AbsReserveDialog extends JDialog {
 	 * @param enabled 番組IDの取得ができないシチュエーション（予約一覧から開くとか）では取得ボタンをfalseに。
 	 */
 	private boolean setGetEventIdButton(String cId, boolean enabled) {
+		
 		Integer evid = null;
 		if ( ContentIdEDCB.decodeContentId(cId) ) {
 			evid = ContentIdEDCB.getEvId();
@@ -1715,6 +1729,7 @@ abstract class AbsReserveDialog extends JDialog {
 			return true;
 		}
 	}
+	
 
 	/*******************************************************************************
 	 * 自動エンコーダ選択と裏番組抽出
@@ -1862,6 +1877,7 @@ abstract class AbsReserveDialog extends JDialog {
 			MWin.appendMessage(msg);
 		}
 	}
+	
 	
 	/*******************************************************************************
 	 * 放送波種別によって利用できるエンコーダを絞り込んでみる
@@ -2020,6 +2036,40 @@ abstract class AbsReserveDialog extends JDialog {
 	}
 	
 	/*******************************************************************************
+	 * ハンドラ―メソッド
+	 ******************************************************************************/
+	
+	/**
+	 * ツールバーでレコーダの選択イベントが発生
+	 */
+	@Override
+	public void valueChanged(HDDRecorderSelectionEvent e) {
+		if (debug) System.out.println(DBGID+"recorder selection rised");
+		
+		// 選択中のレコーダ情報を保存する
+		src_recsel = (HDDRecorderSelectable) e.getSource();
+	}
+	
+	private String getSelectedRecorderId() {
+		return ( src_recsel!=null ? src_recsel.getSelectedId() : null );
+	}
+	
+	private HDDRecorderList getSelectedRecorderList() {
+		return ( src_recsel!=null ? src_recsel.getSelectedList() : null );
+	}
+	
+	private HDDRecorderSelectable src_recsel;
+	
+	
+	/**
+	 * レコーダ情報の変更イベントが発生
+	 */
+	@Override
+	public void stateChanged(HDDRecorderChangeEvent e) {
+	}
+	
+	
+	/*******************************************************************************
 	 * リスナー
 	 ******************************************************************************/
 	
@@ -2088,7 +2138,7 @@ abstract class AbsReserveDialog extends JDialog {
 	private final MouseListener ml_likelistSelected = new MouseAdapter() {
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			if ( ! likersvtable.isEnabled() ) {
+			if ( ! jtbl_likersv.isEnabled() ) {
 				return;
 			}
 			if (SwingUtilities.isLeftMouseButton(e)) {
@@ -2114,7 +2164,7 @@ abstract class AbsReserveDialog extends JDialog {
 		if ( changed == ChangedSelector.LIKELIST ) {
 			// 類似予約の選択の場合
 			
-			int row = likersvtable.getSelectedRow();
+			int row = jtbl_likersv.getSelectedRow();
 			
 			if ( row != LIKERSVTABLE_NOTSELECTED ) {
 				LikeReserveItem ll = (LikeReserveItem) vals.likeRsvList.get(row);
@@ -2141,6 +2191,7 @@ abstract class AbsReserveDialog extends JDialog {
 				}
 			}
 			else {
+				// "(類似予約選択なし)"
 				myrec = vals.hide_default_recorder;
 				myenc = null;
 				myrsv = null;
@@ -2180,7 +2231,7 @@ abstract class AbsReserveDialog extends JDialog {
 					HDDRecorder rec = vals.likeRsvList.getRec(i);
 					if ( rec.isMyself(myrec.Myself()) ) {
 						myrsv = vals.likeRsvList.getRsv(i);
-						vals.selectedLikeRsv = new LikeReserveItem(rec, myrsv);
+						vals.selectedLikeRsv = new LikeReserveItem(rec, myrsv, 0);
 						break;
 					}
 				}
@@ -2212,11 +2263,6 @@ abstract class AbsReserveDialog extends JDialog {
 		setSelectedVariables(myrec, myrsv, myavs, mychname, myenc);
 		
 		setLabels(myrec);
-		
-		if ( changed != ChangedSelector.LIKELIST ) {
-			// ********
-			//jComboBox_likelist.setSelectedIndex(vals.likeRsvList.indexOf(myrsv));
-		}
 		
 		setEnabledSelectionListeners(true);
 	}
@@ -2654,10 +2700,10 @@ abstract class AbsReserveDialog extends JDialog {
 			jComboBox_date.removeItemAt(1);
 			jComboBox_date.insertItemAt(vals.byWeeklyIni, 1);
 			jComboBox_date.setSelectedIndex(n);
-			jTextField_ahh.setText(jTextField_Xahh.getText());
-			jTextField_amm.setText(jTextField_Xamm.getText());
-			jTextField_zhh.setText(jTextField_Xzhh.getText());
-			jTextField_zmm.setText(jTextField_Xzmm.getText());
+			jTextField_ahh.setText(vals.ahh);
+			jTextField_amm.setText(vals.amm);
+			jTextField_zhh.setText(vals.zhh);
+			jTextField_zmm.setText(vals.zmm);
 		}
 	};
 
@@ -2738,7 +2784,7 @@ abstract class AbsReserveDialog extends JDialog {
 				CommonSwingUtils.putComponentOn(jPane_title, getJComboBox_date(),		DATE_WIDTH,		PARTS_HEIGHT,	hmx+=SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
 				
 				hmx += DATE_WIDTH+SEP_WIDTH;
-				CommonSwingUtils.putComponentOn(jPane_title, getJLabel_ahh("開始時刻"),	75,	PARTS_HEIGHT,	hmx, y);
+				CommonSwingUtils.putComponentOn(jPane_title, getJButton_aTime("開始時刻"),	75,	PARTS_HEIGHT,	hmx, y);
 				CommonSwingUtils.putComponentOn(jPane_title, getJTextField_ahh(),		40,	PARTS_HEIGHT,	hmx+=SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
 				CommonSwingUtils.putComponentOn(jPane_title, getJLabel_asep(":"),		10,	PARTS_HEIGHT,	hmx+=40, y+PARTS_HEIGHT);
 				CommonSwingUtils.putComponentOn(jPane_title, getJTextField_amm(),		40,	PARTS_HEIGHT,	hmx+=10, y+PARTS_HEIGHT);
@@ -2746,7 +2792,7 @@ abstract class AbsReserveDialog extends JDialog {
 				CommonSwingUtils.putComponentOn(jPane_title, getJButton_amm_down(),		20,	12,				hmx, y+PARTS_HEIGHT+13);
 				
 				hmx += 20+SEP_WIDTH_NARROW;
-				CommonSwingUtils.putComponentOn(jPane_title, getJLabel_zhh("終了時刻"),	75,	PARTS_HEIGHT,	hmx, y);
+				CommonSwingUtils.putComponentOn(jPane_title, getJButton_zTime("終了時刻"),	75,	PARTS_HEIGHT,	hmx, y);
 				CommonSwingUtils.putComponentOn(jPane_title, getJTextField_zhh(),		40,	PARTS_HEIGHT,	hmx+=SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
 				CommonSwingUtils.putComponentOn(jPane_title, getJLabel_zsep(":"),		10,	PARTS_HEIGHT,	hmx+=40, y+PARTS_HEIGHT);
 				CommonSwingUtils.putComponentOn(jPane_title, getJTextField_zmm(),		40,	PARTS_HEIGHT,	hmx+=10, y+PARTS_HEIGHT);
@@ -2762,23 +2808,6 @@ abstract class AbsReserveDialog extends JDialog {
 				jCheckBox_Autocomplete.setSelected(env.getUseAutocomplete());
 			}
 			
-			getJTextField_Xahh();
-			getJTextField_Xamm();
-			getJTextField_Xzhh();
-			getJTextField_Xzmm();
-			
-			/*
-			y += PARTS_HEIGHT+2;
-			hmx = 210;
-			CommonSwingUtils.putComponentOn(jPane_title, getJTextField_Xahh(), 40, 21, hmx, y+2);
-			CommonSwingUtils.putComponentOn(jPane_title, getJLabel_Xasep(":"), 10, 21, hmx+=40, y+2);
-			CommonSwingUtils.putComponentOn(jPane_title, getJTextField_Xamm(), 40, 21, hmx+=10, y+2);
-			CommonSwingUtils.putComponentOn(jPane_title, getJTextField_Xzhh(), 40, 21, hmx+=70, y+2);
-			CommonSwingUtils.putComponentOn(jPane_title, getJLabel_Xzsep(":"), 10, 21, hmx+=40, y+2);
-			CommonSwingUtils.putComponentOn(jPane_title, getJTextField_Xzmm(), 40, 21, hmx+=10, y+2);
-			CommonSwingUtils.putComponentOn(jPane_title, getJButton_Xreset(""), 20, 15, hmx+=42, y+5);
-			*/
-
 			y += PARTS_HEIGHT*2+SEP_WIDTH_NARROW;
 
 			CommonSwingUtils.putComponentOn(jPane_title, getJLabel_detail("番組詳細"), 100, PARTS_HEIGHT, x, y);
@@ -2822,15 +2851,22 @@ abstract class AbsReserveDialog extends JDialog {
 			int y = 0;
 			int x = SEP_WIDTH_NARROW;
 			
-			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_recorder = new JComboBoxPanel("レコーダ",RECORDER_WIDTH,RECORDER_WIDTH),	RECORDER_WIDTH+5,	COMBO_HEIGHT, x, y);
-			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_encoder = new JComboBoxPanel("エンコーダ",ENCODER_WIDTH,ENCODER_WIDTH),		ENCODER_WIDTH+5,	COMBO_HEIGHT, x+=RECORDER_WIDTH+5+SEP_WIDTH, y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_recorder = new JComboBoxPanel("レコーダ",RECORDER_WIDTH,RECORDER_WIDTH),	RECORDER_WIDTH+5,	COMBO_HEIGHT+SEP_HEIGHT, x, y);
+			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_encoder = new JComboBoxPanel("エンコーダ",ENCODER_WIDTH,ENCODER_WIDTH),		ENCODER_WIDTH+5,	COMBO_HEIGHT+SEP_HEIGHT, x+=RECORDER_WIDTH+5+SEP_WIDTH, y);
 			CommonSwingUtils.putComponentOn(jPane_recsetting, getJLabel_encoderemptywarn(""), LABEL_WIDTH, PARTS_HEIGHT, x+=ENCODER_WIDTH+5+SEP_WIDTH+5, y+PARTS_HEIGHT);
+			
+			Font fo = jCBXPanel_recorder.getJComboBox().getFont();
+			Font fn = fo.deriveFont(fo.getStyle()|Font.BOLD);
+			jCBXPanel_recorder.getJComboBox().setFont(fn);
+			jCBXPanel_recorder.getJComboBox().setForeground(Color.BLUE);
+			jCBXPanel_encoder.getJComboBox().setFont(fn);
+			jCBXPanel_encoder.getJComboBox().setForeground(Color.BLUE);
 
 			// ポップアップした時に追加される幅
 			jCBXPanel_recorder.addPopupWidth(100);
 			jCBXPanel_encoder.addPopupWidth(100);
 
-			y += COMBO_HEIGHT+SEP_HEIGHT*2;
+			y += (COMBO_HEIGHT+SEP_HEIGHT)+SEP_HEIGHT;
 			x = SEP_WIDTH_NARROW;
 			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_genre = new JComboBoxPanel("ジャンル",110,150),				COMBO_WIDTH_WIDE,	COMBO_HEIGHT, x, y);
 			CommonSwingUtils.putComponentOn(jPane_recsetting, jCBXPanel_subgenre = new JComboBoxPanel("サブジャンル",110,150),			COMBO_WIDTH_WIDE,	COMBO_HEIGHT, x+=(COMBO_WIDTH_WIDE+SEP_WIDTH), y);
@@ -2895,7 +2931,7 @@ abstract class AbsReserveDialog extends JDialog {
 		if (jPane_likersv == null ) {
 			jPane_likersv = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 			//jPane_likersv.setBorder(new LineBorder(Color.BLACK, 1));
-			jPane_likersv.setRowHeaderView(likersvrowheader = new LikeRsvRowHeader());
+			jPane_likersv.setRowHeaderView(jrhdr_likersv = new LikeRsvRowHeader());
 			jPane_likersv.setViewportView(getLikeRsvTable());
 			
 			Dimension dh = new Dimension(LRT_HEADER_WIDTH,0);
@@ -3036,22 +3072,24 @@ abstract class AbsReserveDialog extends JDialog {
 		return(jLabel_encoderemptywarn);
 	}
 
-	private JLabel getJLabel_ahh(String s)
-	{
-		if (jLabel_ahh == null) {
-			jLabel_ahh = new JLabel();
-			jLabel_ahh.setText(s);
+	private JButton getJButton_aTime(String s) {
+		if (jButton_aTime == null) {
+			jButton_aTime = new JButton();
+			jButton_aTime.setText(s);
+			
+			jButton_aTime.addMouseListener(ml_resetStartEnd);
 		}
-		return(jLabel_ahh);
+		return(jButton_aTime);
 	}
 	
-	private JLabel getJLabel_zhh(String s)
-	{
-		if (jLabel_zhh == null) {
-			jLabel_zhh = new JLabel();
-			jLabel_zhh.setText(s);
+	private JButton getJButton_zTime(String s) {
+		if (jButton_zTime == null) {
+			jButton_zTime = new JButton();
+			jButton_zTime.setText(s);
+			
+			jButton_zTime.addMouseListener(ml_resetStartEnd);
 		}
-		return(jLabel_zhh);
+		return(jButton_zTime);
 	}
 
 	private JComboBox getJComboBox_title() {
@@ -3095,34 +3133,6 @@ abstract class AbsReserveDialog extends JDialog {
 	}
 	
 	// 開始時刻
-	private JTextField getJTextField_Xahh() {
-		if (jTextField_Xahh == null) {
-			jTextField_Xahh = new JTextField();
-			jTextField_Xahh.setEditable(false);
-			jTextField_Xahh.setForeground(Color.PINK);
-			jTextField_Xahh.setBorder(null);
-			jTextField_Xahh.setHorizontalAlignment(JTextField.CENTER);
-		}
-		return jTextField_Xahh;
-	}
-	private JTextField getJTextField_Xamm() {
-		if (jTextField_Xamm == null) {
-			jTextField_Xamm = new JTextField();
-			jTextField_Xamm.setEditable(false);
-			jTextField_Xamm.setForeground(Color.PINK);
-			jTextField_Xamm.setBorder(null);
-			jTextField_Xamm.setHorizontalAlignment(JTextField.CENTER);
-		}
-		return jTextField_Xamm;
-	}
-	private JLabel getJLabel_Xasep(String s)
-	{
-		if (jLabel_Xasep == null) {
-			jLabel_Xasep = new JLabel(s);
-		}
-		return(jLabel_Xasep);
-	}
-	// 開始時刻
 	private JTextField getJTextField_ahh() {
 		if (jTextField_ahh == null) {
 			jTextField_ahh = new JTextField();
@@ -3163,34 +3173,6 @@ abstract class AbsReserveDialog extends JDialog {
 	}
 	
 	//
-	private JTextField getJTextField_Xzhh() {
-		if (jTextField_Xzhh == null) {
-			jTextField_Xzhh = new JTextField();
-			jTextField_Xzhh.setEditable(false);
-			jTextField_Xzhh.setForeground(Color.PINK);
-			jTextField_Xzhh.setBorder(null);
-			jTextField_Xzhh.setHorizontalAlignment(JTextField.CENTER);
-		}
-		return jTextField_Xzhh;
-	}
-	private JTextField getJTextField_Xzmm() {
-		if (jTextField_Xzmm == null) {
-			jTextField_Xzmm = new JTextField();
-			jTextField_Xzmm.setEditable(false);
-			jTextField_Xzmm.setForeground(Color.PINK);
-			jTextField_Xzmm.setBorder(null);
-			jTextField_Xzmm.setHorizontalAlignment(JTextField.CENTER);
-		}
-		return jTextField_Xzmm;
-	}
-	private JLabel getJLabel_Xzsep(String s)
-	{
-		if (jLabel_Xzsep == null) {
-			jLabel_Xzsep = new JLabel(s);
-		}
-		return(jLabel_Xzsep);
-	}
-	//
 	private JTextField getJTextField_zhh() {
 		if (jTextField_zhh == null) {
 			jTextField_zhh = new JTextField();
@@ -3230,18 +3212,8 @@ abstract class AbsReserveDialog extends JDialog {
 		return jButton_zmm_down;
 	}
 	
-	//
-	private JButton getJButton_Xreset(String s) {
-		if (jButton_Xreset == null) {
-			jButton_Xreset = new JButton(s);
-			//
-			jButton_Xreset.addMouseListener(ml_resetStartEnd);
-		}
-		return(jButton_Xreset);
-	}
-	
 	private LikeRsvTable getLikeRsvTable() {
-		if (likersvtable == null) {
+		if (jtbl_likersv == null) {
 			
 			// カラム名の初期化
 			ArrayList<String> cola = new ArrayList<String>();
@@ -3255,11 +3227,11 @@ abstract class AbsReserveDialog extends JDialog {
 			//　テーブルの基本的な設定
 			DefaultTableModel model = new DefaultTableModel(colname, 0);
 			
-			likersvtable = new LikeRsvTable(model);
-			likersvtable.setAutoResizeMode(JNETable.AUTO_RESIZE_OFF);
+			jtbl_likersv = new LikeRsvTable(model);
+			jtbl_likersv.setAutoResizeMode(JNETable.AUTO_RESIZE_OFF);
 			
 			// 各カラムの幅を設定する
-			DefaultTableColumnModel columnModel = (DefaultTableColumnModel)likersvtable.getColumnModel();
+			DefaultTableColumnModel columnModel = (DefaultTableColumnModel)jtbl_likersv.getColumnModel();
 			TableColumn column = null;
 			for ( LikeRsvColumn lc : LikeRsvColumn.values() ) {
 				if ( lc.getIniWidth() < 0 ) {
@@ -3270,7 +3242,7 @@ abstract class AbsReserveDialog extends JDialog {
 			}
 		}
 		
-		return likersvtable;
+		return jtbl_likersv;
 	}
 	
 	private JButton getJButton_record(String s) {

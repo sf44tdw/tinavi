@@ -50,7 +50,7 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 	 * <P> 「個別指定」→本来{@link HDDRecorder}を返すべきだが、呼び出し側の処理を書きやすくするために{@link HDDRecorderList}を返す。よって、==nullではなく.size()==0で確認する。
 	 */
 	public HDDRecorderList findInstance(String mySelf) {
-		if (mySelf == null || mySelf.length() == 0) {
+		if ( mySelf == null || mySelf == HDDRecorder.SELECTED_ALL || mySelf == HDDRecorder.SELECTED_PICKUP ) {
 			// 「すべて」「ピックアップのみ」→全部のインスタンスを返す
 			return this;
 		}
@@ -59,6 +59,23 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 		HDDRecorderList mylist = new HDDRecorderList();
 		for ( HDDRecorder rec : this ) {
 			if ( rec.isMyself(mySelf) ) {
+				mylist.add(rec);
+				break;
+			}
+		}
+		return mylist;
+	}
+
+	public HDDRecorderList findInstance(RecType rectype) {
+		if ( rectype == null ) {
+			// 全部のインスタンスを返す
+			return this;
+		}
+		
+		// 個別指定
+		HDDRecorderList mylist = new HDDRecorderList();
+		for ( HDDRecorder rec : this ) {
+			if ( rec.getType() == rectype ) {
 				mylist.add(rec);
 				break;
 			}

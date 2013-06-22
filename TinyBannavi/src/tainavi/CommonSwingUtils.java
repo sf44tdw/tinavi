@@ -25,6 +25,9 @@ import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageOutputStream;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.SpringLayout;
 
 import tainavi.Env.SnapshotFmt;
@@ -73,6 +76,24 @@ public class CommonSwingUtils {
 		int x = p2.x+(r2.width-r.width)/2;
 		int y = p2.y+r2.height-10;
 		c.setLocation(x, y);
+	}
+	
+	/**
+	 * jtableの選択行が表示可能な位置にくるようにスクロールさせる
+	 */
+	public static boolean setSelectedRowShown(JTable tbl) {
+		
+		Component parent = tbl.getParent();
+		if ( ! (parent instanceof JViewport) ) {
+			return false;
+		}
+		
+		int row = tbl.getSelectedRow();
+		JViewport viewport = (JViewport) parent;
+		Rectangle ra = tbl.getCellRect(row, 0, true);
+		Rectangle rb = viewport.getVisibleRect();
+		tbl.scrollRectToVisible(new Rectangle(ra.x, ra.y, (int)rb.getWidth(), (int)rb.getHeight()));
+		return true;
 	}
 	
 	/**

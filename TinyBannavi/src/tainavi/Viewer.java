@@ -63,6 +63,7 @@ import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import taiSync.ReserveInfo;
 import tainavi.HDDRecorder.RecType;
 import tainavi.SearchKey.TargetId;
 import tainavi.TVProgram.ProgFlags;
@@ -1199,12 +1200,9 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		 */
 		
 		@Override
-		protected void searchLikeRsv(LikeReserveList likeRsvList, ProgDetailList tvd, String keyword, int threshold) {
-			Viewer.this.searchLikeRsv(likeRsvList, tvd, keyword, threshold);
+		protected LikeReserveList findLikeReserves(ProgDetailList tvd, String keyword, int threshold) {
+			return Viewer.this.findLikeReserves(tvd, keyword, threshold);
 		}
-
-		@Override
-		protected String getSelectedRecorderOnToolbar() { return toolBar.getSelectedRecorder(); }
 	}
 	
 	/**
@@ -1576,9 +1574,9 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 	/**
 	 * 類似予約をさがす
 	 */
-	private void searchLikeRsv(LikeReserveList likeRsvList, ProgDetailList tvd, String keyword, int threshold) {
+	private LikeReserveList findLikeReserves(ProgDetailList tvd, String keyword, int threshold) {
 		
-		likeRsvList.clear();
+		LikeReserveList likeRsvList = new LikeReserveList();
 		
 		// 曖昧検索のための初期化
 		String keywordPop = null;
@@ -1597,7 +1595,6 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		// 検索範囲
 		long rangeLikeRsv = env.getRangeLikeRsv()*3600000;
 		
-		HashMap<String,Boolean> misCN = new HashMap<String, Boolean>();
 		for ( HDDRecorder recorder : recorders ) {
 			
 			// 終了した予約を整理する
@@ -1606,69 +1603,94 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 			for ( ReserveList r : recorder.getReserves() ) {
 				
 				// タイトルのマッチング
-				boolean isExist = false;
-				if (env.getDisableFazzySearch() == false) {
-					// 双方向の比較を行う・正引き
-					int fazScore = TraceProgram.sumScore(keywordPop, r.getTitlePop());
-					if ( fazScore >= thresholdVal) {
-						isExist = true;
-					}
-					else if ( ! env.getDisableFazzySearchReverse()) {
-						// 逆引き
-						fazScore = TraceProgram.sumScore(r.getTitlePop(), keywordPop);
-						if ( fazScore >= thresholdVal) {
-							isExist = true;
-						}
-					}
-				}
-				else {
-					if (r.getTitlePop().equals(tvd.titlePop)) {
-						isExist = true;
-					}
-				}
-				if ( ! isExist) {
+				if ( ! isLikeTitle(tvd, r, keywordPop, thresholdVal) ) {
 					continue;
 				}
 				
 				// 放送局のマッチング
-				if (r.getCh_name() == null) {
-					if(r.getChannel().length() > 0) {
-						misCN.put(r.getChannel(),true);
-					}
-					continue;
-				}
-				if ( ! r.getCh_name().equals(tvd.center)) {
+				if ( ! isLikeChannel(tvd, r) ) {
 					continue;
 				}
 				
 				// 近接時間チェック
-				boolean inRange = true;
-				if (rangeLikeRsv > 0) {
-					
-					inRange = false;
-					
-					ArrayList<String> starts = new ArrayList<String>();
-					ArrayList<String> ends = new ArrayList<String>();
-					CommonUtils.getStartEndList(starts, ends, r);
-					for (int j=0; j<starts.size(); j++) {
-						long d = CommonUtils.getDiffDateTime(tvd.startDateTime, starts.get(j));
-						//StdAppendMessage(String.format("%s %s %d", tvd.startDateTime, starts.get(j),d));
-						if (d <= rangeLikeRsv) {
-							inRange = true;
-							break;
-						}
-					}
-				}
-				if ( ! inRange) {
+				Long d = getLikeDist(tvd, r, rangeLikeRsv);
+				if ( d == null ) {
 					continue;
 				}
 				
-				// 類似予約あり！
-				likeRsvList.add(new LikeReserveItem(recorder, r));
+				// 類似予約あり
+				likeRsvList.add(new LikeReserveItem(recorder, r, d));
+
+				for ( LikeReserveItem lr : likeRsvList ) {
+					System.out.println(lr.getDist()+", "+lr.getRsv().getTitle());
+				}
+				System.out.println("********");
+			}
+			
+		}
+		
+		
+		return likeRsvList;
+	}
+	
+	private boolean isLikeTitle(ProgDetailList tvd, ReserveList r, String keywordPop, int thresholdVal) {
+		
+		if (env.getDisableFazzySearch() == false) {
+			// 双方向の比較を行う・正引き
+			int fazScore = TraceProgram.sumScore(keywordPop, r.getTitlePop());
+			if ( fazScore >= thresholdVal ) {
+				return true;
+			}
+			else if ( ! env.getDisableFazzySearchReverse() ) {
+				// 逆引き
+				fazScore = TraceProgram.sumScore(r.getTitlePop(), keywordPop);
+				if ( fazScore >= thresholdVal) {
+					return true;
+				}
+			}
+		}
+		else {
+			if ( r.getTitlePop().equals(tvd.titlePop )) {
+				return true;
 			}
 		}
 		
-		return;
+		return false;
+	}
+	
+	private boolean isLikeChannel(ProgDetailList tvd, ReserveList r) {
+		
+		if ( r.getCh_name() == null ) {
+			return false;
+		}
+		if ( ! r.getCh_name().equals(tvd.center) ) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private Long getLikeDist(ProgDetailList tvd, ReserveList r, long rangeLikeRsv) {
+		
+		Long d = null;
+		
+		ArrayList<String> starts = new ArrayList<String>();
+		ArrayList<String> ends = new ArrayList<String>();
+		CommonUtils.getStartEndList(starts, ends, r);
+		 
+		for ( int j=0; j<starts.size(); j++ ) {
+			long dtmp = CommonUtils.getCompareDateTime(starts.get(j),tvd.startDateTime);
+			if ( rangeLikeRsv > 0 && Math.abs(dtmp) >= rangeLikeRsv ) {
+				// 範囲指定があって範囲外ならスキップ
+				continue;
+			}
+			else if ( d == null || Math.abs(d) > Math.abs(dtmp) ) {
+				// 初値、または一番小さい値を採用
+				d = dtmp;
+			}
+		}
+		
+		return d;
 	}
 	
 	
@@ -1723,8 +1745,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		pop.addSeparator();
 		
 		// 類似予約検索
-		LikeReserveList likeRsvList = new LikeReserveList();
-		searchLikeRsv(likeRsvList, tvd, "", 0);
+		LikeReserveList likeRsvList = findLikeReserves(tvd, "", 0);
 		
 		// 重複予約検索
 		LikeReserveList overlapRsvList = new LikeReserveList();
@@ -2623,6 +2644,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 				
 				// 重複時間チェック
 				boolean inRange = false;
+				long d = 0;
 				{
 					ArrayList<String> starts = new ArrayList<String>();
 					ArrayList<String> ends = new ArrayList<String>();
@@ -2641,6 +2663,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 						for (int j=0; j<starts.size(); j++) {
 							if ( CommonUtils.isOverlap(tvd.startDateTime, tvd.endDateTime, starts.get(j), ends.get(j), false) ) {
 								inRange = true;
+								d = CommonUtils.getDiffDateTime(tvd.startDateTime, starts.get(j));
 								break;
 							}
 						}
@@ -2651,7 +2674,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 				}
 				
 				// 類似予約あり！
-				overlapRsvList.add(new LikeReserveItem(recorder, r));
+				overlapRsvList.add(new LikeReserveItem(recorder, r, d));
 			}
 		}
 		
@@ -4779,9 +4802,9 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		// [ツールバー/共通] レコーダ情報変更
 		toolBar.addHDDRecorderChangeListener(autores);
 		
-		// [ツールバー/レコーダ選択] 自動予約一覧
-		toolBar.addHDDRecorderSelectionListener(autores);
-
+		// [ツールバー/レコーダ選択]
+		toolBar.addHDDRecorderSelectionListener(autores);	// 自動予約一覧
+		toolBar.addHDDRecorderSelectionListener(rdialog);	// 予約ダイアログ
 
 		// レコーダ選択イベントキック
 		toolBar.setSelectedRecorder(bounds.getSelectedRecorderId());
