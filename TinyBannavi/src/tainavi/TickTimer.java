@@ -10,7 +10,7 @@ import javax.swing.Timer;
 /**
  * 毎分00秒に処理をキックするタイマー
  */
-public class VWTimer {
+public class TickTimer {
 
 	public void setInterval(int min) { timer_interval = min; }
 	private int timer_interval = 1;				// 何分ごとにキックするか
@@ -20,7 +20,9 @@ public class VWTimer {
 	
 	private Timer timer_now = null;				// タイマーのオブジェクト
 	
-	private ArrayList<VWTimerRiseListener> listener_list = new ArrayList<VWTimerRiseListener>(); 
+	private ArrayList<TickTimerListener> listener_list = new ArrayList<TickTimerListener>(); 
+	
+	private final Boolean foo = true;
 	
 	/**
 	 * 次の00秒までの時間(ミリ秒)を計算する
@@ -33,50 +35,55 @@ public class VWTimer {
 	 * タイマー起動
 	 */
 	public int start() {
-		
-		if ( timer_now == null ) {
-			// 新規のタイマー
-			timer_now = new Timer(0, al_nowtimer);	// TIMER_INTERVALの値はなんでもいい
-			timer_now.setRepeats(false);	// 一回しか実行しないよ
+		synchronized ( foo ) {
+			if ( timer_now == null ) {
+				// 新規のタイマー
+				timer_now = new Timer(0, al_nowtimer);	// TIMER_INTERVALの値はなんでもいい
+				timer_now.setRepeats(false);			// 一回しか実行しないよ
+			}
+			
+			int delay = getNextDelay()+timer_delay_add;
+			timer_now.setInitialDelay(delay);
+			
+			timer_now.start();
+			
+			return delay;
 		}
-		
-		int delay = getNextDelay()+timer_delay_add;
-		timer_now.setInitialDelay(delay);
-		
-		timer_now.start();
-		
-		return delay;
 	}
 	
 	/**
 	 * タイマー停止
 	 */
 	public boolean stop() {
-		if ( timer_now != null ) {
-			timer_now.stop();
-			timer_now = null;
-			
-			return true;
+		synchronized ( foo ) {
+			if ( timer_now != null ) {
+				timer_now.stop();
+				timer_now = null;
+				
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
 	
 	/**
 	 * タイマー一時停止
 	 */
 	public boolean pause() {
-		if ( timer_now != null && timer_now.isRunning() ) {
-			timer_now.stop();
-			
-			return true;
+		synchronized ( foo ) {
+			if ( timer_now != null && timer_now.isRunning() ) {
+				timer_now.stop();
+				
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
 	
 	/**
 	 * タイマーで実行する内容を追加
 	 */
-	public void addVWTimerRiseListener(VWTimerRiseListener l) {
+	public void addTickTimerRiseListener(TickTimerListener l) {
 		if ( ! listener_list.contains(l) ) {
 			listener_list.add(l);
 		}
@@ -85,7 +92,7 @@ public class VWTimer {
 	/**
 	 * タイマーで実行する内容を削除
 	 */
-	public void removeVWTimerRiseListener(VWTimerRiseListener l) {
+	public void removeTickTimerRiseListener(TickTimerListener l) {
 		listener_list.remove(l);
 	}
 	
@@ -96,15 +103,18 @@ public class VWTimer {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			
-			VWTimerRiseEvent ev = new VWTimerRiseEvent(this);
+			fireTimerRised();
 			
-			for ( VWTimerRiseListener l : listener_list ) {
-				l.timerRised(ev);
-			}
-			
-			int delay = start();
+			int delay = start();	// タイマー再起動
 			//System.out.println("Timer Rised: now="+CommonUtils.getDateTimeYMD(ev.getCalendar())+" delay="+delay);
 		}
 	};
+	private void fireTimerRised() {
+		TickTimerRiseEvent ev = new TickTimerRiseEvent(this);
+		
+		for ( TickTimerListener l : listener_list ) {
+			l.timerRised(ev);
+		}
+	}
 
 }

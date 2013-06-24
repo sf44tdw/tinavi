@@ -76,7 +76,7 @@ import tainavi.VWMainWindow.MWinTab;
  * リスト形式タブのクラス
  * @since 3.15.4β　{@link Viewer}から分離
  */
-public abstract class AbsListedView extends JPanel implements VWTimerRiseListener {
+public abstract class AbsListedView extends JPanel implements TickTimerListener {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -1439,7 +1439,7 @@ public abstract class AbsListedView extends JPanel implements VWTimerRiseListene
 	 * 現在時刻追従スクロール
 	 */
 	@Override
-	public void timerRised(VWTimerRiseEvent e) {
+	public void timerRised(TickTimerRiseEvent e) {
 		
 		if ( ! timer_now_enabled ) {
 			return;

@@ -271,6 +271,7 @@ public abstract class AbsAutoReserveListView extends JPanel implements HDDRecord
 		redrawByRecorderSelected();
 	}
 	
+	
 	/*******************************************************************************
 	 * リスナー
 	 ******************************************************************************/

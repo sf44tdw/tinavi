@@ -19,7 +19,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,18 +48,19 @@ import tainavi.TVProgram.ProgType;
 import tainavi.TVProgramIterator.IterationType;
 import tainavi.VWMainWindow.MWinTab;
 
+
 /**
  * 新聞形式タブのクラス
  * @since 3.15.4β　{@link Viewer}から分離
  */
-public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener {
+public abstract class AbsPaperView extends JPanel implements TickTimerListener,HDDRecorderListener {
 
 	private static final long serialVersionUID = 1L;
 
 	public static String getViewName() { return "新聞形式"; }
 	
-	//public void setDebug(boolean b) { debug = b; }
-	//private static boolean debug = false;
+	public void setDebug(boolean b) { debug = b; }
+	private static boolean debug = false;
 	
 	
 	/*******************************************************************************
@@ -116,7 +116,6 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 	protected abstract boolean isTabSelected(MWinTab tab);
 	protected abstract void setSelectedTab(MWinTab tab);
 
-	protected abstract String getSelectedRecorderOnToolbar();
 	protected abstract boolean isFullScreen();
 	/**
 	 * ページャーコンボボックスを更新してほしい
@@ -179,6 +178,9 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 	private static final String TreeExpRegFile_Paper = "env"+File.separator+"tree_expand_paper.xml";
 	
 	private static final int TIMEBAR_START = Viewer.TIMEBAR_START;
+
+	//
+	private static final String TUNERLABEL_PICKUP = "PICKUP";
 	
 	// 定数ではないが
 	
@@ -809,8 +811,8 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 				jLayeredPane_space_main_view_byMakeshift.setLayer(b2, 0);
 				
 				// リスナーを設定する
-				b2.addMouseListener(mListner);
-				b2.addMouseMotionListener(mListner);
+				b2.addMouseListener(ml_risepopup);
+				b2.addMouseMotionListener(ml_risepopup);
 				frameUnused.add(b2);
 			}
 			StdAppendMessage(MSGID+"番組枠描画バッファを初期化: "+framebuffersize);
@@ -1348,104 +1350,112 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 		JRMLabel.setHeightMultiplier(bounds.getPaperHeightMultiplier() * paperHeightZoom);
 		
 		// 表示範囲
-		GregorianCalendar cal = CommonUtils.getCalendar(String.format("%s %02d:00",date.substring(0,10),TIMEBAR_START));
-		String startDateTime = CommonUtils.getDateTime(cal);
-		cal.add(Calendar.HOUR_OF_DAY, 24);
-		String endDateTime = CommonUtils.getDateTime(cal);
+		GregorianCalendar cal = CommonUtils.getCritCalendar(date);
+		String topDateTime = CommonUtils.getDateTime(cal);
+		cal.add(Calendar.DATE, 1);
+		String bottomDateTime = CommonUtils.getDateTime(cal);
 		
-		// 基準日
-		String critDateTime = CommonUtils.getCritDateTime(env.getDisplayPassedReserve());
-		
-		// 予約枠
-		HashMap<String,Boolean> misCN = new HashMap<String, Boolean>();
+		// 
+		String passedCritDateTime = CommonUtils.getCritDateTime(env.getDisplayPassedReserve());
 		
 		// ツールバーで選択されている実レコーダ
-		String myself = ( env.getEffectComboToPaper() ) ? (getSelectedRecorderOnToolbar()) : (null);
+		String myself = ( env.getEffectComboToPaper() ) ? (getSelectedRecorderId()) : (null);
 		
-		if ( myself == null || myself.length() > 0 ) {
-			
-			// ピックアップはここに入らない
-			
-			HDDRecorderList recs = recorders.findInstance(myself);
-			
-			for ( HDDRecorder recorder : recs )
-			{
-				//System.err.println(DBGID+recorder.Myself());
+		// 予約枠の描画
+		drawReserveBorders(date, Center, q, topDateTime, bottomDateTime, passedCritDateTime, myself);
+		
+		// ピックアップ枠の描画
+		drawPickupBorders(date, Center, q, topDateTime, bottomDateTime, passedCritDateTime, TUNERLABEL_PICKUP);
+	}
+	private void drawReserveBorders(String date, String Center, int q, String topDateTime, String bottomDateTime, String passedCritDateTime, String myself) {
+		if ( myself == HDDRecorder.SELECTED_PICKUP ) {
+			return;
+		}
+		for ( HDDRecorder recorder : getSelectedRecorderList() ) {
+			for ( ReserveList r : recorder.getReserves()) {
 				
-				for ( ReserveList r : recorder.getReserves()) {
-					// Exec == ON ?
-					if (env.getDisplayOnlyExecOnEntry() && ! r.getExec()) {
-						//StdAppendMessage("@Exec = OFF : "+r.getTitle());
-						continue;
+				// 「実行のみ表示」で無効な予約は表示しない
+				if ( env.getDisplayOnlyExecOnEntry() && ! r.getExec() ) {
+					continue;
+				}
+				
+				// 放送局名の確認
+				if ( r.getCh_name() == null ) {
+					if ( r.getChannel() == null ) {
+						// CHコードすらないのはバグだろう
+						System.err.println(ERRID+"予約情報にCHコードが設定されていません。バグの可能性があります。 recid="+recorder.Myself()+" chname="+r.getCh_name());
 					}
-					// 局が一致して
-					if (r.getCh_name() == null) {
-						if ( r.getChannel() == null ) {
-							System.err.println(ERRID+"予約情報にCHコードが設定されていません。バグの可能性があります。 recid="+recorder.Myself()+" chname="+r.getCh_name());
+					continue;
+				}
+				
+				// 描画本体
+				if (r.getCh_name().equals(Center)) {
+					
+					// 開始終了日時リストを生成する
+					ArrayList<String> starts = new ArrayList<String>();
+					ArrayList<String> ends = new ArrayList<String>();
+					CommonUtils.getStartEndList(starts, ends, r);
+					
+					// 予約枠を描画する
+					for ( int j=0; j<starts.size(); j++ ) {
+						if ( passedCritDateTime.compareTo(ends.get(j)) > 0 ) {
+							// 過去情報の表示が制限されている場合
 							continue;
 						}
-						if (r.getChannel().length() > 0) {
-							misCN.put(r.getChannel(),true);
-						}
-						continue;
-					}
-					
-					if (r.getCh_name().equals(Center)) {
 						
-						// 開始終了日時リストを生成する
-						ArrayList<String> starts = new ArrayList<String>();
-						ArrayList<String> ends = new ArrayList<String>();
-						CommonUtils.getStartEndList(starts, ends, r);
-						
-						// 予約枠を描画する
-						for (int j=0; j<starts.size(); j++) {
-							if (critDateTime.compareTo(ends.get(j)) <= 0) {
-								putReserveBorderSub(date,Center,startDateTime,endDateTime,starts.get(j),ends.get(j),r.getAhh(),r.getAmm(),r.getRec_min(),r.getTuner(),recorder.getColor(r.getTuner()),r.getExec(),q);
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		// ピックアップ枠
-		TVProgram tvp = tvprograms.getPickup();
-		for ( ProgList pl : tvp.getCenters() ) {
-			if ( pl.Center.equals(Center) ) {
-				for ( ProgDateList pcl : pl.pdate ) {
-					for ( ProgDetailList tvd : pcl.pdetail ) {
-						putReserveBorderSub(date,Center,startDateTime,endDateTime,tvd.startDateTime,tvd.endDateTime,tvd.start.substring(0,2),tvd.start.substring(3,5),String.valueOf(tvd.length),"PICKUP",CommonUtils.color2str(env.getPickedColor()),false,q);
+						drawBorder(date,Center,topDateTime,bottomDateTime,starts.get(j),ends.get(j),r.getRec_min(),r.getTuner(),recorder.getColor(r.getTuner()),r.getExec(),q);
 					}
 				}
 			}
 		}
 	}
-	private void putReserveBorderSub(String date, String Center, String startDateTime, String endDateTime, String start, String end, String ahh, String amm, String recmin, String tuner, String bordercol,boolean exec,int col) {
-		//
+	private void drawPickupBorders(String date, String Center, int q, String topDateTime, String bottomDateTime, String passedCritDateTime, String tuner) {
+		for ( ProgList pl : tvprograms.getPickup().getCenters() ) {
+			if ( ! pl.Center.equals(Center) ) {
+				continue;
+			}
+			for ( ProgDateList pcl : pl.pdate ) {
+				for ( ProgDetailList tvd : pcl.pdetail ) {
+					if ( passedCritDateTime.compareTo(tvd.endDateTime) > 0 ) {
+						// 過去情報の表示が制限されている場合
+						continue;
+					}
+					
+					drawBorder(date,Center,topDateTime,bottomDateTime,tvd.startDateTime,tvd.endDateTime,tvd.length,tuner,env.getPickedColor(),false,q);
+				}
+			}
+		}
+	}
+	private void drawBorder(String date, String Center, String topDateTime, String bottomDateTime, String startDateTime, String endDateTime, String recmin, String tuner, String bordercol, boolean exec, int col) {
+		drawBorder(date, Center, topDateTime, bottomDateTime, startDateTime, endDateTime, Integer.valueOf(recmin), tuner, CommonUtils.str2color(bordercol), exec, col);
+	}
+	private void drawBorder(String date, String Center, String topDateTime, String bottomDateTime, String startDateTime, String endDateTime, int recmin, String tuner, Color bordercol, boolean exec, int col) {
+		
+		GregorianCalendar ca = CommonUtils.getCalendar(startDateTime);
+		int ahh = ca.get(Calendar.HOUR_OF_DAY);
+		int amm = ca.get(Calendar.MINUTE);
+		
 		int row = 0;
 		int length = 0;
-		if (startDateTime.compareTo(start) <= 0 && start.compareTo(endDateTime) < 0) {
-			//
-			row = Integer.valueOf(ahh) - TIMEBAR_START;
+		if (topDateTime.compareTo(startDateTime) <= 0 && startDateTime.compareTo(bottomDateTime) < 0) {
+			// 開始時刻が表示範囲内にある
+			row = ahh - TIMEBAR_START;
 			if (row < 0) {
 				row += 24;
 			}
-			row = row*60 + Integer.valueOf(amm);
-			length = Integer.valueOf(recmin);
+			row = row*60 + amm;
+			length = recmin;
 		}
-		else if (start.compareTo(startDateTime) < 0 && startDateTime.compareTo(end) < 0) {
-			//
+		else if (startDateTime.compareTo(topDateTime) < 0 && topDateTime.compareTo(endDateTime) < 0) {
+			//　表示開始位置が番組の途中にある
 			row = 0;
-			length = Integer.valueOf(recmin) - (TIMEBAR_START*60 - Integer.valueOf(ahh)*60 - Integer.valueOf(amm));
+			length = recmin - (TIMEBAR_START*60 - ahh*60 - amm);
 		}
 		else {
 			return;
 		}
 		
 		{
-			// 枠の色
-			Color rbc = CommonUtils.str2color(bordercol);
-			
 			// 重複予約の場合のエンコーダマーク表示位置の調整
 			int rc = 0;
 			//int rw = 0;
@@ -1477,9 +1487,9 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 			}
 			
 			// エンコーダの区別がないものは"■"を表示する
-			rb.setEncBackground(rbc);
-			rb.setBorder(new LineBorder(rbc,4));
-			if ( tuner != null && tuner.equals("PICKUP") ) {
+			rb.setEncBackground(bordercol);
+			rb.setBorder(new LineBorder(bordercol,4));
+			if ( tuner != null && tuner.equals(TUNERLABEL_PICKUP) ) {
 				rb.setEncForeground(env.getPickedFontColor());
 			}
 			else if ( exec ) {
@@ -1580,8 +1590,8 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 			jLayeredPane_space_main_view.setLayer(b2, 0);
 			
 			// リスナーを設定する
-			b2.addMouseListener(mListner);
-			b2.addMouseMotionListener(mListner);
+			b2.addMouseListener(ml_risepopup);
+			b2.addMouseMotionListener(ml_risepopup);
 		}
 		if (jLayeredPane_space_main_view == jLayeredPane_space_main_view_byMakeshift) {
 			frameUsed.add(b2);
@@ -1669,6 +1679,47 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 		return -1;
 	}
 	
+	
+	/*******************************************************************************
+	 * ハンドラ―メソッド
+	 ******************************************************************************/
+	
+	/**
+	 * ツールバーでレコーダの選択イベントが発生
+	 */
+	@Override
+	public void valueChanged(HDDRecorderSelectionEvent e) {
+		if (debug) System.out.println(DBGID+"recorder selection rised");
+		
+		// 選択中のレコーダ情報を保存する
+		src_recsel = (HDDRecorderSelectable) e.getSource();
+		
+		// 予約枠を書き換える
+		updateReserveBorder(null);
+	}
+	
+	private String getSelectedRecorderId() {
+		return ( src_recsel!=null ? src_recsel.getSelectedId() : null );
+	}
+	
+	private HDDRecorderList getSelectedRecorderList() {
+		return ( src_recsel!=null ? src_recsel.getSelectedList() : null );
+	}
+	
+	private HDDRecorderSelectable src_recsel;
+	
+	
+	/**
+	 * レコーダ情報の変更イベントが発生
+	 */
+	@Override
+	public void stateChanged(HDDRecorderChangeEvent e) {
+		// テーブルをリフレッシュする処理
+		
+	}
+	
+	
+
 	/*******************************************************************************
 	 * リスナー
 	 ******************************************************************************/
@@ -1677,7 +1728,7 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 	 * 現在時刻追従スクロール
 	 */
 	@Override
-	public void timerRised(VWTimerRiseEvent e) {
+	public void timerRised(TickTimerRiseEvent e) {
 		
 		String curDT = CommonUtils.getDate529(0,true);
 		
@@ -1740,7 +1791,7 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 	/**
 	 * 番組枠につけるマウス操作のリスナー
 	 */
-	private final MouseInputListener mListner = new MouseInputListener() {
+	private final MouseInputListener ml_risepopup = new MouseInputListener() {
 		//
 		private final Cursor defCursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 		private final Cursor hndCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
@@ -1771,50 +1822,50 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 						MWin.appendMessage(MSGID+"過去ログでダブルクリックは利用できません");
 						ringBeep();
 					}
+					
 					return;
 				}
+				
 				if (e.getClickCount() == 2) {
-					// RADIOは閲覧のみ
-					if (tvd.type == ProgType.PROG && tvd.subtype == ProgSubtype.RADIO) {
-						return;
-					}
-					// レコーダが選択されていない場合はなにもしない
-					if (recorders.size() == 0) {
-						return;
-					}
-					
 					// 左ダブルクリックで予約ウィンドウを開く
-					
-					//VWReserveDialog rD = new VWReserveDialog(0, 0, env, tvprograms, recorders, avs, chavs, stwin);
-					CommonSwingUtils.setLocationCenter(parent,rD);
-					//rD.clear();
-					
-					// サブタイトルを番組追跡の対象から外す
-					boolean succeeded = false;
-					if ( ! env.getSplitEpno() && env.getTraceOnlyTitle() ) {
-						//String[] d = tvp.doSplitEpno(tvd.genre, tvd.title);
-						succeeded = rD.open(tvd,tvd.title,TraceKey.defaultFazzyThreshold);
-					}
-					else {
-						succeeded = rD.open(tvd);
-					}
-					
-					if (succeeded) {
-						rD.setVisible(true);
-					}
-					else {
-						rD.dispose();
-					}
-					
-					if (rD.isReserved()) {
-						updateReserveDisplay();
-						updateReserveBorder(tvd.center);
-					}
+					openReserveDialog(tvd);					
 				}
 			}
 			else if (e.getButton() == MouseEvent.BUTTON2) {
 				// ピックアップに追加
 				addToPickup(tvd);
+			}
+		}
+		
+		private void openReserveDialog(ProgDetailList tvd) {
+			
+			// レコーダが登録されていない場合はなにもしない
+			if (recorders.size() == 0) {
+				return;
+			}
+
+			// ダイアログの位置指定
+			CommonSwingUtils.setLocationCenter(parent,rD);
+			
+			// サブタイトルを番組追跡の対象から外す
+			boolean succeeded = false;
+			if ( ! env.getSplitEpno() && env.getTraceOnlyTitle() ) {
+				succeeded = rD.open(tvd,tvd.title,TraceKey.defaultFazzyThreshold);
+			}
+			else {
+				succeeded = rD.open(tvd);
+			}
+			
+			if (succeeded) {
+				rD.setVisible(true);
+			}
+			else {
+				rD.dispose();
+			}
+			
+			if (rD.isReserved()) {
+				updateReserveDisplay();
+				updateReserveBorder(tvd.center);
 			}
 		}
 
@@ -2380,7 +2431,7 @@ public abstract class AbsPaperView extends JPanel implements VWTimerRiseListener
 				
 				rb.reVBounds();
 				
-				if ( rb.getEncoder().equals("PICKUP") ) {
+				if ( rb.getEncoder().equals(TUNERLABEL_PICKUP) ) {
 					rb.setEncBackground(ec.getPickedColor());
 					rb.setEncForeground(ec.getPickedFontColor());
 					rb.setBorder(new LineBorder(ec.getPickedColor(),4));

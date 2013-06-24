@@ -9,10 +9,6 @@ import java.util.EventListener;
  */
 public interface HDDRecorderListener extends EventListener {
 	
-	// 定数
-	public static final String SELECTED_ALL = null;
-	public static final String SELECTED_PICKUP = "";
-	
 	/**
 	 * レコーダーの選択イベント
 	 */

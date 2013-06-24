@@ -245,6 +245,19 @@ public class CommonUtils {
 			return getDateTime(0);
 		}
 	}
+	/**
+	 * 
+	 */
+	public static GregorianCalendar getCritCalendar(String date) {
+		GregorianCalendar ca = getCalendar(date);
+		int hh = ca.get(Calendar.HOUR_OF_DAY);
+		int mm = ca.get(Calendar.MINUTE);
+		int ss = ca.get(Calendar.SECOND);
+		ca.add(Calendar.HOUR_OF_DAY,-hh+5);
+		ca.add(Calendar.MINUTE,-mm);
+		ca.add(Calendar.SECOND,-ss);
+		return ca;
+	}
 	
 	/**
 	 * 次回実行予定日を取得する

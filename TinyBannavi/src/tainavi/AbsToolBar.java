@@ -590,15 +590,19 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	public String getSelectedRecorder() {
 		
 		if ( jComboBox_select_recorder == null ) {
-			return HDDRecorderListener.SELECTED_ALL;
+			return HDDRecorder.SELECTED_ALL;
 		}
+		
 		String recId = (String)jComboBox_select_recorder.getSelectedItem();
+		
+		/*
 		if ( recId.equals(HDDRecorder.SELECTED_ALL) ) {
 			return HDDRecorderListener.SELECTED_ALL;
 		}
 		else if ( recId.equals(HDDRecorder.SELECTED_PICKUP) ) {
 			return HDDRecorderListener.SELECTED_PICKUP;
 		}
+		*/
 		
 		return recId;
 	}

@@ -63,7 +63,6 @@ import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import taiSync.ReserveInfo;
 import tainavi.HDDRecorder.RecType;
 import tainavi.SearchKey.TargetId;
 import tainavi.TVProgram.ProgFlags;
@@ -79,7 +78,7 @@ import tainavi.VWUpdate.UpdateResult;
 /**
  * メインな感じ
  */
-public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener {
+public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -135,7 +134,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 	private final TVProgramList progPlugins = new TVProgramList();				// Web番組表プラグイン（テンプレート）
 	private final TVProgramList tvprograms = new TVProgramList();				// Web番組表プラグイン（実際に利用するもの）
 	
-	private final VWTimer timer_now = new VWTimer();							// 毎分00秒に起動して処理をキックするタイマー
+	private final TickTimer timer_now = new TickTimer();							// 毎分00秒に起動して処理をキックするタイマー
 	
 	// 初期化的な
 	private boolean logging = true;											// ログ出力する
@@ -607,8 +606,6 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		@Override
 		protected void setSelectedTab(MWinTab tab) { mainWindow.setSelectedTab(tab); }
 
-		@Override
-		protected String getSelectedRecorderOnToolbar() { return toolBar.getSelectedRecorder(); }
 		@Override
 		protected boolean isFullScreen() { return toolBar.isFullScreen(); }
 		@Override
@@ -1429,10 +1426,12 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 				recorded.redrawRecordedList();
 			}
 			
+			/*
 			// 新聞形式の予約枠を書き換えるかもよ？
 			if (env.getEffectComboToPaper()) {
 				paper.updateReserveBorder(null);
 			}
+			*/
 			
 			timer_now.start();
 			
@@ -1620,19 +1619,12 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 				
 				// 類似予約あり
 				likeRsvList.add(new LikeReserveItem(recorder, r, d));
-
-				for ( LikeReserveItem lr : likeRsvList ) {
-					System.out.println(lr.getDist()+", "+lr.getRsv().getTitle());
-				}
-				System.out.println("********");
 			}
 			
 		}
 		
-		
 		return likeRsvList;
 	}
-	
 	private boolean isLikeTitle(ProgDetailList tvd, ReserveList r, String keywordPop, int thresholdVal) {
 		
 		if (env.getDisableFazzySearch() == false) {
@@ -1657,7 +1649,6 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		
 		return false;
 	}
-	
 	private boolean isLikeChannel(ProgDetailList tvd, ReserveList r) {
 		
 		if ( r.getCh_name() == null ) {
@@ -1669,7 +1660,6 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		
 		return true;
 	}
-	
 	private Long getLikeDist(ProgDetailList tvd, ReserveList r, long rangeLikeRsv) {
 		
 		Long d = null;
@@ -4267,43 +4257,64 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 	 * @return true:前回終了時の設定がある場合
 	 */
 	private boolean buildMainWindow() {
-		//
-		mainWindow.addToolBar(toolBar);
-		mainWindow.addStatusArea(mwin);
 		
-		mainWindow.addTab(listed, MWinTab.LISTED);
-		mainWindow.addTab(paper, MWinTab.PAPER);
-		mainWindow.addTab(reserved, MWinTab.RSVED);
-		mainWindow.addTab(recorded, MWinTab.RECED);
-		mainWindow.addTab(autores, MWinTab.AUTORES);
-		mainWindow.addTab(setting, MWinTab.SETTING);
-		mainWindow.addTab(recsetting, MWinTab.RECSET);
-		mainWindow.addTab(chsetting, MWinTab.CHSET);
-		mainWindow.addTab(chsortsetting, MWinTab.CHSORT);
-		mainWindow.addTab(chconvsetting, MWinTab.CHCONV);
-		mainWindow.addTab(chdatsetting, MWinTab.CHDAT);
+		// コンポーネント作成
+		{
+			// メインウィンドウの作成
+			mainWindow = new VWMainWindow();
+		
+			// 内部クラスのインスタンス生成
+			toolBar = new VWToolBar();
+			listed = new VWListedView();
+			paper = new VWPaperView();
+			reserved = new VWReserveListView();
+			recorded = new VWRecordedListView();
+			autores = new VWAutoReserveListView();
+			setting = new VWSettingView();
+			recsetting = new VWRecorderSettingView();
+			chsetting = new VWChannelSettingView();
+			chdatsetting = new VWChannelDatSettingView();
+			chsortsetting = new VWChannelSortView();
+			chconvsetting = new VWChannelConvertView();
+		}
+		
+		// 初期値
+		{
+			// 設定
+			toolBar.setDebug(env.getDebug());
+			autores.setDebug(env.getDebug());
+	
+			// ページャーの設定
+			toolBar.setPagerItems();
+		}
+		
+		// コンポーネントの組み立て
+		{
+			// ツールバーなど
+			mainWindow.addToolBar(toolBar);
+			mainWindow.addStatusArea(mwin);
+			
+			// タブ群
+			mainWindow.addTab(listed, MWinTab.LISTED);
+			mainWindow.addTab(paper, MWinTab.PAPER);
+			mainWindow.addTab(reserved, MWinTab.RSVED);
+			mainWindow.addTab(recorded, MWinTab.RECED);
+			mainWindow.addTab(autores, MWinTab.AUTORES);
+			mainWindow.addTab(setting, MWinTab.SETTING);
+			mainWindow.addTab(recsetting, MWinTab.RECSET);
+			mainWindow.addTab(chsetting, MWinTab.CHSET);
+			mainWindow.addTab(chsortsetting, MWinTab.CHSORT);
+			mainWindow.addTab(chconvsetting, MWinTab.CHCONV);
+			mainWindow.addTab(chdatsetting, MWinTab.CHDAT);
+		}
+		
+		// ステータスエリアを開く
+		setStatusVisible(bounds.getShowStatus());
 		
 		//新聞描画枠のリセット
 		paper.clearPanel();
 		paper.buildMainViewByDate();
 		
-		// サイドツリーのデフォルトノードの選択
-		paper.selectTreeDefault();
-		listed.selectTreeDefault();
-		
-		if ( recInfoList.size() > 0 ) {
-			// 前回終了時設定が存在する場合
-			
-			// 開いていたタブ
-			mainWindow.setShowSettingTabs(bounds.getShowSettingTabs());
-			
-			// ステータスエリアの高さ
-			mwin.setRows(bounds.getStatusRows());
-			
-			return false;
-		}
-		
-		// 前回終了時設定が存在しない場合
 		return true;
 	}
 	
@@ -4443,7 +4454,7 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 	}
 	
 	@Override
-	public void timerRised(VWTimerRiseEvent e) {
+	public void timerRised(TickTimerRiseEvent e) {
 		if (env.getDebug()) System.out.println("Timer Rised: now="+CommonUtils.getDateTimeYMDx(e.getCalendar()));
 		setTitleBar();
 	}
@@ -4717,37 +4728,9 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 		// （新聞形式の）ツールチップの表示時間を変更する
 		setTooltipDelay();
 
-		boolean firstRun = true;
+		// ウィンドウを構築
 		try {
-			// メインウィンドウの作成
-			mainWindow = new VWMainWindow();
-		
-			// 内部クラスのインスタンス生成
-			toolBar = new VWToolBar();
-			listed = new VWListedView();
-			paper = new VWPaperView();
-			reserved = new VWReserveListView();
-			recorded = new VWRecordedListView();
-			autores = new VWAutoReserveListView();
-			setting = new VWSettingView();
-			recsetting = new VWRecorderSettingView();
-			chsetting = new VWChannelSettingView();
-			chdatsetting = new VWChannelDatSettingView();
-			chsortsetting = new VWChannelSortView();
-			chconvsetting = new VWChannelConvertView();
-			
-			// 設定のほにゃらら
-			toolBar.setDebug(env.getDebug());
-			autores.setDebug(env.getDebug());
-
-			// ページャーの設定
-			toolBar.setPagerItems();
-			
-			// ウィンドウを構築
-			firstRun = buildMainWindow();
-			
-			// ステータスエリアを開く
-			setStatusVisible(bounds.getShowStatus());
+			buildMainWindow();
 		}
 		catch ( Exception e ) {
 			System.err.println("【致命的エラー】ウィンドウの構築に失敗しました");
@@ -4781,45 +4764,62 @@ public class Viewer extends JFrame implements ChangeListener,VWTimerRiseListener
 			}
 		});
 		
-		// タブを選択
-		ShowInitTab();
-		
 		// 初回起動時はレコーダの登録を促す
-		if (firstRun) {
+		if ( recorders.size() == 0 ) {
 			Container cp = getContentPane();
 			JOptionPane.showMessageDialog(cp, "レコーダが登録されていません。\n最初に登録を行ってください。\n番組表だけを使いたい場合は、\nNULLプラグインを登録してください。");
 		}
 		
-		// メインウィンドウをスプラッシュからコンポーネントに入れ替える
-		this.setVisible(false);
-		this.setContentPane(mainWindow);
-		setInitBounds();
-		this.setVisible(true);
-		
-		// タイトル更新
-		setTitleBar();
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		// イベントリスナーの登録 
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 		
 		// [ツールバー/共通] レコーダ情報変更
 		toolBar.addHDDRecorderChangeListener(autores);
 		
 		// [ツールバー/レコーダ選択]
+		toolBar.addHDDRecorderSelectionListener(paper);		// 新聞形式
 		toolBar.addHDDRecorderSelectionListener(autores);	// 自動予約一覧
 		toolBar.addHDDRecorderSelectionListener(rdialog);	// 予約ダイアログ
-
-		// レコーダ選択イベントキック
-		toolBar.setSelectedRecorder(bounds.getSelectedRecorderId());
 		
 		// [タイマー] タイトルバー更新／リスト形式の現在時刻ノード／新聞形式の現在時刻ノード
-		timer_now.addVWTimerRiseListener(this);
-		timer_now.addVWTimerRiseListener(listed);
-		timer_now.addVWTimerRiseListener(paper);
+		timer_now.addTickTimerRiseListener(this);
+		timer_now.addTickTimerRiseListener(listed);
+		timer_now.addTickTimerRiseListener(paper);
+
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		// [Fire!] レコーダ選択
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		toolBar.setSelectedRecorder(bounds.getSelectedRecorderId());
 		
-		// タイマー起動
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		// [Fire!] サイドツリーのデフォルトを選択することで番組情報の描画を開始する
+		// ※ここ以前だとぬぽとかOOBとか出るかもよ！
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		paper.selectTreeDefault();
+		listed.selectTreeDefault();
+		
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		// メインウィンドウをスプラッシュからコンポーネントに入れ替える
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		this.setVisible(false);
+		this.setContentPane(mainWindow);
+		setInitBounds();
+		this.setVisible(true);
+		
+		setTitleBar();	// タイトルバー更新
+		
+		ShowInitTab();	// 前回開いていたタブを開く
+		
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		// タイマーを起動する
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 		timer_now.start();
 		
-		// メッセージだ
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+		// 初期化終了
+		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 		mwin.appendMessage(String.format("タイニー番組ナビゲータが起動しました (VersionInfo:%s on %s)",VersionInfo.getVersion(),VersionInfo.getEnvironment()));
-		
 		initialized = true;
 	}
 }
