@@ -97,6 +97,10 @@ public class JComboBoxPanel extends JPanel implements ItemSelectable,WideCompone
 		return this.jcombobox.getItemCount();
 	}
 	
+	public int indexOf(Object o) {
+		return this.jcombobox.indexOf(o);
+	}
+	
 	public void setSelectedItem(Object o) {
 		this.jcombobox.setSelectedItem(o);
 	}

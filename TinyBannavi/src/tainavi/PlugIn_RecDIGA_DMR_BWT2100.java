@@ -87,13 +87,7 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 	
 	private static final String ITEM_VIDEO_TYPE_NONE	= "LAN予約";
 	
-	private static final String ITEM_REC_TYPE_EPG		= "EPG";
-	private static final String ITEM_REC_TYPE_PROG		= "ﾌﾟﾛｸﾞﾗﾑ";
-	
 	private static final String VALUE_VIDEO_TYPE_NONE	= "#NONE#";
-	
-	private static final String VALUE_REC_TYPE_EPG		= "EPG";
-	private static final String VALUE_REC_TYPE_PROG		= "PROGRAM";
 	
 	private static final String DIGAMSG_WAITFORLOGIN	= "DIGAと通信中です。しばらくお待ちください。";
 	private static final String DIGAMSG_PLEASELOGIN		= "ログインしてからアクセスしてください。";

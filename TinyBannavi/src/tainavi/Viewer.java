@@ -160,7 +160,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 	private static final int OPENING_WIAT = 500;				// まあ起動時しか使わないんですけども
 
 	private static final String MSGID = "[鯛ナビ] ";
-	private static final String ERRID = "[ERROR]"+MSGID;
+//	private static final String ERRID = "[ERROR]"+MSGID;
 	private static final String DBGID = "[DEBUG]"+MSGID;
 	
 	/**
@@ -433,11 +433,13 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		protected void showPopupForTraceProgram(
 				final JComponent comp,
 				final ProgDetailList tvd, final String keyword, final int threshold,
-				final int x, final int y, final int h) {
+				final int x, final int y) {
 			
-			timer_now.pause();
-			Viewer.this.showPopupForTraceProgram(comp, tvd, keyword, threshold, x, y, h);
-			timer_now.start();
+			timer_now.pause();	// 停止
+			
+			Viewer.this.showPopupForTraceProgram(comp, tvd, keyword, threshold, x, y, null);
+			
+			timer_now.start();	// 再開
 		}
 
 		@Override
@@ -583,11 +585,13 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		protected void showPopupForTraceProgram(
 				final JComponent comp,
 				final ProgDetailList tvd, final String keyword, final int threshold,
-				final int x, final int y, final int h) {
+				final int x, final int y, final String clickedDateTime) {
 			
-			timer_now.pause();
-			Viewer.this.showPopupForTraceProgram(comp, tvd, keyword, threshold, x, y, h);
-			timer_now.start();
+			timer_now.pause();	// 停止
+			
+			Viewer.this.showPopupForTraceProgram(comp, tvd, keyword, threshold, x, y, clickedDateTime);
+			
+			timer_now.start();	// 再開
 		}
 
 		@Override
@@ -693,17 +697,17 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		}
 		
 		@Override
-		protected JMenuItem getExecOnOffMenuItem(boolean fexec, String title,
-				String chnam, String rsvId, String recId) {
+		protected JMenuItem getExecOnOffMenuItem(boolean fexec,
+				String start, String title, String chnam, String rsvId, String recId) {
 
-			return Viewer.this.getExecOnOffMenuItem(fexec, title, chnam, rsvId, recId, 0);
+			return Viewer.this.getExecOnOffMenuItem(fexec, start, title, chnam, rsvId, recId, 0);
 		}
 
 		@Override
-		protected JMenuItem getRemoveRsvMenuItem(String title, String chnam,
-				String rsvId, String recId) {
+		protected JMenuItem getRemoveRsvMenuItem(
+				String start, String title, String chnam,	String rsvId, String recId) {
 			
-			return Viewer.this.getRemoveRsvMenuItem(title, chnam, rsvId, recId, 0);
+			return Viewer.this.getRemoveRsvMenuItem(start, title, chnam, rsvId, recId, 0);
 		}
 
 		@Override
@@ -1575,114 +1579,26 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 	 */
 	private LikeReserveList findLikeReserves(ProgDetailList tvd, String keyword, int threshold) {
 		
-		LikeReserveList likeRsvList = new LikeReserveList();
+		String keywordVal = null;
+		int thresholdVal = 0;
 		
 		// 曖昧検索のための初期化
-		String keywordPop = null;
-		int thresholdVal = 0;
-		if (threshold > 0) {
-			// キーワード指定がある場合
-			keywordPop = TraceProgram.replacePop(keyword);
-			thresholdVal = threshold;
-		}
-		else {
-			// キーワード指定がない場合
-			keywordPop = tvd.titlePop;
-			thresholdVal = env.getDefaultFazzyThreshold();
+		if ( ! env.getDisableFazzySearch() ) {
+			if ( threshold > 0 ) {
+				// キーワード指定がある場合
+				keywordVal = TraceProgram.replacePop(keyword);
+				thresholdVal = threshold;
+			}
+			else {
+				// キーワード指定がない場合
+				keywordVal = tvd.titlePop;
+				thresholdVal = env.getDefaultFazzyThreshold();
+			}
 		}
 
-		// 検索範囲
-		long rangeLikeRsv = env.getRangeLikeRsv()*3600000;
-		
-		for ( HDDRecorder recorder : recorders ) {
-			
-			// 終了した予約を整理する
-			recorder.refreshReserves();
-			
-			for ( ReserveList r : recorder.getReserves() ) {
-				
-				// タイトルのマッチング
-				if ( ! isLikeTitle(tvd, r, keywordPop, thresholdVal) ) {
-					continue;
-				}
-				
-				// 放送局のマッチング
-				if ( ! isLikeChannel(tvd, r) ) {
-					continue;
-				}
-				
-				// 近接時間チェック
-				Long d = getLikeDist(tvd, r, rangeLikeRsv);
-				if ( d == null ) {
-					continue;
-				}
-				
-				// 類似予約あり
-				likeRsvList.add(new LikeReserveItem(recorder, r, d));
-			}
-			
-		}
-		
-		return likeRsvList;
+		// 検索実行
+		return recorders.findLikeReserves(tvd, keywordVal, thresholdVal, env.getRangeLikeRsv(), ! env.getDisableFazzySearchReverse());
 	}
-	private boolean isLikeTitle(ProgDetailList tvd, ReserveList r, String keywordPop, int thresholdVal) {
-		
-		if (env.getDisableFazzySearch() == false) {
-			// 双方向の比較を行う・正引き
-			int fazScore = TraceProgram.sumScore(keywordPop, r.getTitlePop());
-			if ( fazScore >= thresholdVal ) {
-				return true;
-			}
-			else if ( ! env.getDisableFazzySearchReverse() ) {
-				// 逆引き
-				fazScore = TraceProgram.sumScore(r.getTitlePop(), keywordPop);
-				if ( fazScore >= thresholdVal) {
-					return true;
-				}
-			}
-		}
-		else {
-			if ( r.getTitlePop().equals(tvd.titlePop )) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	private boolean isLikeChannel(ProgDetailList tvd, ReserveList r) {
-		
-		if ( r.getCh_name() == null ) {
-			return false;
-		}
-		if ( ! r.getCh_name().equals(tvd.center) ) {
-			return false;
-		}
-		
-		return true;
-	}
-	private Long getLikeDist(ProgDetailList tvd, ReserveList r, long rangeLikeRsv) {
-		
-		Long d = null;
-		
-		ArrayList<String> starts = new ArrayList<String>();
-		ArrayList<String> ends = new ArrayList<String>();
-		CommonUtils.getStartEndList(starts, ends, r);
-		 
-		for ( int j=0; j<starts.size(); j++ ) {
-			long dtmp = CommonUtils.getCompareDateTime(starts.get(j),tvd.startDateTime);
-			if ( rangeLikeRsv > 0 && Math.abs(dtmp) >= rangeLikeRsv ) {
-				// 範囲指定があって範囲外ならスキップ
-				continue;
-			}
-			else if ( d == null || Math.abs(d) > Math.abs(dtmp) ) {
-				// 初値、または一番小さい値を採用
-				d = dtmp;
-			}
-		}
-		
-		return d;
-	}
-	
 	
 	/***
 	 * 
@@ -1696,7 +1612,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 	public void showPopupForTraceProgram(
 			final JComponent comp,
 			final ProgDetailList tvd, final String keyword, final int threshold,
-			final int x, final int y, final int h)
+			final int x, final int y, final String clickedDateTime)
 	{
 		JPopupMenu pop = new JPopupMenu();
 	
@@ -1707,7 +1623,10 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 			// 過去ログは処理対象外です
 		}
 		else {
-			JMenuItem menuItem = new JMenuItem("予約する【"+tvd.title+" ("+tvd.center+")】");
+			JMenuItem menuItem = new JMenuItem(String.format("予約する【%s %s - %s(%s)】",tvd.accurateDate,tvd.start,tvd.title,tvd.center));
+			menuItem.setForeground(new Color(0,127,0));
+			Font f = menuItem.getFont();
+			menuItem.setFont(f.deriveFont(f.getStyle()|Font.BOLD));
 			
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -1722,7 +1641,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 					}
 					
 					//
-					if (rdialog.isReserved()) {
+					if (rdialog.isSucceededReserve()) {
 						listed.updateReserveMark();
 						paper.updateReserveBorder(tvd.center);
 						reserved.redrawReservedList();
@@ -1735,23 +1654,20 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		pop.addSeparator();
 		
 		// 類似予約検索
-		LikeReserveList likeRsvList = findLikeReserves(tvd, "", 0);
+		LikeReserveList likeRsvList;
+		if ( env.getDisableFazzySearch() ) {
+			likeRsvList = recorders.findLikeReserves(tvd, null, 0, env.getRangeLikeRsv(), false);
+		}
+		else {
+			likeRsvList = recorders.findLikeReserves(tvd, tvd.titlePop, env.getDefaultFazzyThreshold(), env.getRangeLikeRsv(), ! env.getDisableFazzySearchReverse());
+		}
 		
 		// 重複予約検索
-		LikeReserveList overlapRsvList = new LikeReserveList();
-		searchOverlapRsv(overlapRsvList, tvd, h);
-		
+		LikeReserveList overlapRsvList = recorders.findOverlapReserves(tvd, clickedDateTime);
+
 		// 類似と重複で被るものを重複から除外
-		for ( LikeReserveItem ll : likeRsvList ) {
-			int i=0;
-			for ( ; i<overlapRsvList.size(); i++ ) {
-				if ( ll.getRsv() == overlapRsvList.getRsv(i) ) {
-					break;
-				}
-			}
-			if ( i < overlapRsvList.size() ) {
-				overlapRsvList.remove(i);
-			}
+		for ( LikeReserveItem item : likeRsvList ) {
+			overlapRsvList.removeDup(item);
 		}
 		
 		// 予約実行ON・OFF
@@ -1767,15 +1683,16 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 					rsvList = overlapRsvList;
 				}
 				
-				for ( int i=0; i<rsvList.size(); i++ ) {
+				for ( LikeReserveItem rsvItem : rsvList ) {
 					
-					final boolean fexec = rsvList.getRsv(i).getExec();
-					final String title = rsvList.getRsv(i).getTitle();
-					final String chnam = rsvList.getRsv(i).getCh_name();
-					final String rsvId = rsvList.getRsv(i).getId();
-					final String recId = rsvList.getRec(i).Myself();
+					final boolean fexec = rsvItem.getRsv().getExec();
+					final String start = rsvItem.getRsv().getAhh()+":"+rsvItem.getRsv().getAmm();
+					final String title = rsvItem.getRsv().getTitle();
+					final String chnam = rsvItem.getRsv().getCh_name();
+					final String rsvId = rsvItem.getRsv().getId();
+					final String recId = rsvItem.getRec().Myself();
 					
-					pop.add(getExecOnOffMenuItem(fexec,title,chnam,rsvId,recId,n));
+					pop.add(getExecOnOffMenuItem(fexec,start,title,chnam,rsvId,recId,n));
 				}
 				
 				pop.addSeparator();
@@ -1797,14 +1714,15 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 					rsvList = overlapRsvList;
 				}
 				
-				for (int i=0; i<rsvList.size(); i++) {
+				for ( LikeReserveItem rsvItem : rsvList ) {
 					
-					final String title = rsvList.getRsv(i).getTitle();
-					final String chnam = rsvList.getRsv(i).getCh_name();
-					final String rsvId = rsvList.getRsv(i).getId();
-					final String recId = rsvList.getRec(i).Myself();
+					final String start = rsvItem.getRsv().getAhh()+":"+rsvItem.getRsv().getAmm();
+					final String title = rsvItem.getRsv().getTitle();
+					final String chnam = rsvItem.getRsv().getCh_name();
+					final String rsvId = rsvItem.getRsv().getId();
+					final String recId = rsvItem.getRec().Myself();
 					
-					pop.add(getRemoveRsvMenuItem(title,chnam,rsvId,recId,n));
+					pop.add(getRemoveRsvMenuItem(start, title,chnam,rsvId,recId,n));
 				}
 				
 				pop.addSeparator();
@@ -1818,7 +1736,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		// ジャンプする
 		{
 			if ( mainWindow.isTabSelected(MWinTab.LISTED) ) {
-				pop.add(getJumpMenuItem(tvd.title,tvd.center,tvd.startDateTime));
+				pop.add(getJumpMenuItem(tvd.title,tvd.center,tvd.accurateDate+" "+tvd.start));
 			}
 			if ( mainWindow.isTabSelected(MWinTab.LISTED) || mainWindow.isTabSelected(MWinTab.PAPER) ) {
 				JMenuItem mi = getJumpToLastWeekMenuItem(tvd.title,tvd.center,tvd.startDateTime);
@@ -1951,8 +1869,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 			
 			if ( ! isRemoveItem )	// 過去ログは処理対象外です
 			{
-				final String label = tvd.title+" ("+tvd.center+")";
-				JMenuItem menuItem = new JMenuItem("ピックアップへの追加【"+label+"】");
+				final String label = String.format("%s(%s)",tvd.title,tvd.center);
+				JMenuItem menuItem = new JMenuItem(String.format("ピックアップへの追加【%s %s - %s】",tvd.accurateDate,tvd.start,label));
 				menuItem.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						//
@@ -2368,10 +2286,17 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 	/**
 	 *  予約を削除するメニューアイテム
 	 */
-	private JMenuItem getRemoveRsvMenuItem(final String title, final String chnam, final String rsvId, final String recId, int n) {
+	private JMenuItem getRemoveRsvMenuItem(final String start, final String title, final String chnam, final String rsvId, final String recId, int n) {
 		//
-		JMenuItem menuItem = new JMenuItem(((n==0)?"予約を削除する【":"隣接予約を削除する【")+title+"("+chnam+")/"+recId+"】");
+		JMenuItem menuItem = new JMenuItem();
+		
+		String mode = "削除";
 		menuItem.setForeground(Color.RED);
+		
+		String target = ( n==0 ) ? "予約" : "隣接予約";
+
+		menuItem.setText(String.format("%sを%sにする【%s - %s(%s)/%s】",target,mode,start,title,chnam,recId));
+		
 		if ( recId.equals(toolBar.getSelectedRecorder()) ) {
 			// 選択中のレコーダのものは太字に
 			Font f = menuItem.getFont();
@@ -2488,7 +2413,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 			rdialog.setOnlyUpdateExec(fexec);
 			rdialog.doUpdate();
 			
-			if (rdialog.isReserved()) {
+			if (rdialog.isSucceededReserve()) {
 				// 予約状況を更新
 				listed.updateReserveMark();
 				paper.updateReserveBorder(chnam);
@@ -2510,7 +2435,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 	/**
 	 *  予約実行をONOFFするメニューアイテム
 	 */
-	private JMenuItem getExecOnOffMenuItem(final boolean fexec, final String title, final String chnam, final String rsvId, final String recId, int n) {
+	private JMenuItem getExecOnOffMenuItem(final boolean fexec, final String start, final String title, final String chnam, final String rsvId, final String recId, int n) {
 		
 		JMenuItem menuItem = new JMenuItem();
 		
@@ -2521,9 +2446,12 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		}
 		else {
 			mode = "OFF";
+			menuItem.setForeground(Color.BLACK);
 		}
-		
-		menuItem.setText(((n==0)?"予約を":"隣接予約を")+mode+"にする【"+title+"("+chnam+")/"+recId+")】");
+
+		String target = ( n==0 ) ? "予約" : "隣接予約";
+
+		menuItem.setText(String.format("%sを%sにする【%s - %s(%s)/%s】",target,mode,start,title,chnam,recId));
 		
 		if ( recId.equals(toolBar.getSelectedRecorder()) ) {
 			// 選択中のレコーダのものは太字に
@@ -2543,7 +2471,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 					rdialog.setOnlyUpdateExec( ! fexec);
 					rdialog.doUpdate();
 					
-					if (rdialog.isReserved()) {
+					if (rdialog.isSucceededReserve()) {
 						// 予約状況を更新
 						listed.updateReserveMark();
 						paper.updateReserveBorder(chnam);
@@ -2569,7 +2497,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 	 *  新聞形式へジャンプするメニューアイテム
 	 */
 	private JMenuItem getJumpMenuItem(final String title, final String chnam, final String startDT) {
-		JMenuItem menuItem = new JMenuItem("番組欄へジャンプする【"+title+" ("+chnam+")】");
+		JMenuItem menuItem = new JMenuItem(String.format("番組欄へジャンプする【%s - %s(%s)】",startDT,title,chnam));
 		menuItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				paper.jumpToBangumi(chnam,startDT);
@@ -2577,100 +2505,24 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		});
 		return menuItem;
 	}
-	private JMenuItem getJumpToLastWeekMenuItem(final String title, final String chnam, final String startDT) {
+	private JMenuItem getJumpToLastWeekMenuItem( final String title, final String chnam, final String startDT) {
 		GregorianCalendar cal = CommonUtils.getCalendar(startDT);
+		
 		if ( cal != null ) {
-			JMenuItem menuItem = new JMenuItem("先週の番組欄へジャンプする【"+title+" ("+chnam+")】");
 			cal.add(Calendar.DATE, -7);
-			final String lastweek = CommonUtils.getDateTime(cal);
+			final String lastdatetime = CommonUtils.getDateTimeW(cal);
+			
+			JMenuItem menuItem = new JMenuItem(String.format("先週の番組欄へジャンプする【%s - (%s)】",lastdatetime,chnam));
+			
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					paper.jumpToBangumi(chnam,lastweek);
+					paper.jumpToBangumi(chnam,lastdatetime);
 				}
 			});
 			return menuItem;
 		}
 		return null;
 	}
-	
-	// カーソル位置にかかる予約枠の検索
-	private void searchOverlapRsv(LikeReserveList overlapRsvList, ProgDetailList tvd, int h)
-	{
-		String clicked = "";
-		if ( h >= 0 && tvd.start.length() != 0 ) {
-			// 新聞形式ならクリック位置の日時を算出する
-			GregorianCalendar cala = CommonUtils.getCalendar(tvd.startDateTime);
-			if ( CommonUtils.isLateNight(cala.get(Calendar.HOUR_OF_DAY)) ) {
-				cala.set(Calendar.HOUR_OF_DAY, TIMEBAR_START);
-				cala.set(Calendar.MINUTE, 0);
-			}
-			cala.add(Calendar.MINUTE, Math.round(h/bounds.getPaperHeightMultiplier()));
-			clicked = CommonUtils.getDateTime(cala);
-			//StdAppendError("clicked:"+clicked);
-		}
-		
-		HashMap<String,Boolean> misCN = new HashMap<String, Boolean>();
-		for ( HDDRecorder recorder : recorders ) {
-			
-			// 終了した予約を整理する
-			recorder.refreshReserves();
-			
-			for ( ReserveList r : recorder.getReserves() ) {
-				
-				// 放送局のマッチング
-				if (r.getCh_name() == null) {
-					if ( r.getChannel() == null ) {
-						System.err.println(ERRID+"予約情報にCHコードが設定されていません。バグの可能性があります。 recid="+recorder.Myself()+" chname="+r.getCh_name());
-						continue;
-					}
-					if(r.getChannel().length() > 0) {
-						misCN.put(r.getChannel(),true);
-					}
-					continue;
-				}
-				if ( ! r.getCh_name().equals(tvd.center)) {
-					continue;
-				}
-				
-				// 重複時間チェック
-				boolean inRange = false;
-				long d = 0;
-				{
-					ArrayList<String> starts = new ArrayList<String>();
-					ArrayList<String> ends = new ArrayList<String>();
-					CommonUtils.getStartEndList(starts, ends, r);
-					if ( h >= 0 ) {
-						// 新聞形式はピンポイント（マウスポインタのある位置の時刻）
-						for (int j=0; j<starts.size(); j++) {
-							if ( clicked.compareTo(starts.get(j)) >= 0 && clicked.compareTo(ends.get(j)) <= 0 ) {
-								inRange = true;
-								break;
-							}
-						}
-					}
-					else {
-						// リスト形式は幅がある（開始～終了までの間のいずれかの時刻）
-						for (int j=0; j<starts.size(); j++) {
-							if ( CommonUtils.isOverlap(tvd.startDateTime, tvd.endDateTime, starts.get(j), ends.get(j), false) ) {
-								inRange = true;
-								d = CommonUtils.getDiffDateTime(tvd.startDateTime, starts.get(j));
-								break;
-							}
-						}
-					}
-				}
-				if ( ! inRange) {
-					continue;
-				}
-				
-				// 類似予約あり！
-				overlapRsvList.add(new LikeReserveItem(recorder, r, d));
-			}
-		}
-		
-		return;
-	}
-	
 	
 	/*******************************************************************************
 	 * タイマー関連
@@ -3115,7 +2967,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 	private void loadTVProgramOnce(TVProgram tvp, String sType, String aName, boolean loadonly, boolean force) {
 		
 		final String FUNCID = "[Web番組表取得] ";
-		final String ERRID = "[ERROR]"+FUNCID;
+//		final String ERRID = "[ERROR]"+FUNCID;
 		
 		// ログ
 		String msg = FUNCID+sType+"を取得します: "+tvp.getTVProgramId();

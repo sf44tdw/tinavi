@@ -7,33 +7,60 @@ public class LikeReserveList extends ArrayList<LikeReserveItem> {
 
 	private static final long serialVersionUID = 1L;
 
-
-	//
-	private LikeReserveItem closest = null;
 	
-	public ReserveList getRsv(int i) { return this.get(i).getRsv(); }
-	public ReserveList getRsv() { return ((closest!=null)?closest.getRsv():null); }
-	
-	public HDDRecorder getRec(int i) { return this.get(i).getRec(); }
-	public HDDRecorder getRec() { return ((closest!=null)?closest.getRec():null); }
-	
+	/**
+	 * 一番開始日時が近い類似予約を選択
+	 */
 	public LikeReserveItem getClosest(String myself) {
 		
 		closest = null;
+		closestIndex = -1;
 		
-		for ( LikeReserveItem lr : this ) {
+		for ( int i=0; i<size(); i++ ) {
+			LikeReserveItem lr = get(i);
 			if ( (myself!=HDDRecorder.SELECTED_ALL && myself!=HDDRecorder.SELECTED_PICKUP) && ! lr.getRec().Myself().equals(myself) ) {
 				// レコーダの個別指定があれば
 				continue;
 			}
 			if ( closest == null || Math.abs(closest.getDist()) > lr.getDist() ) {
 				closest = lr;
+				closestIndex = i;
 			}
 		}
 		
 		return closest;
 	}
+	
+	public LikeReserveItem getClosest() { return closest; }
+	public int getClosestIndex() { return closestIndex; }
 
+	private LikeReserveItem closest = null;
+	private int closestIndex = -1;
+	
+
+	/**
+	 * 選択された類似予約を取得
+	 */
+	public LikeReserveItem getSelected() { return selected; }
+	private LikeReserveItem selected = null;
+	
+	/**
+	 * get()を行いつつget()の結果の記録もする
+	 * <P><I>注意！get()はイテレータの中で使用されるので、get()をoverrideするとループによりselectedの値が変動してしまう！！</I>
+	 */
+	public LikeReserveItem setSelectedIndex(int index) {
+		return selected = super.get(index);
+	}
+	
+	/**
+	 * つかってもいいけどselectedが使えないよ。{@link #setSelectedIndex(int)}を使ってね
+	 */
+	@Deprecated
+	@Override
+	public LikeReserveItem get(int index) {
+		return super.get(index);
+	}
+	
 	/**
 	 * 時刻昇順で並べる
 	 */
@@ -45,7 +72,7 @@ public class LikeReserveList extends ArrayList<LikeReserveItem> {
 		}
 		
 		for ( int i=0; i<size(); i++ ) {
-			LikeReserveItem lr = get(i);
+			LikeReserveItem lr = super.get(i);
 			if ( lr.getDist() > element.getDist() ) {
 				super.add(i, element);
 				return true;
@@ -54,6 +81,7 @@ public class LikeReserveList extends ArrayList<LikeReserveItem> {
 		
 		return super.add(element);
 	}
+	
 	
 	/**
 	 * つかっちゃヤーン
@@ -64,4 +92,23 @@ public class LikeReserveList extends ArrayList<LikeReserveItem> {
 		this.add(element);
 	}
 
+	/**
+	 * 重複する予約情報を持つ類似予約を削除する
+	 */
+	public LikeReserveItem removeDup(LikeReserveItem item) {
+		int index = indexOfDup(item);
+		if ( index < 0 ) {
+			return null;
+		}
+		return super.remove(index);
+	}
+	
+	private int indexOfDup(LikeReserveItem item) {
+		for ( int i=0; i<size(); i++ ) {
+			if ( item.getRsv() == super.get(i).getRsv() ) {
+				return i;
+			}
+		}
+		return -1;
+	}
 }

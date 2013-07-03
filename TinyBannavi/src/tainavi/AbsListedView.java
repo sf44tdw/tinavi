@@ -128,8 +128,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	protected abstract void showPopupForTraceProgram(
 			final JComponent comp,
 			final ProgDetailList tvd, final String keyword, final int threshold,
-			final int x, final int y, final int h
-			);
+			final int x, final int y);
 
 	/**
 	 * 予約マーク・予約枠を更新してほしい
@@ -1570,7 +1569,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 					
 					int threshold = getThrValByRow(row);
 					String keyword = (threshold > 0) ? (getKeyValByRow(row)) : (tvd.title);
-					showPopupForTraceProgram(t, tvd, keyword, threshold, p.x, p.y, -1);
+					showPopupForTraceProgram(t, tvd, keyword, threshold, p.x, p.y);
 				}
 			}
 			else if (e.getButton() == MouseEvent.BUTTON1) {
@@ -1612,7 +1611,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 						}
 						
 						// 予約マークを更新する
-						if (rD.isReserved()) {
+						if (rD.isSucceededReserve()) {
 							// 自分
 							setReservedMarks();
 							tableModel_listed.fireTableDataChanged();
@@ -2244,7 +2243,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			
 			// 予約ダイアログは見せないまま更新を実行する
 			
-			if ( ! rD.isReserved()) {
+			if ( ! rD.isSucceededReserve()) {
 				StdAppendError("【警告】予約の登録に失敗しました: "+rowData.get(row).tvd.title);
 				break;
 			}

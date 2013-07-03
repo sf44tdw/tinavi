@@ -2,11 +2,13 @@ package tainavi;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -51,7 +53,8 @@ public class JCheckBoxPanel extends JPanel {
 	private void _JCheckBoxPanelRev(String s, int labelWidth) {
 		this.setLayout(new BoxLayout(this,BoxLayout.LINE_AXIS));
 		
-		this.add(jcheckbox = new JCheckBox());
+		jcheckbox = new JCheckBox();
+		this.add(jcheckbox);
 		
 		jlabel = new JLabel(s);
 		Dimension d = jlabel.getPreferredSize();
@@ -103,8 +106,9 @@ public class JCheckBoxPanel extends JPanel {
 	}
 
 	public void setForeground(Color fg) {
-		if (this.jlabel != null)
+		if (this.jlabel != null) {
 			this.jlabel.setForeground(fg);
+		}
 	}
 	
 	
@@ -114,7 +118,14 @@ public class JCheckBoxPanel extends JPanel {
 		public void mouseClicked(MouseEvent e) {
 			if ( jcheckbox != null ) {
 				jcheckbox.setSelected( ! jcheckbox.isSelected());
+				
+				// イベントをチェックボックスに投げる
+				ActionEvent ev = new ActionEvent(jcheckbox,ActionEvent.ACTION_PERFORMED,"");
+				for ( ActionListener al : jcheckbox.getActionListeners() ) {
+					al.actionPerformed(ev);
+				}
 			}
 		}
 	};
+	
 }

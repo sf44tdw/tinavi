@@ -12,6 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import taiSync.ReserveInfo;
+import tainavi.TVProgram.ProgGenre;
+import tainavi.TVProgram.ProgSubgenre;
 
 
 /**
@@ -101,9 +103,6 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	
 	private static final String ITEM_JUST_ENABLE		= "する";
 
-	private static final String ITEM_REC_TYPE_EPG		= "EPG";
-	private static final String ITEM_REC_TYPE_PROG		= "ﾌﾟﾛｸﾞﾗﾑ";
-
 	private static final String ITEM_PRESETID_REG		= "予約時";
 
 	private static final String ITEM_MARGINE_DEFAULT	= "デフォルト";
@@ -124,9 +123,6 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	
 	private static final String VALUE_TRACE_DISABLE		= "0";
 	private static final String VALUE_TRACE_ENABLE		= "1";
-
-	private static final String VALUE_REC_TYPE_EPG		= "EPG";
-	private static final String VALUE_REC_TYPE_PROG		= "PROGRAM";
 
 	private static final String VALUE_PRESETID_REG		= "65535";
 	
@@ -1025,6 +1021,12 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 			 *  既存予約一覧からの情報引き継ぎ
 			 */
 			//XcopyAttributes(r, getReserves());
+			
+			/*
+			 * APIではジャンルがとれない
+			 */
+			r.setRec_genre(ProgGenre.NOGENRE.toString());
+			r.setRec_subgenre(ProgSubgenre.NOGENRE_ETC.toString());
 			
 			/*
 			 * 追加

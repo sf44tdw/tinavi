@@ -48,6 +48,16 @@ public class JWideComboBox extends JComboBox implements WideComponent {
 		});
 	}
 
+	public int indexOf(Object o) {
+		for ( int i=0; i<this.getItemCount(); i++ ) {
+			Object obj = this.getItemAt(i);
+			if ( (o != null && obj != null && o.equals(obj)) || o == obj ) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
 	private boolean layingOut = false; 
     
 	private int w = 50;

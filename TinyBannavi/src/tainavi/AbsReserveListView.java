@@ -3,6 +3,7 @@ package tainavi;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -81,12 +82,12 @@ public abstract class AbsReserveListView extends JScrollPane {
 	/**
 	 *  予約実行をONOFFするメニューアイテム
 	 */
-	protected abstract JMenuItem getExecOnOffMenuItem(final boolean fexec, final String title, final String chnam, final String rsvId, final String recId);
+	protected abstract JMenuItem getExecOnOffMenuItem(final boolean fexec, final String start, final String title, final String chnam, final String rsvId, final String recId);
 	
 	/**
 	 *  予約を削除するメニューアイテム
 	 */
-	protected abstract JMenuItem getRemoveRsvMenuItem(final String title, final String chnam, final String rsvId, final String recId);
+	protected abstract JMenuItem getRemoveRsvMenuItem(final String start, final String title, final String chnam, final String rsvId, final String recId);
 	
 	/**
 	 *  新聞形式へジャンプするメニューアイテム
@@ -643,7 +644,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 			rD.setVisible(false);
 		}
 		
-		if (rD.isReserved()) {
+		if (rD.isSucceededReserve()) {
 			// よそさま
 			updateReserveDisplay(chnam);
 			// じぶん
@@ -695,6 +696,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 			final String chnam = ra.hide_chname;
 			final String recId = ra.recorder;
 			final String rsvId = ra.hide_rsvid;
+			
 			//
 			if (e.getButton() == MouseEvent.BUTTON3) {
 				if (e.getClickCount() == 1) {
@@ -702,7 +704,11 @@ public abstract class AbsReserveListView extends JScrollPane {
 					JPopupMenu pop = new JPopupMenu();
 					//
 					{
-						JMenuItem menuItem = new JMenuItem("予約を編集する");
+						JMenuItem menuItem = new JMenuItem(String.format("予約を編集する【%s - %s(%s)】",start,title,chnam));
+						menuItem.setForeground(new Color(0,127,0));
+						Font f = menuItem.getFont();
+						menuItem.setFont(f.deriveFont(f.getStyle()|Font.BOLD));
+						
 						menuItem.addActionListener(new ActionListener() {
 							public void actionPerformed(ActionEvent e) {
 								editReserve(recId,rsvId,chnam,vrow);
@@ -715,13 +721,13 @@ public abstract class AbsReserveListView extends JScrollPane {
 
 					// 予約実行ON・OFF
 					{
-						pop.add(getExecOnOffMenuItem(fexec,title,chnam,rsvId,recId));
+						pop.add(getExecOnOffMenuItem(fexec,start,title,chnam,rsvId,recId));
 					}
 					
 					pop.addSeparator();
 					
 					{
-						pop.add(getRemoveRsvMenuItem(title,chnam,rsvId,recId));
+						pop.add(getRemoveRsvMenuItem(start,title,chnam,rsvId,recId));
 					}
 					
 					pop.addSeparator();

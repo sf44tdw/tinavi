@@ -100,7 +100,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	protected abstract void showPopupForTraceProgram(
 			final JComponent comp,
 			final ProgDetailList tvd, final String keyword, final int threshold,
-			final int x, final int y, final int h
+			final int x, final int y, final String clickedDateTime
 			);
 
 	/**
@@ -1679,6 +1679,23 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		return -1;
 	}
 	
+	/**
+	 * 番組枠のクリック位置を日時に変換する
+	 */
+	private String getClickedDateTime(ProgDetailList tvd, int clikedY) {
+		
+		String clickedDateTime = null;
+		
+		if ( clikedY >= 0 && tvd.start.length() != 0 ) {
+			// 新聞形式ならクリック位置の日時を算出する
+			GregorianCalendar cala = CommonUtils.getCalendar(tvd.startDateTime);
+			cala.add(Calendar.MINUTE, Math.round(((float)clikedY)/(bounds.getPaperHeightMultiplier()*paperHeightZoom)));
+			clickedDateTime = CommonUtils.getDateTime(cala);
+		}
+		
+		return clickedDateTime;
+	}
+	
 	
 	/*******************************************************************************
 	 * ハンドラ―メソッド
@@ -1812,7 +1829,8 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 			if (e.getButton() == MouseEvent.BUTTON3) {
 				if (e.getClickCount() == 1) {
 					// 右シングルクリックでメニューの表示
-					showPopupForTraceProgram(b, tvd, tvd.title, TraceKey.noFazzyThreshold, p.x, p.y, e.getY());
+					String clicked = getClickedDateTime(tvd, e.getY());
+					showPopupForTraceProgram(b, tvd, tvd.title, TraceKey.noFazzyThreshold, p.x, p.y, clicked);
 				}
 			}
 			else if (e.getButton() == MouseEvent.BUTTON1) {
@@ -1863,7 +1881,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 				rD.dispose();
 			}
 			
-			if (rD.isReserved()) {
+			if (rD.isSucceededReserve()) {
 				updateReserveDisplay();
 				updateReserveBorder(tvd.center);
 			}

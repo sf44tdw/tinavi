@@ -1,6 +1,9 @@
 package tainavi;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
 
 import tainavi.HDDRecorder.RecType;
 
@@ -42,6 +45,11 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 		return mylist;
 	}
 	
+	
+	/***************************************
+	 * レコーダのインスタンスを探す
+	 **************************************/
+	
 	/**
 	 * 実レコーダのプラグイン（個体）を探す
 	 * @param mySelf 「すべて」を指定する場合はNULLをどうぞ
@@ -66,6 +74,9 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 		return mylist;
 	}
 
+	/**
+	 * 実レコーダのプラグイン（種別グループ）を探す
+	 */
 	public HDDRecorderList findInstance(RecType rectype) {
 		if ( rectype == null ) {
 			// 全部のインスタンスを返す
@@ -81,5 +92,190 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 			}
 		}
 		return mylist;
+	}
+	
+	
+	/***************************************
+	 * 類似予約検索
+	 **************************************/
+	
+	/**
+	 * 類似予約検索
+	 */
+	public LikeReserveList findLikeReserves(ProgDetailList tvd, String keywordVal, int thresholdVal, int range, boolean reversesearch) {
+		
+		long rangeVal = range * 3600000;	// ミリ秒に
+		
+		LikeReserveList likeRsvList = new LikeReserveList();
+		
+		for ( HDDRecorder recorder : this ) {
+			
+			// 終了した予約を整理する
+			recorder.refreshReserves();
+			
+			for ( ReserveList r : recorder.getReserves() ) {
+				
+				// タイトルのマッチング
+				if ( keywordVal != null ) {
+					if ( ! isLikeTitle(r.getTitlePop(), keywordVal, thresholdVal, reversesearch) ) {
+						continue;
+					}
+				}
+				else {
+					if ( ! isLikeTitle(tvd.titlePop, r.getTitlePop()) ) {
+						continue;
+					}
+				}
+				
+				// 放送局のマッチング
+				if ( ! isLikeChannel(tvd.center, r.getCh_name()) ) {
+					continue;
+				}
+				
+				// 近接時間チェック
+				Long d = getLikeDist(tvd.startDateTime, r, rangeVal);
+				if ( d == null ) {
+					continue;
+				}
+				
+				// 類似予約あり
+				likeRsvList.add(new LikeReserveItem(recorder, r, d));
+			}
+			
+		}
+		
+		return likeRsvList;
+	}
+	
+	private boolean isLikeTitle(String rsv_titlePop, String keywordVal, int thresholdVal, boolean reversesearch) {
+		
+		// 双方向の比較を行う・正引き
+		int fazScore = TraceProgram.sumScore(keywordVal, rsv_titlePop);
+		if ( fazScore >= thresholdVal ) {
+			return true;
+		}
+		else if ( reversesearch ) {
+			// 逆引き
+			fazScore = TraceProgram.sumScore(rsv_titlePop, keywordVal);
+			if ( fazScore >= thresholdVal) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private boolean isLikeTitle(String titlePop, String rsv_titlePop) {
+
+		// 完全一致
+		if ( rsv_titlePop.equals(titlePop)) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private boolean isLikeChannel(String webChName, String rsv_webChName) {
+		
+		if ( rsv_webChName == null ) {
+			return false;
+		}
+		if ( ! rsv_webChName.equals(webChName) ) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private Long getLikeDist(String startDateTime, ReserveList r, long range) {
+		
+		Long d = null;
+		
+		ArrayList<String> starts = new ArrayList<String>();
+		ArrayList<String> ends = new ArrayList<String>();
+		CommonUtils.getStartEndList(starts, ends, r);
+		 
+		for ( int j=0; j<starts.size(); j++ ) {
+			long dtmp = CommonUtils.getCompareDateTime(starts.get(j),startDateTime);
+			if ( range > 0 && Math.abs(dtmp) >= range ) {
+				// 範囲指定があって範囲外ならスキップ
+				continue;
+			}
+			else if ( d == null || Math.abs(d) > Math.abs(dtmp) ) {
+				// 初値、または一番小さい値を採用
+				d = dtmp;
+			}
+		}
+		
+		return d;
+	}
+	
+	/***************************************
+	 * 隣接予約検索
+	 **************************************/
+	
+	public LikeReserveList findOverlapReserves(ProgDetailList tvd, String clicked) {
+		
+		LikeReserveList overlapRsvList =  new LikeReserveList();
+		
+		HashMap<String,Boolean> misCN = new HashMap<String, Boolean>();	// 使っていない…
+		
+		for ( HDDRecorder recorder : this ) {
+			
+			for ( ReserveList r : recorder.getReserves() ) {
+				
+				// 放送局のマッチング
+				if (r.getCh_name() == null) {
+					if ( r.getChannel() == null ) {
+						System.err.println("予約情報にCHコードが設定されていません。バグの可能性があります。 recid="+recorder.Myself()+" chname="+r.getCh_name());
+						continue;
+					}
+					if(r.getChannel().length() > 0) {
+						misCN.put(r.getChannel(),true);
+					}
+					continue;
+				}
+				if ( ! r.getCh_name().equals(tvd.center)) {
+					continue;
+				}
+				
+				// 重複時間チェック
+				boolean inRange = false;
+				long d = 0;
+				
+				{
+					ArrayList<String> starts = new ArrayList<String>();
+					ArrayList<String> ends = new ArrayList<String>();
+					CommonUtils.getStartEndList(starts, ends, r);
+					if ( clicked != null ) {
+						// 新聞形式はピンポイント（マウスポインタのある位置の時刻）
+						for (int j=0; j<starts.size(); j++) {
+							if ( clicked.compareTo(starts.get(j)) >= 0 && clicked.compareTo(ends.get(j)) <= 0 ) {
+								inRange = true;
+								break;
+							}
+						}
+					}
+					else {
+						// リスト形式は幅がある（開始～終了までの間のいずれかの時刻）
+						for (int j=0; j<starts.size(); j++) {
+							if ( CommonUtils.isOverlap(tvd.startDateTime, tvd.endDateTime, starts.get(j), ends.get(j), false) ) {
+								inRange = true;
+								d = CommonUtils.getDiffDateTime(tvd.startDateTime, starts.get(j));
+								break;
+							}
+						}
+					}
+				}
+				if ( ! inRange) {
+					continue;
+				}
+				
+				// 類似予約あり！
+				overlapRsvList.add(new LikeReserveItem(recorder, r, d));
+			}
+		}
+		
+		return overlapRsvList;
 	}
 }

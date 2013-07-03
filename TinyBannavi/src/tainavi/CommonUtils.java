@@ -53,7 +53,6 @@ public class CommonUtils {
 	 */
 	public static void setDebug(boolean b) { debug = b; }
 	private static boolean debug = false;
-	private static boolean debuglv2 = false;	// これは俺用
 	
 	/**
 	 *  深夜の帯予約補正に対応するかどうか
@@ -212,7 +211,7 @@ public class CommonUtils {
 	/**
 	 *  開始・終了時刻から長さを算出する。引数の前後関係は意識しなくて良い。
 	 */
-	private static int getRecMinVal(int ahh, int amm, int zhh, int zmm) {
+	public static int getRecMinVal(int ahh, int amm, int zhh, int zmm) {
 		int min = (zhh*60+zmm) - (ahh*60+amm);
 		if (min < 0) min += 24*60;
 		return min;
@@ -634,6 +633,13 @@ public class CommonUtils {
 		}
 	}
 	
+	/**
+	 * 日付を日付形式に変換。
+	 * @return YYYY/MM/DD(WD)
+	 */ 
+	public static String getDate() {
+		return getDate(getCalendar(0), true);
+	}
 	/**
 	 * <P>「当日」の日付文字列を返します。
 	 * <P>ただし、05時～29時を当日として判断するので、<B>24時～29時に実行した場合は前日の日付が返ります</B>。

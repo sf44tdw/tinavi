@@ -39,7 +39,13 @@ public interface HDDRecorder {
 	public static final String SELECTED_ALL = "すべて";
 	public static final String SELECTED_PICKUP = "ピックアップのみ";
 
+	// 特殊な選択肢
+	public static final String ITEM_REC_TYPE_EPG		= "EPG";
+	public static final String ITEM_REC_TYPE_PROG		= "ﾌﾟﾛｸﾞﾗﾑ";
 	
+	public static final String VALUE_REC_TYPE_EPG		= "EPG";
+	public static final String VALUE_REC_TYPE_PROG		= "PROGRAM";
+
 	/*******************************************************************************
 	 * 種族の特性
 	 ******************************************************************************/
@@ -79,7 +85,7 @@ public interface HDDRecorder {
 	
 	public String text2value(ArrayList<TextValueSet> tvs, String text);
 	public String value2text(ArrayList<TextValueSet> tvs, String value);
-
+	public TextValueSet getDefaultSet(ArrayList<TextValueSet> tvs);
 	
 	// 個体の特性 
 	public String getIPAddr();
@@ -112,7 +118,25 @@ public interface HDDRecorder {
 	 */
 	public void setTunerNum(int n);
 
+	/**
+	 * 放送波の種類にあったエンコーダのリストを返します
+	 */
+	public ArrayList<String> getFilteredEncoders(String webChName);	
 	
+	/**
+	 * 使用されていないエンコーダのリストアップと、裏番組リストを作成します
+	 * <P>
+	 * @param myrsv 予約一覧から開いた場合など、選択中の予約情報はスルーしてほしい場合に指定します。それ以外はnullで
+	 * @param selectedVrate 特定の画質に対しては特定のエンコーダを指定してやらなければならない場合に指定します(RDのみ)
+	 * @return null:自動検索無効、"":空きエンコーダなし、その他:空きエンコーダ
+	 */
+	public String getEmptyEncorder(String webChName, String startDateTime, String endDateTime, ReserveList myrsv, String selectedVrate);
+	
+	/**
+	 * 裏番組のリストを返します
+	 * @see #getEmptyEncorder(ProgDetailList, String)
+	 */
+	public ArrayList<ReserveList> getUrabanList();
 	
 	/*
 	 * 予約一覧系

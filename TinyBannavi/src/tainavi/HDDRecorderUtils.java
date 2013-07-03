@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,8 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	/*******************************************************************************
 	 * 定数
 	 ******************************************************************************/
+	
+	public static final String NULL_ENCODER = "■";
 	
 	// メッセージID
 	private static final String MSGID = "[レコーダ共通] ";
@@ -293,11 +296,174 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	
 	private ArrayList<RecordedInfo> RECORDED = new ArrayList<RecordedInfo>();
 	
+	/***************************************
+	 * 利用可能なエンコーダの絞り込み２種
+	 **************************************/
+	
+	/**
+	 *
+	 */
+	@Override
+	public ArrayList<String> getFilteredEncoders(String webChName) {
+		
+		ArrayList<String> encs = new ArrayList<String>();
+		
+		if ( getEncoderList().size() == 0 ) {
+			encs.add(NULL_ENCODER);
+			return encs;
+		}
+		
+		// エンコーダーに地上波・BS/CSの区別のあるとき
+		if ( isBroadcastTypeNeeded() ) {
+			
+			String code = getChCode().getCH_WEB2CODE(webChName);
+			
+			if ( code != null ) {
+				for ( TextValueSet enc : getEncoderList() ) {
+					if (
+							(code.startsWith(BroadcastType.TERRA.getName()+":") && enc.getText().startsWith("地上")) ||
+							((code.startsWith(BroadcastType.BS.getName()+":")||code.startsWith(BroadcastType.CS.getName()+":")) && enc.getText().startsWith("BS")) ||
+							(code.startsWith(BroadcastType.CAPTURE.getName()+":") && enc.getText().startsWith("キャプチャ"))
+							) {
+						encs.add(enc.getText());
+					}
+				}
+			}
+			if ( encs.size() > 0 ) {
+				return encs;
+			}
+		}
+
+		// エンコーダーに地上波・BS/CSの区別のないとき or フィルタ結果が０件のとき
+		for ( TextValueSet enc : getEncoderList() ) {
+			encs.add(enc.getText());
+		}
+		return encs;
+	}
+	
+	@Override
+	public String getEmptyEncorder(String webChName, String startDateTime, String endDateTime, ReserveList myrsv, String selectedVrate) {
+		
+		// エンコーダの一覧を作成する
+		ArrayList<String> encs = getFilteredEncoders(webChName);
+		
+		// 予約リストをなめて予約済みエンコーダーをさがつつ、裏番組リストも作る
+		urabanlist = new ArrayList<ReserveList>();
+		String rsvedTuner = null;
+		for ( ReserveList r : getReserves() ) {
+			if ( r == myrsv ) {
+				// 自分自身は排除（予約一覧から開いたときとかに使う）
+				continue;
+			}
+			if ( ! r.getExec() ) {
+				// 無効の物はいらない
+				continue;
+			}
+			
+			// 予約時間が重なるものを抽出する
+			ArrayList<String> starts = new ArrayList<String>();
+			ArrayList<String> ends = new ArrayList<String>();
+			CommonUtils.getStartEndList(starts, ends, r);
+			for ( int i=0;i<starts.size(); i++ ) {
+				// 既に予約済みの場合
+				if (
+						starts.get(i).equals(startDateTime) &&
+						ends.get(i).equals(endDateTime) &&
+						webChName.equals(r.getCh_name())
+						) {
+					rsvedTuner = r.getTuner();
+					continue;
+				}
+				
+				// 時間の重なる番組
+				if ( CommonUtils.isOverlap(startDateTime, endDateTime, starts.get(i), ends.get(i), getAdjNotRep()) ) {
+					
+					// 裏番組チェック
+					if ( ! urabanlist.contains(r) ) {
+						urabanlist.add(r);
+					}
+					
+					// 予約時間が重なるものはエンコーダーの一覧から削除する
+					HashMap<String,Boolean> removeitems = new HashMap<String,Boolean>();
+					for ( String enc : encs ) {
+						if ( enc.equals(r.getTuner()) ) {
+							
+							removeitems.put(enc, true);
+							
+							// ---- ＲＤデジタルＷ録向け暫定コード ----
+							if ( enc.equals("TS1") || enc.equals("DR1") ) {
+								// TS1が埋まっていればREは使えない
+								removeitems.put("RE", true);
+							}
+							else if ( enc.equals("RE") ) {
+								// REが埋まっていればTS1は使えない
+								removeitems.put("TS1", true);
+								removeitems.put("DR1", true);
+							}
+							// ---- ＲＤデジタルＷ録向け暫定コード ----
+							
+							break;
+						}
+					}
+					for ( String key : removeitems.keySet() ) {
+						encs.remove(key);
+					}
+				}
+			}
+		}
+		
+		if ( ! isAutoEncSelectEnabled() ) {
+			// 空きエンコーダ検索は無効
+			return null;
+		}
+			
+		// 旧RDデジ系 - ここから
+		if ( selectedVrate != null ) {
+			if ( ! selectedVrate.equals("[TS]") && ! selectedVrate.equals("[DR]")) {
+				if ( ! encs.contains("RE") ) {
+					// 空きエンコーダはなかった
+				}
+				return "RE";
+			}
+
+			encs.remove("RE");
+		}
+		// 旧RDデジ系 - ここまで
+		
+		if ( encs.size() == 0  ) {
+			// 空きエンコーダはなかった
+			return "";
+		}
+
+		// 空きエンコーダがあった
+
+		if ( rsvedTuner != null ) {
+			// 予約済みなら同じのでいいよね
+			return rsvedTuner;
+		}
+		if ( encs.size() > 0 ) {
+			// エンコーダーが残っていればそれらの先頭を返す（裏番組がない場合は除く）
+			return encs.get(0);
+		}
+		
+		// 空きエンコーダなし
+		return "";
+	}
+	
+	@Override
+	public ArrayList<ReserveList> getUrabanList() {
+		return urabanlist;
+	}
+	
+	private ArrayList<ReserveList> urabanlist = null;	// 裏番組の一覧
+	
+
 	/*******************************************************************************
 	 * 小物
 	 ******************************************************************************/
 	
 	// 素直にHashMapつかっておけばよかった
+	@Override
 	public String text2value(ArrayList<TextValueSet> tvs, String text) {
 		for ( TextValueSet t : tvs ) {
 			if (t.getText().equals(text)) {
@@ -306,6 +472,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 		}
 		return("");
 	}
+	@Override
 	public String value2text(ArrayList<TextValueSet> tvs, String value) {
 		for ( TextValueSet t : tvs ) {
 			if (t.getValue().equals(value)) {
@@ -313,6 +480,16 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 			}
 		}
 		return("");
+	}
+	
+	@Override
+	public TextValueSet getDefaultSet(ArrayList<TextValueSet> tvs) {
+		for ( TextValueSet t : tvs ) {
+			if ( t.getDefval() ) {
+				return t;
+			}
+		}
+		return null;
 	}
 	
 	protected TextValueSet add2tvs(ArrayList<TextValueSet> tvs, String text, String value) {

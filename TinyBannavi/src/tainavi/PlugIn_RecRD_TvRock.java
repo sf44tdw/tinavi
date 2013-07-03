@@ -78,12 +78,6 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 	 * 定数
 	 ******************************************************************************/
 	
-	private static final String ITEM_REC_TYPE_EPG		= "EPG";
-	private static final String ITEM_REC_TYPE_PROG		= "ﾌﾟﾛｸﾞﾗﾑ";
-	
-	private static final String VALUE_REC_TYPE_EPG		= "EPG";
-	private static final String VALUE_REC_TYPE_PROG		= "PROGRAM";
-
 	private static final String ITEM_CH_EPGGET		= "[番組情報取得スケジュール]";
 	
 	private static final String VALUE_CH_EPGGET		= "";
@@ -966,7 +960,7 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 	
 	// 各番組の、指定されている値を取得する
 	private String getSelectedSetting(String key, String res) {
-		Matcher mb = Pattern.compile("<select name=\""+key+"\">.*?<option value=\"([^\"]+?)\"\\s*selected>(.+?)</option>.*?</select>").matcher(res);
+		Matcher mb = Pattern.compile("<select name=\""+key+"\">.*?<option value=\"([^\"]*?)\"\\s*selected>(.+?)</option>.*?</select>").matcher(res);
 		if (mb.find()) {
 			return mb.group(2);
 		}
@@ -1844,7 +1838,8 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 	// 既存ユーザが混乱するのでデフォルトはプログラム予約
 	private void setSettingRecType(ArrayList<TextValueSet> tvs) {
 		tvs.clear();
-		add2tvs(tvs,ITEM_REC_TYPE_PROG,VALUE_REC_TYPE_PROG);
+		TextValueSet t = add2tvs(tvs,ITEM_REC_TYPE_PROG,VALUE_REC_TYPE_PROG);
+		t.setDefval(true);
 		add2tvs(tvs,ITEM_REC_TYPE_EPG,VALUE_REC_TYPE_EPG);
 	}
 	
@@ -1855,6 +1850,9 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			TextValueSet t = new TextValueSet();
 			t.setText(String.valueOf(i));
 			t.setValue(String.valueOf(i));
+			if ( i == 0 ) {
+				t.setDefval(true);
+			}
 			tvs.add(t);
 		}
 	}

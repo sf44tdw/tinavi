@@ -3,6 +3,8 @@ package tainavi;
 import java.io.File;
 import java.util.ArrayList;
 
+import tainavi.TVProgram.ProgGenre;
+
 public class AVSetting {
 	
 	//
@@ -40,7 +42,28 @@ public class AVSetting {
     	avs = tmp;
 	}
 	
-	public AVs get(String key_recorderId, String key_genre) {
+	/**
+	 * キーに紐づいた録画設定を取得する
+	 */
+	public AVs getSelectedAVs(String selected_key, String recId) {
+		
+		AVs myavs = get(recId, selected_key);
+		if ( myavs != null ) {
+			// キーに紐づいた設定がみつかた
+			return myavs;
+		}
+		
+		myavs = get(recId, null);
+		if ( myavs != null ) {
+			// デフォルトの設定がみつかた
+			return myavs;
+		}
+	
+		// みつかんねーよ
+		return null;
+	}
+	
+	private AVs get(String key_recorderId, String key_genre) {
 		for ( AVs a : avs ) {
 			if ( a.getRecorderId().equals(key_recorderId) ) {
 				if ( (a.getGenre() != null && a.getGenre().equals(key_genre)) ||
