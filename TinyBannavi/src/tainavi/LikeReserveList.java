@@ -10,19 +10,25 @@ public class LikeReserveList extends ArrayList<LikeReserveItem> {
 	
 	/**
 	 * 一番開始日時が近い類似予約を選択
+	 * @param myself 「すべて」「ピックアップのみ」の場合はnullを返す 
 	 */
 	public LikeReserveItem getClosest(String myself) {
 		
 		closest = null;
 		closestIndex = -1;
 		
+		if ( myself == HDDRecorder.SELECTED_ALL || myself == HDDRecorder.SELECTED_PICKUP ) {
+			// レコーダの個別指定がなければ
+			return closest;
+		}
+		
 		for ( int i=0; i<size(); i++ ) {
-			LikeReserveItem lr = get(i);
-			if ( (myself!=HDDRecorder.SELECTED_ALL && myself!=HDDRecorder.SELECTED_PICKUP) && ! lr.getRec().Myself().equals(myself) ) {
-				// レコーダの個別指定があれば
+			LikeReserveItem lr = super.get(i);
+			if ( ! lr.getRec().Myself().equals(myself) ) {
 				continue;
 			}
-			if ( closest == null || Math.abs(closest.getDist()) > lr.getDist() ) {
+			
+			if ( closest == null || Math.abs(closest.getDist()) > Math.abs(lr.getDist()) ) {
 				closest = lr;
 				closestIndex = i;
 			}

@@ -119,7 +119,7 @@ public interface HDDRecorder {
 	public void setTunerNum(int n);
 
 	/**
-	 * 放送波の種類にあったエンコーダのリストを返します
+	 * 放送波の種類にあったエンコーダのリストを返します。「外部」で始まるエンコーダは強制的に追加されます
 	 */
 	public ArrayList<String> getFilteredEncoders(String webChName);	
 	
@@ -137,6 +137,16 @@ public interface HDDRecorder {
 	 * @see #getEmptyEncorder(ProgDetailList, String)
 	 */
 	public ArrayList<ReserveList> getUrabanList();
+
+	/**
+	 * 画質にあったチューナーだけ拾ってみる
+	 */
+	public String getPreferredVardiaVrate(String tuner);
+	
+	/**
+	 * チューナーにあった画質だけ拾ってみる
+	 */
+	public ArrayList<TextValueSet> getPreferredVardiaTuners(String vrate);
 	
 	/*
 	 * 予約一覧系
@@ -235,7 +245,7 @@ public interface HDDRecorder {
 	 * 放送波の種別設定を必要とする(TvRock)
 	 */
 	public boolean isBroadcastTypeNeeded();
-	
+
 	/**
 	 *  フリーワードオプションの処理（設定）
 	 */

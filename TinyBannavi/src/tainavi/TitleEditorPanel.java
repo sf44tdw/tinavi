@@ -68,7 +68,7 @@ public class TitleEditorPanel extends JPanel {
 	private JTXTLabel jLabel_eventId = null;
 	private JButton jButton_addDate = null;
 	private JComboBoxWithPopup jComboBox_title = null;
-	private JLabel jLabel_ch = null;
+	private JButton jButton_ch = null;
 	private JWideComboBox jComboBox_ch = null;
 	
 	private JLabel jLabel_date = null;
@@ -149,14 +149,14 @@ public class TitleEditorPanel extends JPanel {
 		int y = SEP_HEIGHT_NALLOW;
 		int x = SEP_WIDTH_NARROW;
 		
-		CommonSwingUtils.putComponentOn(this, getJLabel_title("予約名"), 40, PARTS_HEIGHT, x, y);
+		CommonSwingUtils.putComponentOn(this, getJLabel_title("予約名"), 50, PARTS_HEIGHT, x, y);
 		CommonSwingUtils.putComponentOn(this, getJComboBox_title(), TITLE_WIDTH, PARTS_HEIGHT, x+SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
 		
 		CommonSwingUtils.putComponentOn(this, getJButton_getEventId(ITEM_EVIDNEEDED),	100, PARTS_HEIGHT, x+50, y);
 		CommonSwingUtils.putComponentOn(this, getJLabel_eventId(""),					75,  PARTS_HEIGHT-2, x+50+100+SEP_WIDTH_NARROW, y+1);
-		CommonSwingUtils.putComponentOn(this, getJButton_addDate("日付追加"),			100, PARTS_HEIGHT, x+SEP_WIDTH_NARROW+TITLE_WIDTH-100-SEP_HEIGHT_NALLOW, y);
+		CommonSwingUtils.putComponentOn(this, getJButton_addDate("日付追加"),			100, PARTS_HEIGHT, x+SEP_WIDTH_NARROW+TITLE_WIDTH-125-SEP_WIDTH, y);
 		
-		CommonSwingUtils.putComponentOn(this, getJLabel_ch("CH"), LABEL_WIDTH, PARTS_HEIGHT, x+TITLE_WIDTH+SEP_WIDTH, y);
+		CommonSwingUtils.putComponentOn(this, getJButton_ch("放送局"), 100, PARTS_HEIGHT, x+TITLE_WIDTH+SEP_WIDTH, y);
 		CommonSwingUtils.putComponentOn(this, getJComboBox_ch(), CHNAME_WIDTH, PARTS_HEIGHT, x+TITLE_WIDTH+SEP_WIDTH+SEP_WIDTH_NARROW, y+PARTS_HEIGHT);
 
 		y += PARTS_HEIGHT*2+SEP_HEIGHT_NALLOW;
@@ -278,7 +278,7 @@ public class TitleEditorPanel extends JPanel {
 	 **************************************/
 	
 	/**
-	 * まとめて設定：番組情報編
+	 * まとめて設定：番組情報編（番組ID・タイトル・放送局・番組詳細）
 	 */
 	public void setSelectedValues(ProgDetailList tvd) {
 		// 番組ID
@@ -445,13 +445,16 @@ public class TitleEditorPanel extends JPanel {
 	}
 	
 	private void setRecMinItem() {
-		int recmin = CommonUtils.getRecMinVal(
+		int recmin = getRecMinVal();
+		jLabel_recmin.setText(String.valueOf(recmin)+" 分 ");
+	}
+	
+	private int getRecMinVal() {
+		return CommonUtils.getRecMinVal(
 				jComboBox_ahh.getSelectedIndex(),
 				jComboBox_amm.getSelectedIndex(),
 				jComboBox_zhh.getSelectedIndex(),
 				jComboBox_zmm.getSelectedIndex());
-		
-		jLabel_recmin.setText(String.valueOf(recmin)+" 分 ");
 	}
 	
 	/***************************************
@@ -564,24 +567,59 @@ public class TitleEditorPanel extends JPanel {
 			}
 			
 			// なければ追加して選択、あれば選択のみ
-			int index = -1;
-			for ( int i=0; i<jComboBox_title.getItemCount(); i++ ) {
-				if ( newTitle.equals((String) jComboBox_title.getItemAt(i)) ) {
-					index = i;
-					break;
-				}
-			}
-			if ( index == -1 ) {
-				jComboBox_title.addItem(newTitle);
-				index = jComboBox_title.getItemCount()-1;
-			}
-			jComboBox_title.setSelectedIndex(index);
-			
-			// キャレットを末尾へ
-			((JTextField)jComboBox_title.getEditor().getEditorComponent()).setCaretPosition(newTitle.length());
+			selectNewTitie(newTitle);
 		}
 	};
 	
+	
+	/**
+	 * 放送局ボタンでタイトルの末尾に放送局名を追加する
+	 */
+	private ActionListener al_addChName = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+
+			if ( jComboBox_ch.getItemCount() == 0 ) {
+				return;
+			}
+			
+			String chname = String.format(" (%s)", jComboBox_ch.getItemAt(0));
+			String title = (String) jComboBox_title.getSelectedItem();
+			if ( title.endsWith(chname) ) {
+				// 同じ放送局名が追加済みなら
+				return;
+			}
+			
+			String newTitle = title.replaceFirst(" \\([^)]+?\\)$", chname);
+			if ( title.equals(newTitle) ) {
+				// 放送局名がついてなかった場合は
+				newTitle = title+chname;
+			}
+			
+			// なければ追加して選択、あれば選択のみ
+			selectNewTitie(newTitle);
+		}
+	};
+	
+	private void selectNewTitie(String newTitle) {
+		
+		// なければ追加して選択、あれば選択のみ
+		int index = -1;
+		for ( int i=0; i<jComboBox_title.getItemCount(); i++ ) {
+			if ( newTitle.equals((String) jComboBox_title.getItemAt(i)) ) {
+				index = i;
+				break;
+			}
+		}
+		if ( index == -1 ) {
+			jComboBox_title.addItem(newTitle);
+			index = jComboBox_title.getItemCount()-1;
+		}
+		jComboBox_title.setSelectedIndex(index);
+		
+		// キャレットを末尾へ
+		((JTextField)jComboBox_title.getEditor().getEditorComponent()).setCaretPosition(newTitle.length());
+	}
 	
 	/***************************************
 	 * 時刻を上下するリスナー
@@ -810,8 +848,11 @@ public class TitleEditorPanel extends JPanel {
 		
 		r.setRec_min("");			// PostRdEntry()中で取得するのでここはダミー
 		
-		r.setStartDateTime("");		// PostRdEntry()中で取得するのでここはダミー
-		r.setEndDateTime("");		// PostRdEntry()中で取得するのでここはダミー
+		GregorianCalendar cal = CommonUtils.getCalendar(r.getRec_nextdate()+" "+r.getAhh()+":"+r.getAmm());
+		r.setStartDateTime(CommonUtils.getDateTime(cal));		// PostRdEntry()中で取得するのでここはダミー
+		
+		cal.add(Calendar.MINUTE, getRecMinVal());
+		r.setEndDateTime(CommonUtils.getDateTime(cal));									// PostRdEntry()中で取得するのでここはダミー
 
 		if ( jLabel_eventId.getText() != null && ! (jLabel_eventId.getText().endsWith("0000") ||jLabel_eventId.getText().endsWith("FFFF")) ) {
 			r.setContentId(jLabel_eventId.getValue());
@@ -823,6 +864,10 @@ public class TitleEditorPanel extends JPanel {
 		r.setAutocomplete(jCheckBox_Autocomplete.isSelected());
 		
 		return r;
+	}
+	
+	public ReserveList getSelectedValues() {
+		return getSelectedValues(new ReserveList());
 	}
 	
 	
@@ -897,12 +942,14 @@ public class TitleEditorPanel extends JPanel {
 		return(jLabel_title);
 	}
 	
-	private JLabel getJLabel_ch(String s) {
-		if (jLabel_ch == null) {
-			jLabel_ch = new JLabel();
-			jLabel_ch.setText(s);
+	private JButton getJButton_ch(String s) {
+		if (jButton_ch == null) {
+			jButton_ch = new JButton();
+			jButton_ch.setText(s);
+			
+			jButton_ch.addActionListener(al_addChName);
 		}
-		return(jLabel_ch);
+		return(jButton_ch);
 	}
 	
 	private JLabel getJLabel_aTime(String s) {

@@ -67,8 +67,8 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	private final Env env = getEnv();
 	private final HDDRecorderList recorders = getRecorderList();
 	
-	private final AVSetting avs = getAVSetting();
-	private final CHAVSetting chavs = getCHAVSetting();
+	private final AVSetting avslist = getAVSetting();
+	private final CHAVSetting chavslist = getCHAVSetting();
 	
 	private final StatusWindow StWin = getStWin();			// これは起動時に作成されたまま変更されないオブジェクト
 	private final StatusTextArea MWin = getMWin();			// これは起動時に作成されたまま変更されないオブジェクト
@@ -81,8 +81,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	/*******************************************************************************
 	 * 定数
 	 ******************************************************************************/
-	
-	private enum ChangedSelector { ALL, RECORDER, GENRE, LIKELIST };
 	
 	// ログ関連
 	
@@ -130,6 +128,8 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		ProgDetailList hide_tvd = null;
 		AVs hide_avs = null;
 		
+		// 録画設定の選択イベントにより設定される値
+		HDDRecorder selected_recorder = null;
 	}
 	
 	private Vals vals = null;
@@ -257,7 +257,7 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		AVs myavs = null;
 		if ( myrsv == null ) {
 			// 類似予約がないか、あっても優先されない場合
-			myavs = findAVs(tvd.genre, tvd.center, myrec.getRecorderId());
+			myavs = findAVs(tvd.genre.toString(), tvd.center, myrec.getRecorderId());
 		}
 		else {
 			MWin.appendMessage(MSGID+"画質・音質を類似予約から継承します.");
@@ -277,6 +277,59 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			// 番組情報から選択する
 			jPane_likersv.setRowSelection(LikeReserveEditorPanel.LIKERSVTABLE_NONE);
 		}
+		
+		return true;
+	}
+	
+	/**
+	 * 隣接予約の編集
+	 */
+	public boolean open(ProgDetailList tvd, LikeReserveItem likersv) {
+		
+		// 予約は行われてないよー
+		doneReserve = false;
+		
+		if (recorders.size() == 0) {
+			return false;	// レコーダがひとつもないのはやばい
+		}
+		if (tvd.start.equals("")) {
+			return false;	// これは「番組情報がありません」だろう
+		}
+		
+		// 初期パラメータの保存場所
+		if (vals == null) vals = new Vals();
+		
+		// 選択中のレコーダ
+		HDDRecorder myrec = likersv.getRec();
+//		String myself = myrec.Myself();
+		
+		vals.hide_recorder = myrec;	// 隠しパラメータ
+		vals.hide_tvd = tvd;		// 隠しパラメータ
+		
+		// ダイアログオープン時に自動で取得する
+		if ( env.getAutoEventIdComplete() ) {
+			tvd.progid = getEventIdOnOpen(tvd);
+		}
+		
+		LikeReserveList likersvlist = new LikeReserveList();
+		likersvlist.add(likersv);
+		
+		vals.hide_likersvlist = likersvlist;	// 隠しパラメータ
+		
+		MWin.appendMessage(MSGID+"画質・音質を類似予約から継承します.");
+		
+		// 類似予約リストのアイテム設定
+		setLikeRsvItems(likersvlist);
+		
+		// 初期値の選択（類似予約の一個目を選択）
+		jPane_likersv.setRowSelection(LikeReserveEditorPanel.LIKERSVTABLE_DEFAULT);
+		
+		// 番組情報は番組情報から得た情報を優先する　←変な日本語
+		jPane_title.setSelectedValues(tvd);
+		
+		// 各コンポーネントの強制状態変更
+		jPane_title.setEnabledRecordButton(false);	// 新規ボタンは操作不能に
+		jPane_likersv.setEnabledTable(false);		// 類似予約は選択不能に
 		
 		return true;
 	}
@@ -331,7 +384,7 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		setLikeRsvItems(likersvlist);
 		
 		// 初期値の選択（類似予約の一個目を選択）
-		jPane_likersv.setRowSelection(0);
+		jPane_likersv.setRowSelection(LikeReserveEditorPanel.LIKERSVTABLE_DEFAULT);
 
 		// 各コンポーネントの強制状態変更
 		jPane_title.setEnabledRecordButton(false);	// 新規ボタンは操作不能に
@@ -368,16 +421,16 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	/**
 	 * ジャンル別ＡＶ設定の取得
 	 */
-	private AVs findAVs(ProgGenre key_genre, String key_webChName, String recId) {
+	private AVs findAVs(String key_genre, String key_webChName, String recId) {
 		
-		String selected_key = key_genre.toString();
-		AVSetting xavs = avs;
+		String selected_key = key_genre;
+		AVSetting xavslist = avslist;
 		if ( env.getEnableCHAVsetting() ) {
 			selected_key = key_webChName;
-			xavs = chavs;
+			xavslist = chavslist;
 		}
 		
-		AVs myavs = xavs.getSelectedAVs(selected_key, recId);
+		AVs myavs = xavslist.getSelectedAVs(selected_key, recId);
 		if ( myavs != null ) {
 			if ( myavs.getGenre() != null ) {
 				MWin.appendMessage(MSGID+"画質・音質を自動設定します： "+recId+" & "+myavs.getGenre());
@@ -578,54 +631,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	
 	
 	/**
-	 * 他のコンボボックスの操作によって内容が変わるコンボボックスの選択肢の入れ替え
-	 * @see #setInitFixies
-	 */
-	/*
-	private void setInitVariables(HDDRecorder myrec) {
-		
-		// 番組追従
-		{
-			if ( myrec.isPursuesEditable() ) {
-				jPane_recsetting.setEnebledPursues( ! ITEM_EVIDNEEDED.equals(jButton_getEventId.getText()));
-			}
-			else {
-				jPane_recsetting.setEnebledPursues(false);
-			}
-		}
-		
-		// CH
-		{
-			jComboBox_ch.removeAllItems();
-			jComboBox_ch.addItem(vals.hide_tvd.center);
-			for ( TextValueSet t : myrec.getChValue() ) {
-				if ( t.getText().startsWith("外部") ) {
-					jComboBox_ch.addItem(t.getText());
-				}
-			}
-			jComboBox_ch.setEnabled( jComboBox_ch.getItemCount() > 0 );
-		}
-		
-		// 日付
-		{
-			if ( myrec.isRepeatReserveSupported() ) {
-				jComboBox_date.setEnabled(true);
-			}
-			else {
-				jComboBox_date.setEnabled(false);
-				jComboBox_date.setSelectedIndex(0);
-			}
-		}
-		
-		// エンコーダ
-		jPane_recsetting.initEncoders(getFilteredEncoders(myrec, vals.hide_tvd.center));
-		
-		// ＡＶ設定
-		jPane_recsetting.initAVSettings(myrec);
-	}
-	*/
-	
-	/**
 	 * コンボボックス操作によって連動して選択しなおし
 	 */
 	/*
@@ -817,43 +822,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	}
 	*/
 
-	/*******************************************************************************
-	 * 共通部品的な
-	 ******************************************************************************/
-	
-	/**
-	 * コンボボックス系のリスナーの設定／解除
-	 */
-	private void setEnabledSelectionListeners(boolean b) {
-		/*
-		// 重複呼び出しがこわいので一回全部削除してしまう
-		jCBXPanel_encoder.removeItemListener(il_encoderChanged);
-		jCBXPanel_videorate.removeItemListener(il_videorateChanged);
-		jCBXPanel_recorder.removeItemListener(il_recorderChanged);
-		jCBXPanel_genre.removeItemListener(il_genreChanged);
-		jtbl_likersv.removeMouseListener(ml_likelistSelected);
-		if ( b ) {
-			// 必要なら追加する
-			jCBXPanel_encoder.addItemListener(il_encoderChanged);
-			jCBXPanel_videorate.addItemListener(il_videorateChanged);
-			jCBXPanel_recorder.addItemListener(il_recorderChanged);
-			jCBXPanel_genre.addItemListener(il_genreChanged);
-			jtbl_likersv.addMouseListener(ml_likelistSelected);
-		}
-		*/
-	}
-	
-	private void removeAllSelectionItems() {
-		/*
-		jCBXPanel_encoder.removeAllItems();
-		jCBXPanel_videorate.removeAllItems();
-		jCBXPanel_recorder.removeAllItems();
-		jCBXPanel_genre.removeAllItems();
-		//likersvtable.removeAllItems();
-		 */
-	}
-	
-	
 	
 	/*******************************************************************************
 	 * ネットから番組IDを取得する
@@ -939,32 +907,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	}
 	*/
 	
-	/**
-	 * 自分のかツールバーのかわかりにくいので名前にMyって付け足した
-	 */
-	/*
-	private HDDRecorder getMySelectedRecorder() {
-		String myself = (String) jCBXPanel_recorder.getSelectedItem();
-		if ( myself == null ) {
-			return null;
-		}
-		HDDRecorderList recs = recorders.findInstance(myself);
-		if ( recs.size() == 0 ) {
-			return null;
-		}
-		return recs.get(0);
-	}
-	*/
-	
-	/*
-	private ProgGenre getMySelectedGenre() {
-		String mygenre = (String) jCBXPanel_genre.getSelectedItem();
-		if ( mygenre == null ) {
-			return null;
-		}
-		return ProgGenre.get(mygenre);
-	}
-	*/
 	
 	/*******************************************************************************
 	 * リスナー
@@ -1000,141 +942,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		
 		// リセット
 		vals = null;
-		
-		// リスナー停止
-		setEnabledSelectionListeners(false);
-		
-		// アイテム削除
-		removeAllSelectionItems();
-		
-		// クラス内のコンポーネントを全部setEnabeld(true)にする。個別に変更するのは面倒なので…
-		CommonSwingUtils.setEnabledAllComponents(this, AbsReserveDialog.class, true);
-	}
-	
-	/*
-	 * 項目連動のためのリスナー群
-	 */
-	
-	
-	private void selectionChangedComm(int stateChange, ChangedSelector changed) {
-		/*
-		if ( stateChange != ItemEvent.SELECTED ) {
-			return;
-		}
-		
-		// 選択中の放送局
-		String mychname = (String) jComboBox_ch.getSelectedItem();
-		
-		HDDRecorder myrec = null;
-		String myenc = null;
-		ReserveList myrsv = null;
-		AVs myavs = null;
-		
-		if ( changed == ChangedSelector.LIKELIST ) {
-			// 類似予約の選択の場合
-			
-			int row = jtbl_likersv.getSelectedRow();
-			
-			if ( row != LIKERSVTABLE_NOTSELECTED ) {
-				LikeReserveItem ll = (LikeReserveItem) vals.likeRsvList.get(row);
-				vals.selectedLikeRsv = ll;
-				// 選択中のレコーダ
-				myrec = ll.getRec();
-				// 選択中のエンコーダ
-				myenc = ll.getRsv().getTuner();
-				// 類似予約の選択
-				myrsv = ll.getRsv();
-				// ジャンル別ＡＶ設定
-				myavs = null;
-				MWin.appendMessage(MSGID+"画質・音質は類似予約の設定が継承されます");
-				
-				if ( ContentIdEDCB.isValid(myrsv.getContentId()) ) {
-					// 類似予約の番組IDを利用する
-					vals.hide_content_id = myrsv.getContentId();
-					setGetEventIdButton(vals.hide_content_id,false);
-				}
-				else {
-					// 番組表の番組IDを利用する
-					vals.hide_content_id = null;
-					setGetEventIdButton(vals.hide_content_id,true);
-				}
-			}
-			else {
-				// "(類似予約選択なし)"
-				myrec = vals.hide_default_recorder;
-				myenc = null;
-				myrsv = null;
-				myavs = getSelectedAVs(vals.hide_tvd.genre, mychname, myrec.getRecorderId());
-				
-				if ( ContentIdEDCB.isValid(vals.hide_tvd.progid) ) {
-					// 番組表の番組IDがあれば利用する
-					vals.hide_content_id = vals.hide_tvd.progid;
-					setGetEventIdButton(vals.hide_content_id,false);
-				}
-				else {
-					// なければ空にする
-					vals.hide_content_id = null;
-					setGetEventIdButton(vals.hide_content_id,true);
-				}
-			}
-			
-			// 状況に応じて"更新"ボタンの有効無効を変更する
-			setEnabledUpdateButton(row);
-		}
-		else {
-			// レコーダ、ジャンルの選択の場合
-			
-			// 選択中のレコーダ
-			myrec = getMySelectedRecorder();
-			if ( myrec == null ) {
-				System.err.println(ERRID+"選択したレコーダの情報が登録されていません： "+(String) jCBXPanel_recorder.getSelectedItem());
-				return;
-			}
-		
-			// 選択中のエンコーダ
-			myenc = (String) jCBXPanel_encoder.getSelectedItem();
-			
-			if ( env.getGivePriorityToReserved() ) {
-				// 類似予約の選択（選択中のレコーダに一致するものがあれば）
-				for ( int i=0; i<vals.likeRsvList.size(); i++ ) {
-					HDDRecorder rec = vals.likeRsvList.getRec(i);
-					if ( rec.isMyself(myrec.Myself()) ) {
-						myrsv = vals.likeRsvList.getRsv(i);
-						vals.selectedLikeRsv = new LikeReserveItem(rec, myrsv, 0);
-						break;
-					}
-				}
-			}
-			else {
-				myrsv = null;
-				vals.selectedLikeRsv = null;
-			}
-			
-			ProgGenre mygenre = getMySelectedGenre();
-			if ( (myrsv != null && mygenre == ProgGenre.get(myrsv.getRec_genre())) && env.getGivePriorityToReserved() ) {
-				// 類似予約からのＡＶ設定継承
-				myavs = null;
-				MWin.appendMessage(MSGID+"画質・音質は類似予約の設定が継承されます");
-			}
-			else {
-				// 一致する類似予約があないか、あってもジャンルが違う（ジャンル別ＡＶ設定）
-				myavs = getSelectedAVs(mygenre, mychname, myrec.getRecorderId());
-				// メッセージはgetSelectedAVs()で出力
-			}
-		}
-		
-		// 設定変更
-		
-		setEnabledSelectionListeners(false);
-		
-		setInitVariables(myrec);
-		
-		setSelectedVariables(myrec, myrsv, myavs, mychname, myenc);
-		
-		setLabels(myrec);
-		
-		setEnabledSelectionListeners(true);
-		*/
 	}
 	
 	/**
@@ -1189,28 +996,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			*/
 		}
 	};
-	
-	/**
-	 *  ジャンル別の画質・音質等の設定の保存の本体
-	 */
-	private void _save_avsettings(String key_recorderId, String key_genre) {
-		AVSetting xavs = avs;
-		if (env.getEnableCHAVsetting()) {
-			xavs = chavs;	// CHをキーに
-		}
-		
-		AVs c = new AVs();
-		
-		c.setRecorderId(key_recorderId);
-		c.setGenre(key_genre);
-		
-		jPane_recsetting.getSelectedSetting(c);
-		
-		xavs.add(key_recorderId, key_genre, c);
-		xavs.save();
-		
-		MWin.appendMessage(MSGID+"画質・音質等の設定を保存しました："+key_recorderId+" & "+((key_genre!=null)?(key_genre):("デフォルト")));
-	}
 	
 	
 	/*******************************************************************************
@@ -1333,6 +1118,8 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		newRsv.setId(null);								// PostRdEntry()中で取得するのでここはダミー
 		newRsv.setUpdateOnlyExec(false);				// 新規ONLYなのでfalse固定
 
+		final HDDRecorder recorder = vals.selected_recorder;
+		
 		// 予約実行
 		StWin.clear();
 		new SwingBackgroundWorker(false) {
@@ -1340,41 +1127,36 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			@Override
 			protected Object doWorks() throws Exception {
 				
-				String myself = jPane_recsetting.getSelectedRecorder();
-				for ( HDDRecorder recorder : recorders.findInstance(myself) ) {
+				StWin.appendMessage(MSGID+"予約を登録します："+newRsv.getTitle());
+				
+				if ( recorder.PostRdEntry(newRsv) ) {
 					
-					StWin.appendMessage(MSGID+"予約を登録します："+newRsv.getTitle());
+					MWin.appendMessage(MSGID+"正常に登録できました："+newRsv.getTitle()+"("+newRsv.getCh_name()+")");
+					doneReserve = true;
 					
-					if ( recorder.PostRdEntry(newRsv) ) {
+					// カレンダーに登録する
+					if ( recorder.getUseCalendar() && newRsv.getExec() ) {
 						
-						MWin.appendMessage(MSGID+"正常に登録できました："+newRsv.getTitle()+"("+newRsv.getCh_name()+")");
-						doneReserve = true;
-						
-						// カレンダーに登録する
-						if ( recorder.getUseCalendar() && newRsv.getExec() ) {
+						for ( HDDRecorder calendar : recorders.findInstance(RecType.CALENDAR) ) {
 							
-							for ( HDDRecorder calendar : recorders.findInstance(RecType.CALENDAR) ) {
-								
-								StWin.appendMessage(MSGID+"カレンダーに予約情報を登録します");
-								
-								if ( ! calendar.PostRdEntry(newRsv)) {
-									MWin.appendError(ERRID+"[カレンダー] "+calendar.getErrmsg());
-									ringBeep();
-								}
+							StWin.appendMessage(MSGID+"カレンダーに予約情報を登録します");
+							
+							if ( ! calendar.PostRdEntry(newRsv)) {
+								MWin.appendError(ERRID+"[カレンダー] "+calendar.getErrmsg());
+								ringBeep();
 							}
 						}
 					}
-					else {
-						MWin.appendError(ERRID+"登録に失敗しました："+newRsv.getTitle()+"("+newRsv.getCh_name()+")");
-					}
-					
-					if ( ! recorder.getErrmsg().equals("")) {
-						MWin.appendMessage(MSGID+"[追加情報] "+recorder.getErrmsg());
-						ringBeep();
-					}
-					
-					break;	// 一回限り
 				}
+				else {
+					MWin.appendError(ERRID+"登録に失敗しました："+newRsv.getTitle()+"("+newRsv.getCh_name()+")");
+				}
+				
+				if ( ! recorder.getErrmsg().equals("")) {
+					MWin.appendMessage(MSGID+"[追加情報] "+recorder.getErrmsg());
+					ringBeep();
+				}
+					
 				return null;
 			}
 			
@@ -1655,25 +1437,33 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	 * コールバックメソッドの実装（録画設定）
 	 ******************************************************************************/
 	
+	/***************************************
+	 * 選択系
+	 **************************************/
+	
 	/**
 	 * レコーダが選択されたのでテキトーな録画設定を選ぶ
 	 */
-	public void doSelectRecorder(String myself) {
+	public boolean doSelectRecorder(String myself) {
 		
 		System.out.println(DBGID+"選択されたレコーダ: "+myself);
 		
 		HDDRecorderList myrecs = recorders.findInstance(myself);
 		if ( myrecs.size() == 0 ) {
-			return;
+			return false;
 		}
 		HDDRecorder myrec = myrecs.get(0);
 		
+		// 今回選択されたレコーダを保存する
+		vals.selected_recorder = myrec;
+		
+		// 番組情報のアイテム設定
 		ProgDetailList tvd = vals.hide_tvd;
 		TimeVal tVal = getTimeValue(tvd);
 		jPane_title.setTimeValue(tVal);
 		jPane_title.setDateItems(tvd, tVal);
 		
-		// 初期化
+		// 録画設定のアイテム設定
 		setRecSettingItems(recorders, myrec, tvd);
 		
 		// 選択
@@ -1681,8 +1471,150 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		ReserveList myrsv = getReserveList(myrec, enc);
 		jPane_recsetting.setSelectedValues(tvd, myrsv);
 		showUrabanList(myrec.getUrabanList());
+		
+		return true;
 	}
 	
+	/**
+	 * エンコーダが選択されたのでテキトーな録画設定を選ぶ(RD用)
+	 */
+	public boolean doSelectEncoder(String encoder) {
+		
+		if ( encoder == null ) {
+			return false;
+		}
+		
+		HDDRecorder myrec = vals.hide_recorder;
+		if ( myrec == null ) {
+			return false;
+		}
+		
+		// チューナーにあった画質を探そう
+		String vrate = myrec.getPreferredVardiaVrate(encoder);
+		if ( vrate == null ) {
+			// 対象外だわ
+			return true;
+		}
+		
+		jPane_recsetting.setSelectedVrateValue(vrate);
+		return true;
+	}
+	
+	/**
+	 * 画質が選択されたのでテキトーな録画設定を選ぶ（）
+	 */
+	public boolean doSelectVrate(String vrate) {
+		
+		if ( vrate == null ) {
+			return false;
+		}
+		
+		HDDRecorder myrec = vals.hide_recorder;
+		if ( myrec == null ) {
+			return false;
+		}
+		
+		ArrayList<TextValueSet> tuners = myrec.getPreferredVardiaTuners(vrate);
+		if ( tuners == null ) {
+			// 対象外だわ
+			return true;
+		}
+		
+		// ちょっと並べ替えてみっか
+		jPane_recsetting.sortEncoderItems(tuners);
+		
+		// 画質にあったチューナーを探そう
+		ReserveList myrsv = jPane_title.getSelectedValues();
+		String tuner = myrec.getEmptyEncorder(myrsv.getCh_name(), myrsv.getStartDateTime(), myrsv.getEndDateTime(), null, vrate);
+				
+		jPane_recsetting.setSelectedEncoderValue(tuner);
+		return true;
+	}
+	
+	/***************************************
+	 * ボタン系
+	 **************************************/
+	
+	/**
+	 * 
+	 */
+	public boolean doSetAVSettings() {
+
+		ReserveList r = jPane_title.getSelectedValues();	// 放送局名の取得
+		String webChName = r.getCh_name();
+		if ( webChName == null ) {
+			System.out.println(ERRID+"放送局名が不正.");
+			return false;
+		}
+		
+		jPane_recsetting.getSelectedValues(r);				// ジャンルの取得
+		ProgGenre genre = ProgGenre.get(r.getRec_genre());
+		if ( genre == null ) {
+			return false;
+		}
+		
+		HDDRecorder myrec = vals.selected_recorder;			// レコーダ情報の取得
+		if ( myrec == null ) {
+			System.out.println(ERRID+"レコーダが未選択.");
+			return false;
+		}
+		String recid = myrec.getRecorderId();
+		
+		// ジャンル別ＡＶ設定の取得
+		AVs myavs = findAVs(genre.toString(), webChName, recid);
+		if ( myavs == null ) {
+			return false;
+		}
+		
+		// ジャンル別AV設定から追加で選択する
+		jPane_recsetting.setSelectedValues(myavs);
+		
+		return true;
+	}
+
+	/**
+	 * 
+	 */
+	public boolean doSaveAVSettings(boolean savedefault) {
+
+		ReserveList r = jPane_title.getSelectedValues();	// 放送局名の取得
+		String webChName = r.getCh_name();
+		if ( webChName == null ) {
+			System.out.println(ERRID+"放送局名が不正.");
+			return false;
+		}
+		
+		HDDRecorder myrec = vals.selected_recorder;			// レコーダ情報の取得
+		if ( myrec == null ) {
+			System.out.println(ERRID+"レコーダが未選択.");
+			return false;
+		}
+		String recid = myrec.getRecorderId();
+		
+		AVs c = jPane_recsetting.getSelectedSetting();		// AV設定の取得
+		c.setRecorderId(recid);
+		
+		String key_item = c.getGenre();
+		AVSetting xavslist = avslist;
+		if ( env.getEnableCHAVsetting() ) {
+			key_item = webChName;
+			xavslist = chavslist;	// CHをキーに
+		}
+		
+		if ( savedefault ) {
+			key_item = null;		// デフォルトだよう
+		}
+		
+		c.setGenre(key_item);		// 入れなおしだよう
+		
+		xavslist.add(recid, key_item, c);
+		xavslist.save();
+		
+		MWin.appendMessage(MSGID+"画質・音質等の設定を保存しました："+recid+" & "+((key_item!=null)?(key_item):("デフォルト")));
+		
+		return true;
+	}
+
 	/*******************************************************************************
 	 * コールバックメソッドの実装（類似予約）
 	 ******************************************************************************/
@@ -1726,7 +1658,9 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			jPane_title.setDateItems(tvd, tVal);
 			
 			// 録画設定の選択
-			jPane_recsetting.setSelectedRecorderValue(myrec.Myself());
+			if ( jPane_recsetting.setSelectedRecorderValue(myrec.Myself()) != null ) {
+				vals.selected_recorder = myrec;
+			}
 	//selectedVrate
 			String enc = myrec.getEmptyEncorder(tvd.center, tVal.startDateTime, tVal.endDateTime, null, null);
 			ReserveList myrsv = getReserveList(myrec, enc);
@@ -1770,7 +1704,9 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			
 			// 録画設定の選択
 			myrec.getEmptyEncorder(tvd.center, myrsv.getStartDateTime(), myrsv.getEndDateTime(), myrsv, null);
-			jPane_recsetting.setSelectedRecorderValue(myrec.Myself());
+			if ( jPane_recsetting.setSelectedRecorderValue(myrec.Myself()) != null ) {
+				vals.selected_recorder = myrec;
+			}
 			showUrabanList(myrec.getUrabanList());
 			
 			jPane_recsetting.setSelectedValues(myrsv);

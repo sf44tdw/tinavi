@@ -33,6 +33,7 @@ public class LikeReserveEditorPanel extends JScrollPane {
 	 * 定数
 	 ******************************************************************************/
 
+	public static final int LIKERSVTABLE_DEFAULT = 0;
 	public static final int LIKERSVTABLE_NONE = -1;
 	public static final int LIKERSVTABLE_NOTSELECTED = -2;
 	
@@ -47,7 +48,7 @@ public class LikeReserveEditorPanel extends JScrollPane {
 	
 	private static final int LRT_HEADER_WIDTH = 20;
 	private static final int LRT_TITLE_WIDTH = 325;
-	private static final int LRT_START_WIDTH = 120;
+	private static final int LRT_START_WIDTH = 140;
 	private static final int LRT_RECORDER_WIDTH = 200;
 	private static final int LRT_ENCODER_WIDTH = 80;
 	
@@ -301,18 +302,20 @@ public class LikeReserveEditorPanel extends JScrollPane {
 			
 			// 類似予約は表示とデータが一行ずれる
 			int drow = row-1;
+			ReserveList rsv = likersvlist.get(drow).getRsv();
+			HDDRecorder rec = likersvlist.get(drow).getRec();
 			
 			if ( column == LikeRsvColumn.TITLE.ordinal() ) {
-				return likersvlist.get(drow).getRsv().getTitle();
+				return rsv.getTitle();
 			}
 			else if ( column == LikeRsvColumn.START.ordinal() ) {
-				return likersvlist.get(drow).getRsv().getStartDateTime();
+				return rsv.getRec_pattern()+" "+rsv.getAhh()+":"+rsv.getAmm();
 			}
 			else if ( column == LikeRsvColumn.RECORDER.ordinal() ) {
-				return likersvlist.get(drow).getRec().Myself();
+				return rec.Myself();
 			}
 			else if ( column == LikeRsvColumn.TUNER.ordinal() ) {
-				return likersvlist.get(drow).getRsv().getTuner();
+				return rsv.getTuner();
 			}
 			return null;
 		}

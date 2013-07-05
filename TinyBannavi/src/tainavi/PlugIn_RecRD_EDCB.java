@@ -460,7 +460,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		// 録画済みフラグを立てる（録画結果一覧→予約一覧）
 		setRecordedFlag();
 		
-		ShowReserves(getReserves());
+		if (getDebug()) ShowReserves(getReserves());
 		
 		return true;
 	}
@@ -564,7 +564,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		// 録画済みフラグを立てる（録画結果一覧→予約一覧）
 		setRecordedFlag();
 		
-		ShowRecorded(getRecorded());
+		if (getDebug()) ShowRecorded(getRecorded());
 
 		return true;
 	}
@@ -1471,8 +1471,9 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		String url = "http://"+getIPAddr()+":"+getPortNo()+"/autoaddepg.html&page=";
 		
 		{
-			reportProgress("自動予約一覧のページ数を取得します.");
-			String[] d = reqGET(url+"0",null);
+			String uri = url+"0";
+			reportProgress("自動予約一覧のページ数を取得します: "+uri);
+			String[] d = reqGET(uri,null);
 			if (d[1] == null) {
 				errmsg = "レコーダーが反応しません";
 				return false;
@@ -1489,7 +1490,9 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		
 		for ( int i=0; i<maxpage; i++ ) {
 			
-			reportProgress(String.format("+自動予約一覧を取得します(%d/%d)",(i+1),maxpage));
+			String uri = url+String.valueOf(i);
+			
+			reportProgress(String.format("+自動予約一覧を取得します(%d/%d): %s",(i+1),maxpage,uri));
 			
 			String response;
 			if ( i == 0 ) {
@@ -1497,7 +1500,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 			}
 			else {
 				// あとで
-				String[] d = reqGET(url+String.valueOf(i+1),null);
+				String[] d = reqGET(uri,null);
 				if (d[1] == null) {
 					errmsg = "レコーダーが反応しません";
 					return false;

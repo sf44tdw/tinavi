@@ -16,7 +16,17 @@ public class LikeReserveItem {
 	
 	public ReserveList getRsv() { return rsv; }
 	
+	/**
+	 * 比較元の情報の開始時間との差をミリ秒で返す
+	 */
 	public long getDist() { return dist; }
+	
+	/**
+	 * 比較元の情報の開始時間との差がないか、または１分前であるを返す
+	 */
+	public boolean isCandidate(boolean overlapup) {
+		return (getDist() == 0 || (overlapup ? getDist() == -60000 : false));
+	}
 	
 	@Override
 	public String toString() {

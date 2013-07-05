@@ -3290,5 +3290,55 @@
     </void> 
    </object> 
   </void> 
+  <void method="add"> 
+   <object class="tainavi.TraceKey"> 
+    <void property="center"> 
+     <string>ＢＳ日テレ</string> 
+    </void> 
+    <void property="fazzyThreshold"> 
+     <int>35</int> 
+    </void> 
+    <void property="label"> 
+     <string>犬とハサミは使いよう (ＢＳ日テレ)</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="searchStrKeys"> 
+     <object class="java.util.ArrayList"> 
+      <void method="add"> 
+       <string>犬ト</string> 
+      </void> 
+      <void method="add"> 
+       <string>トハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハサ</string> 
+      </void> 
+      <void method="add"> 
+       <string>サミ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ミハ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ハ使</string> 
+      </void> 
+      <void method="add"> 
+       <string>使イ</string> 
+      </void> 
+      <void method="add"> 
+       <string>イヨ</string> 
+      </void> 
+      <void method="add"> 
+       <string>ヨウ</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void property="titlePop"> 
+     <string>犬トハサミハ使イヨウ</string> 
+    </void> 
+   </object> 
+  </void> 
  </object> 
 </java> 

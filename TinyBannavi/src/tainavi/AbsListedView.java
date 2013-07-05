@@ -2399,7 +2399,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		HDDRecorderList recs = recorders.findInstance(myself);
 
 		// コンボボックスの指定はピックアップである
-		boolean isPickupOnly = ( myself != null && myself.length() == 0 ) ;
+		boolean isPickupOnly = ( myself == HDDRecorder.SELECTED_PICKUP ) ;
 		
 		if ( ! isPickupOnly ) {
 			

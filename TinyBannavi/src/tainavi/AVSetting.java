@@ -3,7 +3,6 @@ package tainavi;
 import java.io.File;
 import java.util.ArrayList;
 
-import tainavi.TVProgram.ProgGenre;
 
 public class AVSetting {
 	

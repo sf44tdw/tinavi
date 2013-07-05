@@ -1,9 +1,6 @@
 package tainavi;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
 
 import tainavi.HDDRecorder.RecType;
 
@@ -213,12 +210,14 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 	/***************************************
 	 * 隣接予約検索
 	 **************************************/
-	
-	public LikeReserveList findOverlapReserves(ProgDetailList tvd, String clicked) {
+	/**
+	 * 
+	 * @param adjnotrep : falseの場合、終了時刻と開始時刻が重なるものを重複として扱います。
+	 * @param overlapup : trueの場合、予約の開始時刻が番組の終了時間の１分前になってるものは重複としてあつかいません。
+	 */
+	public LikeReserveList findOverlapReserves(ProgDetailList tvd, String clicked, boolean adjnotrep, boolean overlapup) {
 		
 		LikeReserveList overlapRsvList =  new LikeReserveList();
-		
-		HashMap<String,Boolean> misCN = new HashMap<String, Boolean>();	// 使っていない…
 		
 		for ( HDDRecorder recorder : this ) {
 			
@@ -228,10 +227,6 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 				if (r.getCh_name() == null) {
 					if ( r.getChannel() == null ) {
 						System.err.println("予約情報にCHコードが設定されていません。バグの可能性があります。 recid="+recorder.Myself()+" chname="+r.getCh_name());
-						continue;
-					}
-					if(r.getChannel().length() > 0) {
-						misCN.put(r.getChannel(),true);
 					}
 					continue;
 				}
@@ -259,9 +254,15 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 					else {
 						// リスト形式は幅がある（開始～終了までの間のいずれかの時刻）
 						for (int j=0; j<starts.size(); j++) {
-							if ( CommonUtils.isOverlap(tvd.startDateTime, tvd.endDateTime, starts.get(j), ends.get(j), false) ) {
+							if ( CommonUtils.isOverlap(tvd.startDateTime, tvd.endDateTime, starts.get(j), ends.get(j), adjnotrep) ) {
+								if ( overlapup ) {
+									// 前倒し１分設定で実際に１分前倒しだったら、これは無視してよい
+									if ( CommonUtils.getCompareDateTime(tvd.endDateTime, starts.get(j)) == 60000 ) {
+										continue;
+									}
+								}
 								inRange = true;
-								d = CommonUtils.getDiffDateTime(tvd.startDateTime, starts.get(j));
+								d = CommonUtils.getCompareDateTime(tvd.startDateTime, starts.get(j));
 								break;
 							}
 						}

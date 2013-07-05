@@ -467,7 +467,7 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			// キャッシュから読み出し（予約一覧）
 			setReserves(ReservesFromFile(rsvedFile));
 			replaceChNames(cc);
-			if (getDebug()) ShowReserves();
+			if (getDebug()) ShowReserves(getReserves());
 
 			return true;
 		}
@@ -483,7 +483,7 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 		// 録画済みフラグを立てる（録画結果一覧→予約一覧）
 		setRecordedFlag();
 
-		ShowReserves();
+		if (getDebug()) ShowReserves(getReserves());
 		
 		return(true);
 	}
@@ -522,7 +522,7 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			
 			// キャッシュから読み出し（録画結果一覧）
 			setRecorded(newRecordedList);
-			if (getDebug()) ShowRecorded();
+			if (getDebug()) ShowRecorded(getRecorded());
 			
 			// 録画済みフラグを立てる（録画結果一覧→予約一覧）
 			setRecordedFlag();
@@ -539,31 +539,11 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 		// 録画済みフラグを立てる（録画結果一覧→予約一覧）
 		setRecordedFlag();
 		
-		ShowRecorded();
+		if (getDebug()) ShowRecorded(getRecorded());
 		
 		return true;
 	}
 
-	private void ShowReserves() {
-		System.out.println("---Reserved List Start---");
-		for ( int i = 0; i<getReserves().size(); i++ ) {
-			// 詳細情報の取得
-			ReserveList e = getReserves().get(i);
-			System.out.println(String.format("[%s] %s\t%s\t%s %s:%s-%s:%s\t%sm\t%s\t%s\t%s(%s)\t%s\t%s",
-					(i+1), e.getId(), e.getRec_pattern(), e.getRec_nextdate(), e.getAhh(), e.getAmm(), e.getZhh(),	e.getZmm(),	e.getRec_min(), e.getContentId(), "", e.getTitle(), e.getTitlePop(), e.getChannel(), e.getCh_name()));
-		}
-		System.out.println("---Reserved List End---");
-	}
-	private void ShowRecorded() {
-		System.out.println("---Recorded List Start---");
-		for ( int i = 0; i<getRecorded().size(); i++ ) {
-			// 詳細情報の取得
-			RecordedInfo e = getRecorded().get(i);
-			System.out.println(String.format("[%s] %s %s\t%s:%s-%s:%s\t%s(%s)\t%s",
-					(i+1), e.getId(), e.getDate(), e.getAhh(), e.getAmm(), e.getZhh(), e.getZmm(), e.getTitle(), e.getCh_name(), e.getResult()));
-		}
-		System.out.println("---Recorded List End---");
-	}
 	
 	/**
 	 * 予約一覧を取得する

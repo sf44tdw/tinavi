@@ -1615,7 +1615,26 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 			final int x, final int y, final String clickedDateTime)
 	{
 		JPopupMenu pop = new JPopupMenu();
+		
+		String myself = toolBar.getSelectedRecorder();
 	
+		// 類似予約検索
+		LikeReserveList likeRsvList;
+		if ( env.getDisableFazzySearch() ) {
+			likeRsvList = recorders.findLikeReserves(tvd, null, 0, env.getRangeLikeRsv(), false);
+		}
+		else {
+			likeRsvList = recorders.findLikeReserves(tvd, tvd.titlePop, env.getDefaultFazzyThreshold(), env.getRangeLikeRsv(), ! env.getDisableFazzySearchReverse());
+		}
+		
+		// 重複予約検索
+		LikeReserveList overlapRsvList = recorders.findOverlapReserves(tvd, null, true, env.getOverlapUp());
+		
+		// 類似と重複で被るものを重複から除外
+		for ( LikeReserveItem item : likeRsvList ) {
+			overlapRsvList.removeDup(item);
+		}
+		
 		// 予約する
 		if ( tvd.type == ProgType.PASSED ||
 				(tvd.type == ProgType.PROG && tvd.subtype == ProgSubtype.RADIO) ||
@@ -1623,10 +1642,17 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 			// 過去ログは処理対象外です
 		}
 		else {
-			JMenuItem menuItem = new JMenuItem(String.format("予約する【%s %s - %s(%s)】",tvd.accurateDate,tvd.start,tvd.title,tvd.center));
+			String target;
+			LikeReserveItem item = likeRsvList.getClosest(myself);
+			if ( env.getGivePriorityToReserved() && item != null && item.isCandidate(env.getOverlapUp()) ) {
+				target = "予約を編集する";
+			}
+			else {
+				target = "新規予約を登録する";
+			}
+			
+			JMenuItem menuItem = new JMenuItem(String.format("%s【%s %s - %s(%s)】",target,tvd.accurateDate,tvd.start,tvd.title,tvd.center));
 			menuItem.setForeground(new Color(0,127,0));
-			Font f = menuItem.getFont();
-			menuItem.setFont(f.deriveFont(f.getStyle()|Font.BOLD));
 			
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -1651,24 +1677,44 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 			pop.add(menuItem);
 		}
 		
-		pop.addSeparator();
-		
-		// 類似予約検索
-		LikeReserveList likeRsvList;
-		if ( env.getDisableFazzySearch() ) {
-			likeRsvList = recorders.findLikeReserves(tvd, null, 0, env.getRangeLikeRsv(), false);
-		}
-		else {
-			likeRsvList = recorders.findLikeReserves(tvd, tvd.titlePop, env.getDefaultFazzyThreshold(), env.getRangeLikeRsv(), ! env.getDisableFazzySearchReverse());
-		}
-		
-		// 重複予約検索
-		LikeReserveList overlapRsvList = recorders.findOverlapReserves(tvd, clickedDateTime);
+		// 隣接予約を編集する
+		{
+			for ( final LikeReserveItem item : overlapRsvList ) {
+				
+				if ( ! item.getRec().Myself().equals(toolBar.getSelectedRecorder()) ) {
+					continue;	// 選択中のレコーダ以外はスルーで
+				}
+				
+				{
+					ReserveList rsv = item.getRsv();
+					String start = CommonUtils.getDateTimeW(CommonUtils.getCalendar(rsv.getStartDateTime()));
+					JMenuItem menuItem = new JMenuItem(String.format("隣接予約を上書する【%s - %s(%s)】",start,rsv.getTitle(),rsv.getCh_name()));
+					
+					menuItem.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
 
-		// 類似と重複で被るものを重複から除外
-		for ( LikeReserveItem item : likeRsvList ) {
-			overlapRsvList.removeDup(item);
+							CommonSwingUtils.setLocationCenter(mainWindow,rdialog);
+
+							if ( rdialog.open(tvd,item) ) {
+								rdialog.setVisible(true);
+							}
+							else {
+								rdialog.setVisible(false);
+							}
+							
+							//
+							if (rdialog.isSucceededReserve()) {
+								listed.updateReserveMark();
+								paper.updateReserveBorder(tvd.center);
+								reserved.redrawReservedList();
+							}
+						}
+					});
+					pop.add(menuItem);
+				}
+			}
 		}
+		pop.addSeparator();
 		
 		// 予約実行ON・OFF
 		if ( tvd.type != ProgType.PASSED )
@@ -2295,7 +2341,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		
 		String target = ( n==0 ) ? "予約" : "隣接予約";
 
-		menuItem.setText(String.format("%sを%sにする【%s - %s(%s)/%s】",target,mode,start,title,chnam,recId));
+		menuItem.setText(String.format("%sを%sする【%s - %s(%s)/%s】",target,mode,start,title,chnam,recId));
 		
 		if ( recId.equals(toolBar.getSelectedRecorder()) ) {
 			// 選択中のレコーダのものは太字に
@@ -3663,7 +3709,9 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		
 		recPlugins.clear();
 		for ( HDDRecorder recorder : r ) {
-			if (env.getDebug()) StdAppendMessage("+追加します: "+recorder.getRecorderId());
+			if (env.getDebug()) {
+				StdAppendMessage("+追加します: "+recorder.getRecorderId());
+			}
 			recPlugins.add(recorder.clone());
 			StdAppendMessage("+追加しました: "+recorder.getRecorderId());
 		}

@@ -10,7 +10,6 @@ import java.awt.event.ItemListener;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
@@ -112,11 +111,11 @@ public class RecSettingEditorPanel extends JPanel {
 		setGenreItems();
 		
 		// 付けたり外したりしないリスナー
-		jCBXPanel_genre.addItemListener(il_resetSubgenreItems);
+		jCBXPanel_genre.addItemListener(f_il_resetSubgenreItems);
 		
-		jButton_load.addActionListener(al_loadAction);
-		jButton_save.addActionListener(al_saveAction);
-		jButton_savedefault.addActionListener(al_saveDefaultAction);
+		jButton_load.addActionListener(f_al_loadAction);
+		jButton_save.addActionListener(f_al_saveAction);
+		jButton_savedefault.addActionListener(f_al_saveDefaultAction);
 		
 		// 付けたり外したりするリスナー
 		setEnabledListenerAll(true);
@@ -348,6 +347,36 @@ public class RecSettingEditorPanel extends JPanel {
 		setComboItems(jCBXPanel_subgenre, items);
 	}
 	
+	/**
+	 * 優先的に使用するチューナーを前に持ってくる
+	 */
+	public void sortEncoderItems(ArrayList<TextValueSet> preferred) {
+		
+		ArrayList<String> tmpList = new ArrayList<String>(); 
+		for ( int i=0; i<jCBXPanel_encoder.getItemCount(); i++ ) {
+			tmpList.add((String) jCBXPanel_encoder.getItemAt(i));
+		}
+		
+		ArrayList<String> items = new ArrayList<String>();
+		for ( String enc : tmpList ) {
+			for ( TextValueSet tv : preferred ) {
+				if ( tv.getText().equals(enc) ) {
+					// 見つかったからついかー
+					items.add(enc);
+					break;
+				}
+			}
+		}
+		for ( String enc : items ) {
+			tmpList.remove(enc);
+		}
+		
+		for ( String enc : tmpList ) {
+			items.add(enc);
+		}
+		
+		setComboItems(jCBXPanel_encoder, items);
+	}
 	
 	/*******************************************************************************
 	 * 共通部品的な
@@ -357,6 +386,7 @@ public class RecSettingEditorPanel extends JPanel {
 	 * コンボボックスのアイテム登録を行う
 	 */
 	private <T> int setComboItems(JComboBoxPanel combo, ArrayList<T> items) {
+		
 		combo.removeAllItems();
 		
 		if ( items == null ) {
@@ -526,20 +556,18 @@ public class RecSettingEditorPanel extends JPanel {
 	
 	/**
 	 * レコーダのアイテム選択（中から呼んじゃだめだよ）
+	 * <P>これを呼び出した場合、レコーダ選択イベントは起きないので選択結果は呼び出し元で保存しておく必要がある
+	 * <P>これは他のコンポーネントがトリガーとなって起きるイベントから呼び出されるのでリスナーは動かしておかないといけない 
 	 */
 	public String setSelectedRecorderValue(String myself) {
-		setEnabledListenerAll(false);
-		
-		String selected = setSelectedValue(jCBXPanel_recorder, myself);
-		
-		setEnabledListenerAll(true);
-		return selected;
+		return setSelectedValue(jCBXPanel_recorder, myself);
 	}
 	
 	/**
 	 * エンコーダのアイテム選択
 	 */
-	private String setSelectedEncoderValue(String enc) {
+	public String setSelectedEncoderValue(String enc) {
+		
 		if ( enc == null ) {
 			jCBXPanel_encoder.setSelectedIndex(0);
 			jLabel_encoderemptywarn.setText("空きｴﾝｺｰﾀﾞ検索無効");
@@ -560,9 +588,22 @@ public class RecSettingEditorPanel extends JPanel {
 	}
 	
 	/**
+	 * Vrateのアイテム選択（中から呼んじゃだめだよ）
+	 */
+	public String setSelectedVrateValue(String vrate) {
+		
+		if ( vrate == null ) {
+			return null;
+		}
+		
+		return setSelectedValue(jCBXPanel_videorate, vrate);
+	}
+	
+	/**
 	 * ジャンルアイテムの選択
 	 */
 	private String setSelectedGenreValues(String genre, String subgenre) {
+		
 		if ( genre == null || genre.length() == 0 ) {
 			genre = ProgGenre.NOGENRE.toString();
 		}
@@ -582,12 +623,14 @@ public class RecSettingEditorPanel extends JPanel {
 	 * アイテム選択
 	 */
 	private String setSelectedValue(JComboBoxPanel comp, String value) {
+		
 		if ( value != null ) {
 			comp.setSelectedItem(value);
 		}
 		else if ( comp.getItemCount() > 0 ){
 			comp.setSelectedIndex(0);
 		}
+		
 		return (String) comp.getSelectedItem();
 	}
 	
@@ -598,13 +641,6 @@ public class RecSettingEditorPanel extends JPanel {
 	/***************************************
 	 * 取得系
 	 **************************************/
-	
-	/**
-	 * 選択中のレコーダを返す
-	 */
-	public String getSelectedRecorder() {
-		return (String) jCBXPanel_recorder.getSelectedItem();
-	}
 	
 	/**
 	 * 選択値を予約情報に代入する
@@ -641,11 +677,17 @@ public class RecSettingEditorPanel extends JPanel {
 		return r;
 	}
 	
+	public ReserveList getSelectedValues() {
+		return getSelectedValues(new ReserveList());
+	}
+	
 	/**
 	 * 選択値をジャンル別録画設定情報に代入する
 	 */
 	public AVs getSelectedSetting(AVs c) {
 
+		c.setGenre((String) jCBXPanel_genre.getSelectedItem());
+		
 		c.setVideorate((String) jCBXPanel_videorate.getSelectedItem());
 		c.setAudiorate((String) jCBXPanel_audiorate.getSelectedItem());
 		c.setFolder((String) jCBXPanel_folder.getSelectedItem());
@@ -665,7 +707,11 @@ public class RecSettingEditorPanel extends JPanel {
 		
 		return c;
 	}
-	
+
+	public AVs getSelectedSetting() {
+		return getSelectedSetting(new AVs());
+	}
+
 	
 	/*******************************************************************************
 	 * リスナー
@@ -675,7 +721,7 @@ public class RecSettingEditorPanel extends JPanel {
 	 * 永続的なリスナー
 	 **************************************/
 	
-	private final ItemListener il_resetSubgenreItems = new ItemListener() {
+	private final ItemListener f_il_resetSubgenreItems = new ItemListener() {
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			// サブジャンルのアイテムをリセットする
@@ -686,50 +732,33 @@ public class RecSettingEditorPanel extends JPanel {
 	/**
 	 * ジャンル別ＡＶ設定のロード
 	 */
-	private final ActionListener al_loadAction = new ActionListener() {
+	private final ActionListener f_al_loadAction = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-/*
-			ProgGenre key_genre = ProgGenre.get(jPane_recsetting.getSelectedGenre());
-			String key_webChName = (String) jComboBox_ch.getSelectedItem();
-			String recId = recorders.findInstance(jPane_recsetting.getSelectedRecorder()).get(0).getRecorderId();
-			setSelectedAVItems(recId, null, getSelectedAVs(key_genre, key_webChName, recId));
-			MWin.appendMessage(MSGID+"画質・音質等の設定を取得しました");
-*/
+			if ( recsetsel != null ) {
+				setEnabledListenerAll(false);
+				
+				recsetsel.doSetAVSettings();
+
+				setEnabledListenerAll(true);
+			}
 		}
 	};
 	
 	/**
 	 * ジャンル別ＡＶ設定のセーブ
 	 */
-	private final ActionListener al_saveAction = new ActionListener() {
+	private final ActionListener f_al_saveAction = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-/*
-			Matcher ma = Pattern.compile("^.+?:.+?:(.+?)$").matcher(jPane_recsetting.getSelectedRecorder());
-			if (ma.find()) {
-				if (env.getEnableCHAVsetting()) {
-					String key_webChName = (String) jComboBox_ch.getSelectedItem();
-					_save_avsettings(ma.group(1),key_webChName);
-				}
-				else {
-					String key_genre = jPane_recsetting.getSelectedGenre();
-					_save_avsettings(ma.group(1),key_genre);
-				}
-			}
-*/
+			if ( recsetsel != null ) recsetsel.doSaveAVSettings(false);
 		}
 	};
 	
 	/**
 	 * 既定ＡＶ設定のセーブ
 	 */
-	private final ActionListener al_saveDefaultAction = new ActionListener() {
+	private final ActionListener f_al_saveDefaultAction = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-			/*
-			Matcher ma = Pattern.compile("^.+?:.+?:(.+?)$").matcher(jPane_recsetting.getSelectedRecorder());
-			if (ma.find()) {
-				_save_avsettings(ma.group(1),null);
-			}
-			*/
+			if ( recsetsel != null ) recsetsel.doSaveAVSettings(true);
 		}
 	};
 	
@@ -767,6 +796,7 @@ public class RecSettingEditorPanel extends JPanel {
 		
 		setEnabledItemListener(jCBXPanel_recorder, il_recorderChanged, enabled);
 		setEnabledItemListener(jCBXPanel_encoder, il_encoderChanged, enabled);
+		setEnabledItemListener(jCBXPanel_videorate, il_vrateChanged, enabled);
 		setEnabledItemListener(jCBXPanel_genre, il_genreChanged, enabled);
 	}
 	private void setEnabledItemListener(ItemSelectable comp, ItemListener il, boolean b) {
@@ -810,68 +840,53 @@ public class RecSettingEditorPanel extends JPanel {
 				return;
 			}
 
-			String myself = (String) jCBXPanel_recorder.getSelectedItem();
-			if ( ! isVARDIA(myself) ) {
-				return;
-			}
-			
-			String encoder = (String) jCBXPanel_encoder.getSelectedItem();
-			if ( encoder == null ) {
-				return;
-			}
-
-			if ( encoder.startsWith("TS") ) {
-				// TS1/2では画質に[TS]系列を選ぶ
-				setSelectedVrateByEncoderChanged("[TS]",null);
-			}
-			else if ( encoder.startsWith("DR") ) {
-				// DR1/2では画質に[DR]を選ぶ
-				setSelectedVrateByEncoderChanged("[DR]",null);
-			}
-			else if ( encoder.startsWith("RE") ) {
-				// REでは画質に[TSE]または[AVC]系列を選ぶ
-				setSelectedVrateByEncoderChanged("[TSE] ","[AVC] ");
+			if ( recsetsel != null ) {
+				setEnabledListenerAll(false);	// 停止
+				
+				recsetsel.doSelectEncoder((String) jCBXPanel_encoder.getSelectedItem());
+				
+				setEnabledListenerAll(true);	// 再開
 			}
 		}
 	};
 	
+
 	/**
-	 * エンコーダに連動して画質を変える（RD系）
+	 *  画質が選択された（ので利用可能なエンコーダを選びなおす）
 	 */
-	private void setSelectedVrateByEncoderChanged(String vrate1, String vrate2) {
-		for ( int i=0; i<jCBXPanel_videorate.getItemCount(); i++ ) {
-			String vrate = (String) jCBXPanel_videorate.getItemAt(i);
-			if ( vrate1 != null && vrate.startsWith(vrate1) ) {
-				jCBXPanel_videorate.setSelectedIndex(i);
+	private final ItemListener il_vrateChanged = new ItemListener() {
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			if ( e.getStateChange() != ItemEvent.SELECTED ) {
 				return;
 			}
-			if ( vrate2 != null && vrate.startsWith(vrate2) ) {
-				jCBXPanel_videorate.setSelectedIndex(i);
-				return;
+
+			if ( recsetsel != null ) {
+				setEnabledListenerAll(false);	// 停止
+				
+				recsetsel.doSelectVrate((String) jCBXPanel_videorate.getSelectedItem());
+				
+				setEnabledListenerAll(true);	// 再開
 			}
 		}
-	}
+	};
+	
 
 	/**
-	 * VARDIA・REGZA RDかどうか調べる
+	 * ジャンルが選択された
 	 */
-	private boolean isVARDIA( String myself ) {
-		return (myself != null && (myself.startsWith("VARDIA RD-") || myself.startsWith("REGZA RD-"))) ;
-	}
-	
-	// RDかどうか調べる
-	private boolean isRD( String myrecid ) {
-		return ( myrecid.startsWith("RD-") || myrecid.startsWith("VARDIA RD-") || myrecid.startsWith("REGZA RD-") || myrecid.startsWith("REGZA DBR-Z") ) ;
-	}
-	
-
 	private final ItemListener il_genreChanged = new ItemListener() {
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			if (e.getStateChange() != ItemEvent.SELECTED) {
 				return;
 			}
+			
+			// サブジャンルの選択肢を入れ替える
 			setSubgenreItems(ProgGenre.get((String) jCBXPanel_genre.getSelectedItem()));
+			
+			// ＡＶ設定変更してーん
+			if ( recsetsel != null ) recsetsel.doSetAVSettings();
 		}
 	};
 	

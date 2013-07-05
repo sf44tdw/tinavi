@@ -323,7 +323,8 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 					if (
 							(code.startsWith(BroadcastType.TERRA.getName()+":") && enc.getText().startsWith("地上")) ||
 							((code.startsWith(BroadcastType.BS.getName()+":")||code.startsWith(BroadcastType.CS.getName()+":")) && enc.getText().startsWith("BS")) ||
-							(code.startsWith(BroadcastType.CAPTURE.getName()+":") && enc.getText().startsWith("キャプチャ"))
+							(code.startsWith(BroadcastType.CAPTURE.getName()+":") && enc.getText().startsWith("キャプチャ")) ||
+							enc.getText().startsWith("外部")
 							) {
 						encs.add(enc.getText());
 					}
@@ -342,7 +343,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	}
 	
 	@Override
-	public String getEmptyEncorder(String webChName, String startDateTime, String endDateTime, ReserveList myrsv, String selectedVrate) {
+	public String getEmptyEncorder(String webChName, String startDateTime, String endDateTime, ReserveList myrsv, String vardiaVrate) {
 		
 		// エンコーダの一覧を作成する
 		ArrayList<String> encs = getFilteredEncoders(webChName);
@@ -418,15 +419,8 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 		}
 			
 		// 旧RDデジ系 - ここから
-		if ( selectedVrate != null ) {
-			if ( ! selectedVrate.equals("[TS]") && ! selectedVrate.equals("[DR]")) {
-				if ( ! encs.contains("RE") ) {
-					// 空きエンコーダはなかった
-				}
-				return "RE";
-			}
-
-			encs.remove("RE");
+		if ( vardiaVrate != null ) {
+			return getOldVARDIAEmpEnc(encs, vardiaVrate);
 		}
 		// 旧RDデジ系 - ここまで
 		
@@ -456,7 +450,124 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	}
 	
 	private ArrayList<ReserveList> urabanlist = null;	// 裏番組の一覧
+
 	
+	/***************************************
+	 * R1/R2に統合されていない旧RDデジ系用の部品２種
+	 **************************************/
+
+	/**
+	 * チューナーにあった画質を拾ってみる
+	 */
+	public String getPreferredVardiaVrate(String tuner) {
+		
+		if ( ! isOldVARDIA() ) {
+			return null;
+		}
+		
+		if ( tuner.startsWith("TS") ) {
+			// TS1/2では画質に[TS]系列を選ぶ
+			return getAppropriateVrate("[TS]",null);
+		}
+		else if ( tuner.startsWith("DR") ) {
+			// DR1/2では画質に[DR]を選ぶ
+			return getAppropriateVrate("[DR]",null);
+		}
+		else if ( tuner.startsWith("RE") ) {
+			// REでは画質に[TSE]または[AVC]系列を選ぶ
+			return getAppropriateVrate("[TSE] ","[AVC] ");
+		}
+		
+		return "";
+	}
+
+	private String getAppropriateVrate(String vrate1, String vrate2) {
+		for ( TextValueSet tv : getVideoRateList() ) {
+			String vrate = tv.getText();
+			if ( vrate1 != null && vrate.startsWith(vrate1) ) {
+				return vrate;
+			}
+			if ( vrate2 != null && vrate.startsWith(vrate2) ) {
+				return vrate;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * 画質にあったチューナーだけ拾ってみる
+	 */
+	public ArrayList<TextValueSet> getPreferredVardiaTuners(String vrate) {
+		
+		if ( ! isOldVARDIA() ) {
+			return null;
+		}
+		
+		ArrayList<TextValueSet> encs = new ArrayList<TextValueSet>();
+		
+		for ( TextValueSet tv : getEncoderList() ) {
+			String enc = tv.getText();
+			if ( vrate.equals("[TS]") ) {
+				if ( enc.startsWith("TS") ) {
+					encs.add(tv);
+				}
+			}
+			else if ( vrate.equals("[DR]") ) {
+				if ( enc.startsWith("DR") ) {
+					encs.add(tv);
+				}
+			}
+			else {
+				// TSE or AVC or VR
+				if ( enc.equals("RE") || enc.equals("VR") ) {
+					encs.add(tv);
+				}
+			}
+		}
+		
+		return encs;
+	}
+	
+	private String getOldVARDIAEmpEnc(ArrayList<String> encs, String vrate) {
+		if ( vrate.equals("[TS]") ) {
+			for ( String enc : encs ) {
+				if ( enc.startsWith("TS") ) {
+					return enc;
+				}
+			}
+		}
+		else if ( vrate.equals("[DR]") ) {
+			for ( String enc : encs ) {
+				if ( enc.startsWith("DR") ) {
+					return enc;
+				}
+			}
+		}
+		else {
+			// TSE or AVC or VR
+			for ( String enc : encs ) {
+				if ( enc.equals("RE") || enc.equals("VR") ) {
+					return enc;
+				}
+			}
+		}
+		return "";
+	}
+	
+	/**
+	 * R1/R2に統合されていない古いRD(VARDIA・REGZA RD)かどうか調べるかどうか調べる
+	 */
+	public boolean isOldVARDIA() {
+		return ( getRecorderId().startsWith("VARDIA RD-") || getRecorderId().startsWith("REGZA RD-") );
+	}
+
+	/**
+	 * RDかどうか調べる
+	 */
+	public boolean isRD() {
+		return ( getRecorderId().startsWith("RD-") || getRecorderId().startsWith("VARDIA RD-") || getRecorderId().startsWith("REGZA RD-") || getRecorderId().startsWith("REGZA DBR-Z") );
+	}
+
 
 	/*******************************************************************************
 	 * 小物
@@ -1224,6 +1335,10 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 			// 詳細情報の取得
 			System.out.println(String.format("[%s] %s\t%s\t%s %s:%s-%s:%s\t%sm\t%s\t%s\t%s(%s)\t%s\t%s\t%s",
 					++i, e.getId(), e.getRec_pattern(), e.getRec_nextdate(), e.getAhh(), e.getAmm(), e.getZhh(), e.getZmm(), e.getRec_min(), e.getContentId(), e.getRec_audio(), e.getTitle(), e.getTitlePop(), e.getChannel(), e.getCh_name(), e.getRecorded()));
+			if ( i >= 50 ) {
+				System.out.println(" *** 以下略 ***");
+				break;
+			}
 		}
 		System.out.println("---Reserved List End---");
 		
@@ -1237,6 +1352,10 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 			// 詳細情報の取得
 			System.out.println(String.format("[%s] %s %s\t%s:%s-%s:%s\t%s(%s)\t%s",
 					++i, e.getId(), e.getDate(), e.getAhh(), e.getAmm(), e.getZhh(), e.getZmm(), e.getTitle(), e.getCh_name(), e.getResult()));
+			if ( i >= 50 ) {
+				System.out.println(" *** 以下略 ***");
+				break;
+			}
 		}
 		System.out.println("---Recorded List End---");
 		
