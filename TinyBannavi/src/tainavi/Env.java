@@ -631,17 +631,40 @@ public class Env {
 	 */
 	
 	// 常に予約詳細情報を取得する
+	@Deprecated
 	public boolean getForceGetRdReserveDetails() { return forceGetRdReserveDetails; }
+	@Deprecated
 	public void setForceGetRdReserveDetails(boolean b) { forceGetRdReserveDetails = b; }
+	@Deprecated
 	private boolean forceGetRdReserveDetails = false;
 	// 常に予約詳細情報を取得しない
+	@Deprecated
 	public boolean getNeverGetRdReserveDetails() { return neverGetRdReserveDetails; }
+	@Deprecated
 	public void setNeverGetRdReserveDetails(boolean b) { neverGetRdReserveDetails = b; }
+	@Deprecated
 	private boolean neverGetRdReserveDetails = false;
 	// 予約取得ボタンで録画結果も同時に取得する
+	@Deprecated
 	public boolean getSkipGetRdRecorded() { return skipGetRdRecorded; }
+	@Deprecated
 	public void setSkipGetRdRecorded(boolean b) { skipGetRdRecorded = b; }
+	@Deprecated
 	private boolean skipGetRdRecorded = false;
+
+	// 予約一覧取得時に番組詳細も取得する
+	public int getForceLoadReserveDetails() { return forceLoadReserveDetails; }
+	public void setForceLoadReserveDetails(int n) { forceLoadReserveDetails = n; }
+	private int forceLoadReserveDetails = 0;
+	// 予約一覧取得時に自動予約一覧も取得する
+	public int getForceLoadAutoReserves() { return forceLoadAutoReserves; }
+	public void setForceLoadAutoReserves(int n) { forceLoadAutoReserves = n; }
+	private int forceLoadAutoReserves = 0;
+	// 予約一覧取得時に録画結果一覧も取得する
+	public int getForceLoadRecorded() { return forceLoadRecorded; }
+	public void setForceLoadRecorded(int n) { forceLoadRecorded = n; }
+	private int forceLoadRecorded = 0;
+
 	// 録画結果一覧の保存期間
 	public void setRecordedSaveScope(int n) { recordedSaveScope = n; }
 	public int getRecordedSaveScope() { return recordedSaveScope; }

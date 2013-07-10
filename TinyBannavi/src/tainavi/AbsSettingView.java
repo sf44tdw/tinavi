@@ -243,7 +243,8 @@ public abstract class AbsSettingView extends JScrollPane {
 	
 	// レコーダ対応
 	private JRadioButtonPanel jRBP_getRdReserveDetails = null;
-	private JCheckBoxPanel jCBP_skipGetRdRecorded = null;
+	private JRadioButtonPanel jRBP_getRdAutoReserves = null;
+	private JRadioButtonPanel jRBP_getRdRecorded = null;
 	private JComboBoxPanel jCBX_recordedSaveScope = null;
 	
 	// 予約
@@ -829,27 +830,43 @@ public abstract class AbsSettingView extends JScrollPane {
 			y+=(PARTS_HEIGHT+BLOCK_SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_setting, new JLabel("＜＜＜レコーダ対応＞＞＞"), LABEL_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			
-			y+=(PARTS_HEIGHT+SEP_HEIGHT);
 			int getdetail_h = PARTS_HEIGHT*3+SEP_HEIGHT_NALLOW*2;
-			CommonSwingUtils.putComponentOn(jPanel_setting, jRBP_getRdReserveDetails = new JRadioButtonPanel("予約詳細情報の取得",LABEL_WIDTH), PARTS_WIDTH, getdetail_h, SEP_WIDTH, y);
-			jRBP_getRdReserveDetails.add("毎回確認する",! (env.getForceGetRdReserveDetails() || env.getNeverGetRdReserveDetails()));
-			jRBP_getRdReserveDetails.add("常に取得する",(env.getForceGetRdReserveDetails()));
-			jRBP_getRdReserveDetails.add("常に取得しない",(env.getNeverGetRdReserveDetails()));
-			jRBP_getRdReserveDetails.addItemListener(IL_RELOAD_PROG_NEEDED);
+			
+			{
+				y+=(PARTS_HEIGHT+SEP_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPanel_setting, jRBP_getRdReserveDetails = new JRadioButtonPanel("予約一覧取得時に詳細情報も取得する",LABEL_WIDTH), PARTS_WIDTH, getdetail_h, SEP_WIDTH, y);
+				jRBP_getRdReserveDetails.add("毎回確認する",true);
+				jRBP_getRdReserveDetails.add("常に取得する",false);
+				jRBP_getRdReserveDetails.add("常に取得しない",false);
+				// RELOADリスナー不要
+				
+				y+=(getdetail_h+SEP_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPanel_setting, jRBP_getRdAutoReserves = new JRadioButtonPanel("予約一覧取得時に自動予約一覧も取得する",LABEL_WIDTH), PARTS_WIDTH, getdetail_h, SEP_WIDTH, y);
+				jRBP_getRdAutoReserves.add("毎回確認する",true);
+				jRBP_getRdAutoReserves.add("常に取得する",false);
+				jRBP_getRdAutoReserves.add("常に取得しない",false);
+				// RELOADリスナー不要
+				
+				y+=(getdetail_h+SEP_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPanel_setting, jRBP_getRdRecorded = new JRadioButtonPanel("予約一覧取得時に録画結果一覧も取得する",LABEL_WIDTH), PARTS_WIDTH, getdetail_h, SEP_WIDTH, y);
+				jRBP_getRdRecorded.add("毎回確認する",true);
+				jRBP_getRdRecorded.add("常に取得する",false);
+				jRBP_getRdRecorded.add("常に取得しない",false);
+				// RELOADリスナー不要
+				
+				// 選択肢
+				updateSelections();
+			}
 			
 			y+=(getdetail_h+SEP_HEIGHT);
-			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_skipGetRdRecorded = new JCheckBoxPanel("予約取得ボタンでは録画結果を取得しない",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
-			jCBP_skipGetRdRecorded.setSelected(env.getSkipGetRdRecorded());
-			
-			y+=(PARTS_HEIGHT+SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_setting, jCBX_recordedSaveScope = new JComboBoxPanel("録画結果一覧の保存期間",LABEL_WIDTH,250,true), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			jCBX_recordedSaveScope.addItem("保存しない");
 			for ( int n=1; n<=HDDRecorder.SCOPEMAX; n++ ) {
 				jCBX_recordedSaveScope.addItem(String.format("%d日 (%d週)",n,(n/7)+1));
 			}
 			jCBX_recordedSaveScope.setSelectedIndex(env.getRecordedSaveScope());
-			
 			// RELOADリスナー不要
+			
 			y+=(getdetail_h+SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_setting, new JLabel("NULLプラグインでのカレンダ連携設定はレコーダ設定に移動しました"), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			
@@ -1162,22 +1179,9 @@ public abstract class AbsSettingView extends JScrollPane {
 				env.setPrepPassedProgramCount(jSP_prepPassedProgramCount.getValue());
 				
 				// レコーダ対応
-				idx = jRBP_getRdReserveDetails.getSelectedIndex();
-				switch (idx) {
-				case 1:
-					env.setForceGetRdReserveDetails(true);
-					env.setNeverGetRdReserveDetails(false);
-					break;
-				case 2:
-					env.setForceGetRdReserveDetails(false);
-					env.setNeverGetRdReserveDetails(true);
-					break;
-				default:
-					env.setForceGetRdReserveDetails(false);
-					env.setNeverGetRdReserveDetails(false);
-					break;
-				}
-				env.setSkipGetRdRecorded(jCBP_skipGetRdRecorded.isSelected());
+				env.setForceLoadReserveDetails(jRBP_getRdReserveDetails.getSelectedIndex());
+				env.setForceLoadAutoReserves(jRBP_getRdAutoReserves.getSelectedIndex());
+				env.setForceLoadRecorded(jRBP_getRdRecorded.getSelectedIndex());
 				env.setRecordedSaveScope(jCBX_recordedSaveScope.getSelectedIndex());
 	
 				// 予約
@@ -1254,15 +1258,9 @@ public abstract class AbsSettingView extends JScrollPane {
 	 * 各種設定タブ以外で変更したenvの内容をタブに反映する
 	 */
 	public void updateSelections() {
-		if ( ! env.getForceGetRdReserveDetails() && ! env.getNeverGetRdReserveDetails() ) {
-			jRBP_getRdReserveDetails.setSelectedIndex(0);
-		}
-		else if ( env.getForceGetRdReserveDetails() ) {
-			jRBP_getRdReserveDetails.setSelectedIndex(1);
-		}
-		else if ( env.getNeverGetRdReserveDetails() ) {
-			jRBP_getRdReserveDetails.setSelectedIndex(2);
-		}
+		jRBP_getRdReserveDetails.setSelectedIndex(env.getForceLoadReserveDetails());
+		jRBP_getRdAutoReserves.setSelectedIndex(env.getForceLoadAutoReserves());
+		jRBP_getRdRecorded.setSelectedIndex(env.getForceLoadRecorded());
 	}
 	
 	/*******************************************************************************

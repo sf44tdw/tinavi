@@ -31,6 +31,9 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 	@Override
 	public RecType getType() { return RecType.RECORDER; }
 
+	// 録画結果一覧を取得できる
+	@Override
+	public boolean isRecordedListSupported() { return true; }
 	// 番組追従は編集できない
 	@Override
 	public boolean isPursuesEditable() { return false; }

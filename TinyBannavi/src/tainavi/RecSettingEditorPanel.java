@@ -116,6 +116,7 @@ public class RecSettingEditorPanel extends JPanel {
 		jButton_load.addActionListener(f_al_loadAction);
 		jButton_save.addActionListener(f_al_saveAction);
 		jButton_savedefault.addActionListener(f_al_saveDefaultAction);
+		jCBXPanel_audiorate.addItemListener(f_il_arateChanged);
 		
 		// 付けたり外したりするリスナー
 		setEnabledListenerAll(true);
@@ -444,6 +445,9 @@ public class RecSettingEditorPanel extends JPanel {
 		// チューナー
 		setSelectedEncoderValue(r.getTuner());	// encがnullかどうかはメソッドの中で確認するよ
 		
+		// 番組追従（これは予約種別[arate]より先に設定しておかないといけない）
+		setSelectedValue(jCBXPanel_pursues, r.getPursues() ? ITEM_YES : ITEM_NO);
+		
 		// 画質・音質
 		setSelectedValue(jCBXPanel_videorate, r.getRec_mode());
 		setSelectedValue(jCBXPanel_audiorate, r.getRec_audio());
@@ -462,9 +466,6 @@ public class RecSettingEditorPanel extends JPanel {
 		setSelectedValue(jCBXPanel_bvperf, r.getRec_bvperf());
 		setSelectedValue(jCBXPanel_lvoice, r.getRec_lvoice());
 		setSelectedValue(jCBXPanel_autodel, r.getRec_autodel());
-		
-		// 番組追従
-		setSelectedValue(jCBXPanel_pursues, r.getPursues() ? ITEM_YES : ITEM_NO);
 		
 		// 実行ON・OFF
 		setExecValue(r.getExec());
@@ -485,6 +486,9 @@ public class RecSettingEditorPanel extends JPanel {
 		// チューナー
 		setSelectedValue(jCBXPanel_encoder, r.getTuner());
 		
+		// 番組追従（これは予約種別[arate]より先に設定しておかないといけない）
+		setSelectedValue(jCBXPanel_pursues, r.getPursues() ? ITEM_YES : ITEM_NO);
+		
 		// 画質・音質
 		setSelectedValue(jCBXPanel_videorate, r.getRec_mode());
 		setSelectedValue(jCBXPanel_audiorate, r.getRec_audio());
@@ -503,9 +507,6 @@ public class RecSettingEditorPanel extends JPanel {
 		setSelectedValue(jCBXPanel_bvperf, r.getRec_bvperf());
 		setSelectedValue(jCBXPanel_lvoice, r.getRec_lvoice());
 		setSelectedValue(jCBXPanel_autodel, r.getRec_autodel());
-		
-		// 番組追従
-		setSelectedValue(jCBXPanel_pursues, r.getPursues() ? ITEM_YES : ITEM_NO);
 		
 		// 実行ON・OFF
 		setExecValue(r.getExec());
@@ -762,6 +763,28 @@ public class RecSettingEditorPanel extends JPanel {
 		}
 	};
 	
+	/**
+	 * EPG予約以外では番組追従が設定できないようにしたいな
+	 */
+	private final ItemListener f_il_arateChanged = new ItemListener() {
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			if ( e.getStateChange() != ItemEvent.SELECTED ) {
+				return;
+			}
+
+			String pgtype = (String) jCBXPanel_audiorate.getSelectedItem();
+			if ( pgtype == HDDRecorder.ITEM_REC_TYPE_PROG ) {
+				// "ﾌﾟﾗｸﾞﾗﾑ予約"なら触る必要なし
+				jCBXPanel_pursues.setSelectedItem(ITEM_NO);
+				jCBXPanel_pursues.setEnabled(false);
+			}
+			else {
+				jCBXPanel_pursues.setEnabled(true);
+			}
+		}
+	};
+	
 
 	/***************************************
 	 * つけたり外したりするリスナーをつけたり外したりするメソッド
@@ -889,8 +912,7 @@ public class RecSettingEditorPanel extends JPanel {
 			if ( recsetsel != null ) recsetsel.doSetAVSettings();
 		}
 	};
-	
-	
+
 	/*******************************************************************************
 	 * コンポーネント
 	 ******************************************************************************/

@@ -141,12 +141,12 @@ public interface HDDRecorder {
 	/**
 	 * 画質にあったチューナーだけ拾ってみる
 	 */
-	public String getPreferredVardiaVrate(String tuner);
+	public String getPreferredVrate_VARDIA(String tuner);
 	
 	/**
 	 * チューナーにあった画質だけ拾ってみる
 	 */
-	public ArrayList<TextValueSet> getPreferredVardiaTuners(String vrate);
+	public ArrayList<TextValueSet> getPreferredTuners_VARDIA(String vrate);
 	
 	/*
 	 * 予約一覧系
@@ -195,6 +195,11 @@ public interface HDDRecorder {
 	 * 自動予約の編集をサポートしているかどうかを返します。
 	 */
 	public boolean isEditAutoReserveSupported();
+	
+	/**
+	 * 自動予約の編集をサポートしているかどうかを返します。
+	 */
+	public boolean isRecordedListSupported();
 	
 	/**
 	 * 自動エンコーダ選択を使用するかどうかを返します。

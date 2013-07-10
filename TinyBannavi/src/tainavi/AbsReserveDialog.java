@@ -3,8 +3,6 @@ package tainavi;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -22,6 +20,8 @@ import tainavi.TVProgram.ProgGenre;
 import tainavi.TVProgram.ProgOption;
 import tainavi.TVProgram.ProgSubgenre;
 
+
+// ソースがもうグチャグチャでございます.
 
 /**
  * 予約ダイアログのクラス
@@ -181,18 +181,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	 **************************************/
 	
 	/**
-	 * 実行のON/OFFだけしか操作しない場合に呼び出す（画面にウィンドウは表示しない）
-	 * ※これがあるので、各openでは vals != null チェックの必要がある
-	 */
-	public void setOnlyUpdateExec(boolean b) {
-		
-		if (vals == null) vals = new Vals();
-		
-		vals.isUpdateOnlyExec = true;
-		jPane_recsetting.setExecValue(b);
-	}
-	
-	/**
 	 * 類似予約抽出条件なしオープン
 	 * @see #doSelectLikeReserve(int)
 	 */
@@ -220,7 +208,7 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		if (vals == null) vals = new Vals();
 		
 		// 選択中のレコーダ
-		String myself = getSelectedRecorderId();				// ツールバーで選択されているのはどれかな？
+		String myself = getSelectedMySelf();				// ツールバーで選択されているのはどれかな？
 		HDDRecorder myrec = getSelectedRecorderList().get(0);	// 先頭を選んでおけばおけ
 		
 		vals.hide_recorder = myrec;	// 隠しパラメータ
@@ -339,10 +327,20 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	 **************************************/
 	
 	/**
+	 * 実行のON/OFFだけしか操作しない場合に呼び出す（画面にウィンドウは表示しない）
+	 * ※これがあるので、各openでは vals != null チェックの必要がある
+	 */
+	public boolean open(String myself, String rsvId) {
+		
+		return open(myself, rsvId, null);
+		
+	}
+	
+	/**
 	 * 本体予約一覧からのオープン、または予約ＯＮ／ＯＦＦメニュー
 	 * @see #doSelectLikeReserve(int)
 	 */
-	public boolean open(String myself, String rsvId) {
+	public boolean open(String myself, String rsvId, Boolean onlyupdateexec) {
 		
 		// 予約は行われてないよー
 		doneReserve = false;
@@ -389,6 +387,14 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		// 各コンポーネントの強制状態変更
 		jPane_title.setEnabledRecordButton(false);	// 新規ボタンは操作不能に
 		jPane_likersv.setEnabledTable(false);		// 類似予約は選択不能に
+		
+		/*
+		 *  予約ON・OFFのみの実行かなー？
+		 */
+		if ( onlyupdateexec != null ) {
+			vals.isUpdateOnlyExec = true;
+			jPane_recsetting.setExecValue(onlyupdateexec);
+		}
 		
 		return true;
 	}
@@ -630,199 +636,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	}
 	
 	
-	/**
-	 * コンボボックス操作によって連動して選択しなおし
-	 */
-	/*
-	private void setSelectedVariables(HDDRecorder myrec, ReserveList myrsv, AVs myavs, String mychname, String myenc) {
-
-		// 予約実行
-		jPane_recsetting.setExec((myrsv==null) ? true : myrsv.getExec());
-		
-		// タイトル
-		if ( myrsv == null ) {
-			jComboBox_title.setSelectedIndex(0);
-		}
-		else {
-			for ( int i=0; i<jComboBox_title.getItemCount(); i++ ) {
-				if ( myrsv.getTitle().equals(jComboBox_title.getItemAt(i)) ) {
-					jComboBox_title.setSelectedIndex(i);
-					break;
-				}
-			}
-		}
-		
-		// タイトル自動補完
-		jCheckBox_Autocomplete.setEnabled(myrec.isAutocompleteSupported());
-		if ( myrec.isAutocompleteSupported() ) {
-			if ( myrsv == null ) {
-				jCheckBox_Autocomplete.setSelected(env.getUseAutocomplete());
-				jCheckBox_Autocomplete.setForeground(Color.BLACK);
-			}
-			else {
-				jCheckBox_Autocomplete.setSelected(myrsv.getAutocomplete());
-				jCheckBox_Autocomplete.setForeground((myrsv.getAutocomplete())?(Color.BLACK):(Color.RED));
-			}
-		}
-		else {
-			jCheckBox_Autocomplete.setSelected(false);
-		}
-		
-		// 番組追従
-		jPane_recsetting.setPursues(myrec,myrsv,vals.hide_atreservedlist,ITEM_EVIDNEEDED.equals(jButton_getEventId.getText()));
-
-		// レコーダ
-		jPane_recsetting.setRecorder(myrec.Myself());
-		
-		// エンコーダ（移動しました）
-		
-		// サブジャンル
-		jPane_recsetting.setSubgenre(myrsv, vals.hide_tvd.genre, vals.hide_tvd.subgenre);
-		
-		// 連動するＡＶ設定
-		setSelectedAVItems(myrec.getRecorderId(), myrsv, myavs);
-		
-		// エンコーダ（旧RDデジは画質によって利用できるエンコーダが制限される）
-		{
-			
-			if ( vals.hide_atreservedlist ) {
-				jPane_recsetting.setEncoder(myrsv.getTuner());
-			}
-			else if ( jCBXPanel_encoder.getItemCount() > 0 ) {
-				// 裏番組チェックとかやるよ
-				String vrate = ( isVARDIA(myrec.getRecorderId()) ) ? ((String) jCBXPanel_videorate.getSelectedItem()) : (null);
-				String starttm = vals.hide_tvd.start;
-				String endtm = vals.hide_tvd.end;
-				try {
-					GregorianCalendar cal = CommonUtils.getCalendar((String) jComboBox_date.getItemAt(0));
-					cal.set(Calendar.HOUR_OF_DAY, Integer.valueOf(jTextField_ahh.getText()));
-					cal.set(Calendar.MINUTE, Integer.valueOf(jTextField_amm.getText()));
-					starttm = CommonUtils.getTime(cal);
-					
-					cal.set(Calendar.HOUR_OF_DAY, Integer.valueOf(jTextField_zhh.getText()));
-					cal.set(Calendar.MINUTE, Integer.valueOf(jTextField_zmm.getText()));
-					endtm = CommonUtils.getTime(cal);
-				}
-				catch ( NumberFormatException e) {
-					System.err.println(ERRID+"時刻の指定が数値ではありません");
-				}
-				
-				String enc = getEmptyEncorder(myrec, vals.hide_tvd.center, vals.hide_tvd.accurateDate, starttm, endtm, vrate);
-				
-				if ( myrsv != null ) {
-					// 類似予約最優先
-					jPane_recsetting.setEncoder(myrsv.getTuner());
-				}
-				else if ( myrec.isAutoEncSelectEnabled() && ! vals.hide_atreservedlist ) {
-					// 番組情報に近い予約を探してエンコーダを絞り込む
-					jPane_recsetting.setEncoder(enc);
-					showUraList(myrec.Myself());
-				}
-				else if ( jCBXPanel_encoder.getItemCount() > 0 ) {
-					// 類似予約や自動選択がない場合は極力もとのエンコーダを選択したい
-					if ( myenc != null ) {
-						jPane_recsetting.setEncoder(myenc);
-						myenc = (String) jCBXPanel_encoder.getSelectedItem();
-					}
-					if ( myenc == null ) {
-						jPane_recsetting.setEncoder(null);
-					}
-					showUraList(myrec.Myself());
-				}
-			}
-		}
-		
-		// パターン
-		if ( myrsv == null ) {
-			jComboBox_date.setSelectedIndex(0);
-		}
-		else {
-			int dateid = 0;
-			if ( myrsv.getRec_pattern_id() <= HDDRecorder.RPTPTN_ID_SAT ) {
-				dateid = 1;
-			}
-			else if ( myrsv.getRec_pattern_id() <= HDDRecorder.RPTPTN_ID_EVERYDAY ) {
-				dateid = 1+myrsv.getRec_pattern_id()-HDDRecorder.RPTPTN_ID_SAT;
-			}
-			jComboBox_date.setSelectedIndex(dateid);
-		}
-	}
-	 */
-	/*
-	private void setSelectedAVItems(String myrecid, ReserveList myrsv, AVs myavs) {
-		if ( myrsv != null ) {
-			jPane_recsetting.setSelectedAVSettings(myrsv);
-		}
-		else if ( myavs != null ) {
-			jPane_recsetting.setSelectedAVSettings(myavs);
-		}
-		else {
-			// 特殊アイテム
-			if ( isRD(myrecid) ) {
-				setSelectedFolder();
-			}
-		}
-	}
-	*/
-	
-	/**
-	 *  <P>指定したレコーダによってフォルダを変える
-	 *  <P>うーん、folderを他の用途に転用してるけど問題おきないかな？
-	 */
-	/*
-	private void setSelectedFolder() {
-
-		// タイトルに連動
-		if ( env.getAutoFolderSelect() ) {
-			String titlePop = TraceProgram.replacePop((String) jComboBox_title.getSelectedItem());
-			for (int i=0; i<jCBXPanel_folder.getItemCount(); i++) {
-				String folderPop = TraceProgram.replacePop(((String) jCBXPanel_folder.getItemAt(i)).replaceFirst("^\\[(HDD|USB)\\] ",""));
-				if (folderPop.equals(titlePop)) {
-					jCBXPanel_folder.setSelectedIndex(i);
-					return;
-				}
-			}
-		}
-		
-		// デバイス名に連動
-		int defaultFolderIdx = -1;
-		int defaultHDDFolderIdx = -1;
-		int defaultDVDFolderIdx = -1;
-		for (int i=0; i<jCBXPanel_folder.getItemCount(); i++ ) {
-			String folderName = (String) jCBXPanel_folder.getItemAt(i);
-			if (folderName.indexOf("指定なし") != -1) {
-				if (defaultFolderIdx == -1) {
-					defaultFolderIdx = i;
-				}
-				if (folderName.startsWith("[HDD] ")) {
-					defaultHDDFolderIdx = i;
-				}
-				else if (folderName.startsWith("[USB] ")) {
-					defaultDVDFolderIdx = i;
-				}
-			}
-		}
-		if (jCBXPanel_device.getItemCount() > 0) {
-			if (((String) jCBXPanel_device.getSelectedItem()).equals("HDD")) {
-				if (defaultHDDFolderIdx != -1) {
-					jCBXPanel_folder.setSelectedIndex(defaultHDDFolderIdx);
-					return;
-				}
-			}
-			else {
-				if (defaultDVDFolderIdx != -1) {
-					jCBXPanel_folder.setSelectedIndex(defaultDVDFolderIdx);
-					return;
-				}
-			}
-		}
-		if (defaultFolderIdx != -1) {
-			jCBXPanel_folder.setSelectedIndex(defaultFolderIdx);
-		}
-	}
-	*/
-
-	
 	/*******************************************************************************
 	 * ネットから番組IDを取得する
 	 ******************************************************************************/
@@ -859,6 +672,10 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	 * 自動エンコーダ選択と裏番組抽出
 	 ******************************************************************************/
 
+	/**
+	 * これはグラフで描画するようになるまでの仮置き
+	 * @param urabanlist
+	 */
 	private void showUrabanList(ArrayList<ReserveList> urabanlist) {
 		if ( urabanlist == null ) {
 			return;
@@ -874,38 +691,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			MWin.appendMessage(MID+"裏番組はありません");
 		}
 	}
-	
-	
-	/*******************************************************************************
-	 * エンコーダコンボボックスのリフレッシュ
-	 ******************************************************************************/
-	
-	/*
-	 * 項目連動のためのメソッド群
-	 */
-
-	
-	/**
-	 * 画質に連動してエンコーダを変える（RD系）
-	 */
-	/*
-	private void setEncoderComboBoxByVrate(String enc1, String enc2) {
-		int index = -1;
-		for (int i=0; i<jCBXPanel_encoder.getItemCount(); i++) {
-			if (enc1 != null && jCBXPanel_encoder.getItemAt(i).equals(enc1)) {
-				index = i;
-				break;
-			}
-			if (enc2 != null && jCBXPanel_encoder.getItemAt(i).equals(enc2)) {
-				index = i;
-				break;
-			}
-		}
-		if (index >= 0) {
-			jCBXPanel_encoder.setSelectedIndex(index);
-		}
-	}
-	*/
 	
 	
 	/*******************************************************************************
@@ -943,59 +728,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		// リセット
 		vals = null;
 	}
-	
-	/**
-	 *  画質にエンコーダと音質が連動
-	 */
-	private final ItemListener il_videorateChanged = new ItemListener() {
-		@Override
-		public void itemStateChanged(ItemEvent e) {
-			/*
-			if (e.getStateChange() != ItemEvent.SELECTED) {
-				return;
-			}
-
-			String myself = jPane_recsetting.getSelectedRecorder();
-			if ( myself == null ) {
-				return;
-			}
-			String myrecId = recorders.findInstance(myself).get(0).getRecorderId();
-			if ( ! isVARDIA(myrecId) ) {
-				return;
-			}
-			
-			String vrate = jPane_recsetting.getSelectedVideorate(); 
-			if (vrate == null) {
-				return;
-			}
-
-			setEnabledSelectionListeners(false);
-			
-			// レコーダに連動する画質・音質・エンコーダ・フォルダコンボボックスの設定
-			if (vrate.equals("[TS]")) {
-				setEncoderComboBoxByVrate("TS1", null);
-			}
-			else if (vrate.equals("[DR]")) {
-				setEncoderComboBoxByVrate("DR1", null);
-			}
-			else {
-				setEncoderComboBoxByVrate("RE", "VR");
-			}
-			
-			// RDのデジタル系では音質は選択不可
-			if (jCBXPanel_audiorate.getItemCount() > 0) {
-				if (vrate.startsWith("[TS") || vrate.startsWith("[DR]") || vrate.startsWith("[AVC]")) {
-					jCBXPanel_audiorate.setEnabled(false);
-				}
-				else {
-					jCBXPanel_audiorate.setEnabled(true);
-				}
-			}
-			
-			setEnabledSelectionListeners(true);
-			*/
-		}
-	};
 	
 	
 	/*******************************************************************************
@@ -1070,8 +802,8 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 	/**
 	 * ツールバーの操作によって選択されたレコーダのIDを取得する
 	 */
-	private String getSelectedRecorderId() {
-		return ( src_recsel!=null ? src_recsel.getSelectedId() : null );
+	private String getSelectedMySelf() {
+		return ( src_recsel!=null ? src_recsel.getSelectedMySelf() : null );
 	}
 	
 	/**
@@ -1490,7 +1222,7 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		}
 		
 		// チューナーにあった画質を探そう
-		String vrate = myrec.getPreferredVardiaVrate(encoder);
+		String vrate = myrec.getPreferredVrate_VARDIA(encoder);
 		if ( vrate == null ) {
 			// 対象外だわ
 			return true;
@@ -1514,13 +1246,12 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			return false;
 		}
 		
-		ArrayList<TextValueSet> tuners = myrec.getPreferredVardiaTuners(vrate);
+		// 画質にあったチューナーのリストを探してコンボボックスを並べ替える
+		ArrayList<TextValueSet> tuners = myrec.getPreferredTuners_VARDIA(vrate);
 		if ( tuners == null ) {
 			// 対象外だわ
 			return true;
 		}
-		
-		// ちょっと並べ替えてみっか
 		jPane_recsetting.sortEncoderItems(tuners);
 		
 		// 画質にあったチューナーを探そう
@@ -1615,6 +1346,7 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		return true;
 	}
 
+	
 	/*******************************************************************************
 	 * コールバックメソッドの実装（類似予約）
 	 ******************************************************************************/
@@ -1657,12 +1389,13 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			jPane_title.setTimeValue(tVal);
 			jPane_title.setDateItems(tvd, tVal);
 			
+			// RDだと画質でエンコーダの種類が絞られちまうンですよ
+			String vrate = myavs != null ? myavs.getVideorate() : null;
+			
 			// 録画設定の選択
-			if ( jPane_recsetting.setSelectedRecorderValue(myrec.Myself()) != null ) {
-				vals.selected_recorder = myrec;
-			}
-	//selectedVrate
-			String enc = myrec.getEmptyEncorder(tvd.center, tVal.startDateTime, tVal.endDateTime, null, null);
+			setSelectedRecorder(myrec);
+			
+			String enc = myrec.getEmptyEncorder(tvd.center, tVal.startDateTime, tVal.endDateTime, null, vrate);
 			ReserveList myrsv = getReserveList(myrec, enc);
 			jPane_recsetting.setSelectedValues(tvd, myrsv);
 			showUrabanList(myrec.getUrabanList());
@@ -1704,9 +1437,7 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			
 			// 録画設定の選択
 			myrec.getEmptyEncorder(tvd.center, myrsv.getStartDateTime(), myrsv.getEndDateTime(), myrsv, null);
-			if ( jPane_recsetting.setSelectedRecorderValue(myrec.Myself()) != null ) {
-				vals.selected_recorder = myrec;
-			}
+			setSelectedRecorder(myrec);
 			showUrabanList(myrec.getUrabanList());
 			
 			jPane_recsetting.setSelectedValues(myrsv);
@@ -1718,4 +1449,74 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		
 		return true;
 	}
+	
+	
+	/*******************************************************************************
+	 * 直し残し
+	 ******************************************************************************/
+	
+	private HDDRecorder setSelectedRecorder(HDDRecorder myrec) {
+		if ( jPane_recsetting.setSelectedRecorderValue(myrec.Myself()) != null ) {
+			vals.selected_recorder = myrec;
+			return myrec;
+		}
+		return null;
+	}
+	
+	/**
+	 *  <P>指定したレコーダによってフォルダを変える
+	 *  <P>うーん、folderを他の用途に転用してるけど問題おきないかな？
+	 */
+	private void setSelectedFolder() {
+/*
+		// タイトルに連動
+		if ( env.getAutoFolderSelect() ) {
+			String titlePop = TraceProgram.replacePop((String) jComboBox_title.getSelectedItem());
+			for (int i=0; i<jCBXPanel_folder.getItemCount(); i++) {
+				String folderPop = TraceProgram.replacePop(((String) jCBXPanel_folder.getItemAt(i)).replaceFirst("^\\[(HDD|USB)\\] ",""));
+				if (folderPop.equals(titlePop)) {
+					jCBXPanel_folder.setSelectedIndex(i);
+					return;
+				}
+			}
+		}
+		
+		// デバイス名に連動
+		int defaultFolderIdx = -1;
+		int defaultHDDFolderIdx = -1;
+		int defaultDVDFolderIdx = -1;
+		for (int i=0; i<jCBXPanel_folder.getItemCount(); i++ ) {
+			String folderName = (String) jCBXPanel_folder.getItemAt(i);
+			if (folderName.indexOf("指定なし") != -1) {
+				if (defaultFolderIdx == -1) {
+					defaultFolderIdx = i;
+				}
+				if (folderName.startsWith("[HDD] ")) {
+					defaultHDDFolderIdx = i;
+				}
+				else if (folderName.startsWith("[USB] ")) {
+					defaultDVDFolderIdx = i;
+				}
+			}
+		}
+		if (jCBXPanel_device.getItemCount() > 0) {
+			if (((String) jCBXPanel_device.getSelectedItem()).equals("HDD")) {
+				if (defaultHDDFolderIdx != -1) {
+					jCBXPanel_folder.setSelectedIndex(defaultHDDFolderIdx);
+					return;
+				}
+			}
+			else {
+				if (defaultDVDFolderIdx != -1) {
+					jCBXPanel_folder.setSelectedIndex(defaultDVDFolderIdx);
+					return;
+				}
+			}
+		}
+		if (defaultFolderIdx != -1) {
+			jCBXPanel_folder.setSelectedIndex(defaultFolderIdx);
+		}
+*/
+	}
+	
 }

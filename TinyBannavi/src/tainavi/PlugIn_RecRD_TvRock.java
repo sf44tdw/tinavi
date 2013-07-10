@@ -33,6 +33,9 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 	@Override
 	public RecType getType() { return RecType.RECORDER; }
 	
+	// 録画結果一覧を取得できる
+	@Override
+	public boolean isRecordedListSupported() { return true; }
 	// 番組追従が可能
 	@Override
 	public boolean isPursuesEditable() { return true; }

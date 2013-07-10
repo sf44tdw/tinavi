@@ -78,15 +78,10 @@ import tainavi.VWUpdate.UpdateResult;
 /**
  * メインな感じ
  */
-public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
+public class Viewer extends JFrame implements ChangeListener,TickTimerListener,HDDRecorderListener {
 
 	private static final long serialVersionUID = 1L;
 	
-	@Override
-	public void stateChanged(ChangeEvent e){
-		StdAppendMessage("イベント発生");
-	}
-
 	
 	/*
 	 * メソッド的な
@@ -201,7 +196,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 	 */
 	public static enum LoadRsvedFor {
 		SETTING		( "設定情報のみ取得(future use.)" ),
-		RECORDED	( "録画結果のみ取得" ),
+		RECORDED	( "録画結果一覧のみ取得" ),
+		AUTORESERVE	( "自動予約一覧のみ取得" ),
 		;
 		
 		private String name;
@@ -971,7 +967,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 			toolBar.updateRecorderComboBox();
 			
 			// 予約一覧のリフレッシュ
-			loadRdReserve(false, null);		// toolBarの内容がリセットされているので recId = null で
+			loadRdReservesAll(false, null);		// toolBarの内容がリセットされているので recId = null で
 			
 			// レコーダのエンコーダ表示の更新
 			this.redrawRecorderEncoderEntry();
@@ -1551,23 +1547,64 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		}
 
 		@Override
-		protected boolean reLoadRdReserve(String myself) {
+		protected boolean doLoadRdRecorder(LoadRsvedFor lrf) {
 			timer_now.pause();
-			boolean b = Viewer.this.reLoadRdReserve(myself);
+			
+			boolean b = Viewer.this.doLoadRdRecorder(lrf);;
+			
 			timer_now.start();
 			return b;
 		}
-
-		@Override
-		protected boolean reLoadRdRecorded(String myself) {
-			timer_now.pause();
-			boolean b = Viewer.this.reLoadRdRecorded(myself);
-			timer_now.start();
-			return b;
-		}
-
 	}
 	
+	
+	/*******************************************************************************
+	 * ハンドラ―メソッド
+	 ******************************************************************************/
+
+	/**
+	 * なんかよくわからないもの
+	 */
+	@Override
+	public void stateChanged(ChangeEvent e){
+		StdAppendMessage("イベント発生");
+	}
+
+	/**
+	 * ツールバーでレコーダの選択イベントが発生
+	 */
+	@Override
+	public void valueChanged(HDDRecorderSelectionEvent e) {
+		// 選択中のレコーダ情報を保存する
+		src_recsel = (HDDRecorderSelectable) e.getSource();
+	}
+	
+	private String getSelectedMySelf() {
+		return ( src_recsel!=null ? src_recsel.getSelectedMySelf() : null );
+	}
+	
+	private HDDRecorderList getSelectedRecorderList() {
+		return ( src_recsel!=null ? src_recsel.getSelectedList() : null );
+	}
+	
+	private HDDRecorderSelectable src_recsel;
+
+	/**
+	 * レコーダ情報の変更イベントが発生
+	 */
+	@Override
+	public void stateChanged(HDDRecorderChangeEvent e) {
+		// 未実装
+	}
+	
+	/**
+	 * タイマーイベントが発生
+	 */
+	@Override
+	public void timerRised(TickTimerRiseEvent e) {
+		if (env.getDebug()) System.out.println("Timer Rised: now="+CommonUtils.getDateTimeYMDx(e.getCalendar()));
+		setTitleBar();
+	}
 	
 	
 	/*******************************************************************************
@@ -2455,8 +2492,9 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		
 		String mode = (fexec ? "ON" : "OFF");
 		
-		if ( rdialog.open(recId,rsvId) ) {
-			rdialog.setOnlyUpdateExec(fexec);
+		// 予約ON・OFFのみ
+		if ( rdialog.open(recId,rsvId,fexec) ) {
+			
 			rdialog.doUpdate();
 			
 			if (rdialog.isSucceededReserve()) {
@@ -2509,12 +2547,11 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		menuItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
-				//VWReserveDialog rD = new VWReserveDialog(0, 0, env, tvprograms, recorders, avs, chavs, stwin);
-				//rdialog.clear();
 				CommonSwingUtils.setLocationCenter(mainWindow,rdialog);
 				
-				if ( rdialog.open(recId,rsvId) ) {
-					rdialog.setOnlyUpdateExec( ! fexec);
+				// 予約ON・OFFのみ
+				if ( rdialog.open(recId,rsvId, ! fexec) ) {
+					
 					rdialog.doUpdate();
 					
 					if (rdialog.isSucceededReserve()) {
@@ -2579,28 +2616,39 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 	 * ここからおおむね初期化処理にかかわるメソッド群
 	 ******************************************************************************/
 	
-	// レコーダから取得したエンコーダ情報で、登録済みレコーダ一覧を更新する
-	private void setEncoderInfo2RecorderList(HDDRecorder recorder) {
-		for (RecorderInfo ri : recInfoList ) {
-			//if (rl.getRecorderEncoderList().size() == 0)
-			{
-				String mySelf = ri.getRecorderIPAddr()+":"+ri.getRecorderPortNo()+":"+ri.getRecorderId();
-				String myMail = "MAIL"+":"+ri.getRecorderMacAddr()+":"+ri.getRecorderId();
-				if (recorder.isMyself(mySelf) || recorder.isMyself(myMail)) {
-					ri.clearEncoders();
-					for (TextValueSet enc : recorder.getEncoderList()) {
-						ri.addEncoder(enc.getText());
-					}
-					break;
-				}
-			}
-		}
-	}
-	
+	/***************************************
+	 * ツールバートリガーによる
+	 **************************************/
+
 	/**
 	 *  レコーダの予約情報をＤＬする
 	 */
-	private boolean reLoadRdReserve(final String recId) {
+	private boolean doLoadRdRecorder(LoadRsvedFor lrf) {
+		
+		if ( lrf == null ) {
+			return doLoadRdRecorderAll();
+		}
+		else {
+			switch (lrf) {
+			case RECORDED:
+				return doLoadRdRecorded();
+			case AUTORESERVE:
+				return doLoadRdAutoReserves();
+			case SETTING: 
+			default:
+				break;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * レコーダの情報を全部ＤＬする（ステータスウィンドウは自前で用意	する）
+	 */
+	private boolean doLoadRdRecorderAll() {
+		
+		final String myself = getSelectedMySelf();
+		
 		//
 		StWinClear();
 		
@@ -2611,7 +2659,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 				
 				TatCount tc = new TatCount();
 				
-				loadRdReserve(true, recId);
+				// 読み出せ！
+				_loadRdRecorderAll(true,myself);
 				
 				// エンコーダ情報が更新されるかもしれないので、一覧のエンコーダ表示にも反映する
 				recsetting.redrawRecorderEncoderEntry();
@@ -2637,158 +2686,14 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		
 		return true;
 	}
-	private void loadRdReserve(final boolean force, final String myself) {
-
-		//
-		new SwingBackgroundWorker(true) {
-			
-			@Override
-			protected Object doWorks() throws Exception {
-				
-				HDDRecorderList recs;
-				if ( myself != null ) {
-					recs = recorders.findInstance(myself);
-				}
-				else {
-					recs = recorders;
-				}
-				for ( HDDRecorder recorder : recs ) {
-					switch ( recorder.getType() ) {
-					case RECORDER:
-					case EPG:
-					case MAIL:
-					case NULL:
-					case TUNER:
-						loadRdReserveOnce(recorder, force);
-						break;
-					default:
-						break;
-					}
-				}
-				
-				return null;
-			}
-			
-			@Override
-			protected void doFinally() {
-			}
-		}.execute();
-	}
 	
-	private boolean loadRdReserveOnce(HDDRecorder recorder, boolean force) {
-		
-		mwin.appendMessage("【レコーダ情報取得】レコーダから情報を取得します: "+recorder.getRecorderId()+"("+recorder.getIPAddr()+":"+recorder.getPortNo()+")");
-		if ( recorder.isThereAdditionalDetails() && ! env.getForceGetRdReserveDetails() ) {
-			mwin.appendMessage("＜＜＜注意！＞＞＞このレコーダでは予約詳細の個別取得を実行しないと正確な情報を得られない場合があります。");
-		}
-		
-		try {
-			
-			// 各種設定の取得
-			if ( ! recorder.GetRdSettings(force) ) {
-				// 取得に失敗
-				mwin.appendError(recorder.getErrmsg()+" "+recorder.getIPAddr()+":"+recorder.getPortNo()+":"+recorder.getRecorderId());
-				ringBeep();
-				return false;
-			}
-			
-			// 予約一覧の取得
-			if ( ! recorder.GetRdReserve(force) ) {
-				// 取得に失敗
-				mwin.appendError(recorder.getErrmsg()+" "+recorder.getIPAddr()+":"+recorder.getPortNo()+":"+recorder.getRecorderId());
-				ringBeep();
-				return false;
-			}
-			
-			// レコーダから取得したエンコーダ情報で、登録済みレコーダ一覧を更新する
-			setEncoderInfo2RecorderList(recorder);
-			if ( force ) {
-				recInfoList.save();
-			}
-			
-			// 予約詳細の取得
-			if ( env.getNeverGetRdReserveDetails() ) {
-				mwin.appendMessage("【！】予約詳細情報の取得はスキップされました");
-			}
-			else if ( force && recorder.isThereAdditionalDetails() ) {
-				boolean getDetails = true;
-				if ( ! env.getForceGetRdReserveDetails() ) {
-					int ret = JOptOptionPane.showConfirmDialog(null, "詳細情報を取得しますか？（時間がかかります）", "今回の選択を既定の動作とする", "確認", JOptionPane.YES_NO_OPTION);
-					getDetails = (ret == JOptOptionPane.YES_OPTION);
-					if ( JOptOptionPane.isSelected() ) {
-						// 今回の選択を既定の動作とする
-						env.setForceGetRdReserveDetails(getDetails);
-						env.setNeverGetRdReserveDetails( ! getDetails);
-						env.save();
-						setting.updateSelections();
-					}
-				}
-				if ( ! getDetails ) {
-					mwin.appendMessage("【！】予約詳細情報の取得はスキップされました");
-				}
-				else {
-					if ( ! recorder.GetRdReserveDetails()) {
-						// 取得に失敗
-						mwin.appendError(recorder.getErrmsg()+" "+recorder.getIPAddr()+":"+recorder.getPortNo()+":"+recorder.getRecorderId());
-						ringBeep();
-					}
-				}
-			}
-			
-			// レコーダの放送局名をWeb番組表の放送局名に置き換え
-			{	
-				HashMap<String,String> misCN = new HashMap<String,String>();
-				for ( ReserveList r : recorder.getReserves() ) {
-					if ( r.getCh_name() == null ) {
-						misCN.put(r.getChannel(),recorder.getRecorderId());
-					}
-				}
-				if ( misCN.size() > 0 ) {
-					for ( String cn : misCN.keySet() ) {
-						String msg = "【警告(予約一覧)】 <"+misCN.get(cn)+"> \"レコーダの放送局名\"を\"Web番組表の放送局名\"に変換できません。CHコード設定に設定を追加してください：\"レコーダの放送局名\"="+cn;
-						mwin.appendMessage(msg);
-					}
-					ringBeep();
-				}
-			}
-			
-			// 自動予約一覧の取得
-			if ( recorder.isEditAutoReserveSupported() ) {
-				if ( ! recorder.GetRdAutoReserve(force) ) {
-					// 取得に失敗
-					mwin.appendError(recorder.getErrmsg()+" "+recorder.getIPAddr()+":"+recorder.getPortNo()+":"+recorder.getRecorderId());
-					ringBeep();
-					return false;
-				}
-			}
-			
-			// 録画結果一覧の取得
-			if ( env.getSkipGetRdRecorded() ) {
-				mwin.appendMessage("【！】録画結果一覧の取得はスキップされました");
-			}
-			else {
-				if ( ! recorder.GetRdRecorded(force) ) {
-					// 取得に失敗
-					mwin.appendError(recorder.getErrmsg()+" "+recorder.getIPAddr()+":"+recorder.getPortNo()+":"+recorder.getRecorderId());
-					ringBeep();
-					return false;
-				}
-			}
-			
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			mwin.appendError("【致命的エラー】予約一覧の取得で例外が発生 "+recorder.getIPAddr()+":"+recorder.getPortNo()+":"+recorder.getRecorderId());
-			ringBeep();
-			return false;
-		}
-		return true;
-	}
-
 	/**
 	 * 録画結果一覧をＤＬする
 	 */
-	private boolean reLoadRdRecorded(final String myself) {
+	private boolean doLoadRdRecorded() {
+		
+		final String myself = getSelectedMySelf();
+		
 		//
 		StWinClear();
 		
@@ -2799,7 +2704,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 				
 				TatCount tc = new TatCount();
 			
-				boolean succeeded = true;
+				boolean succeeded = false;
 				
 				HDDRecorderList recs;
 				if ( myself != null ) {
@@ -2809,21 +2714,12 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 					recs = recorders;
 				}
 				for ( HDDRecorder recorder : recs ) {
-					switch ( recorder.getType() ) {
-					case RECORDER:
-					case EPG:
-					case MAIL:
-					case NULL:
-					case TUNER:
-						if ( ! recorder.GetRdSettings(true) ) {
-							succeeded = false;
-						}
-						if ( ! recorder.GetRdRecorded(true) ) {
-							succeeded = false;
-						}
-						break;
-					default:
-						break;
+					if ( ! recorder.isRecordedListSupported() ) {
+						continue;
+					}
+
+					if ( recorder.GetRdRecorded(true) ) {
+						succeeded = true;
 					}
 				}
 				
@@ -2852,6 +2748,350 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		return true;
 	}
 
+	/**
+	 * 録画結果一覧をＤＬする
+	 */
+	private boolean doLoadRdAutoReserves() {
+		
+		final String myself = getSelectedMySelf();
+		
+		//
+		StWinClear();
+		
+		new SwingBackgroundWorker(false) {
+			
+			@Override
+			protected Object doWorks() throws Exception {
+				
+				TatCount tc = new TatCount();
+			
+				boolean succeeded = false;
+				
+				HDDRecorderList recs;
+				if ( myself != null ) {
+					recs = recorders.findInstance(myself);
+				}
+				else {
+					recs = recorders;
+				}
+				for ( HDDRecorder recorder : recs ) {
+					if ( ! recorder.isEditAutoReserveSupported() ) {
+						continue;
+					}
+					
+					if ( recorder.GetRdAutoReserve(true) ) {
+						succeeded = true;
+					}
+				}
+				
+				if ( succeeded ) {
+					// 再描画はここじゃないよ
+					mwin.appendMessage(String.format("【自動予約一覧の取得処理が完了しました】 所要時間： %.2f秒",tc.end()));
+				}
+				else {
+					ringBeep();
+					mwin.appendMessage(String.format("【自動予約一覧の取得処理に失敗しました】 所要時間： %.2f秒",tc.end()));
+				}
+				return null;
+			}
+			
+			@Override
+			protected void doFinally() {
+				StWinSetVisible(false);
+			}
+		}.execute();
+		
+		StWinSetLocationCenter(this);
+		StWinSetVisible(true);
+		
+		return true;
+	}
+	
+	/***************************************
+	 * 自クラス内呼び出しによる
+	 **************************************/
+	
+	/**
+	 * レコーダの情報を全部ＤＬする（ステータスウィンドウは呼び出し元が準備する）
+	 */
+	private void loadRdReservesAll(final boolean force, final String myself) {
+
+		new SwingBackgroundWorker(true) {
+			
+			@Override
+			protected Object doWorks() throws Exception {
+				
+				_loadRdRecorderAll(force,myself);
+				
+				return null;
+			}
+			
+			@Override
+			protected void doFinally() {
+			}
+		}.execute();
+	}
+	
+	/***************************************
+	 * レコーダの情報を取得する部品群
+	 **************************************/
+	
+	private boolean _loadRdRecorderAll(final boolean force, final String myself) {
+
+		HDDRecorderList recs;
+		if ( myself != null ) {
+			recs = recorders.findInstance(myself);
+		}
+		else {
+			recs = recorders;
+		}
+		
+		boolean success = true;
+		
+		for ( HDDRecorder recorder : recs ) {
+			switch ( recorder.getType() ) {
+			case RECORDER:
+			case EPG:
+			case MAIL:
+			case NULL:
+			case TUNER:
+				success = success & _loadRdRecorder(recorder, force);
+			default:
+				break;
+			}
+		}
+		
+		return success;
+	}
+	
+	private boolean _loadRdRecorder(HDDRecorder recorder, boolean force) {
+		
+		mwin.appendMessage("【レコーダ情報取得】情報を取得します: "+recorder.Myself());
+		if ( recorder.isThereAdditionalDetails() && env.getForceLoadReserveDetails() == 2 ) {
+			mwin.appendMessage("＜＜＜注意！＞＞＞このレコーダでは予約詳細の個別取得を実行しないと正確な情報を得られない場合があります。");
+		}
+		
+		try {
+			
+			// 各種設定の取得
+			if ( ! _loadRdSettings(recorder,force) ) {
+				return false;
+			}
+			
+			// 予約一覧の取得
+			if ( ! _loadRdReserves(recorder,force) ) {
+				return false;
+			}
+			
+			// レコーダから取得したエンコーダ情報で、登録済みレコーダ一覧を更新する
+			setEncoderInfo2RecorderList(recorder,force);
+			
+			// 予約詳細の取得（強制取得じゃなければ処理不要）
+			if ( force && ! _loadRdReserveDetails(recorder,force) ) {
+				return false;
+			}
+			
+			// レコーダの放送局名をWeb番組表の放送局名に置き換え
+			checkChNameIsRight(recorder);
+			
+			// 自動予約一覧の取得
+			if ( ! _loadRdAutoReserves(recorder,force) ) {
+				return false;
+			}
+			
+			// 録画結果一覧の取得
+			if ( ! _loadRdRecorded(recorder,force) ) {
+				return false;
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			mwin.appendError("【致命的エラー】予約一覧の取得で例外が発生 "+recorder.getIPAddr()+":"+recorder.getPortNo()+":"+recorder.getRecorderId());
+			ringBeep();
+			return false;
+		}
+		return true;
+	}
+	
+	
+	/***************************************
+	 * レコーダの情報を取得する部品群
+	 **************************************/
+	
+	private boolean _loadRdSettings(HDDRecorder recorder, boolean force) {
+		if ( recorder.GetRdSettings(force) ) {
+			return true;
+		}
+		
+		mwin.appendError(recorder.getErrmsg()+" "+recorder.Myself());	// 取得に失敗
+		ringBeep();
+		return false;
+	}
+	
+	private boolean _loadRdReserves(HDDRecorder recorder, boolean force) {
+		if ( recorder.GetRdReserve(force) ) {
+			return true;
+		}
+		
+		mwin.appendError(recorder.getErrmsg()+" "+recorder.Myself());	// 取得に失敗
+		ringBeep();
+		return false;
+	}
+	
+	private boolean _loadRdReserveDetails(HDDRecorder recorder, boolean force) {
+		
+		if ( ! recorder.isThereAdditionalDetails() ) {
+			return true;	// 非対応レコーダ
+		}
+		
+		boolean skip = false;
+		if ( force && env.getForceLoadReserveDetails() == 2 ) {
+			skip = true;
+		}
+		else if ( force && env.getForceLoadReserveDetails() == 0 ) {
+			int ret = JOptOptionPane.showConfirmDialog(stwin, "<HTML>詳細情報を取得しますか？（時間がかかります）<BR><BR>"+recorder.Myself()+"</HTML>", "今回の選択を既定の動作とする", "※既定動作は各種設定で変更できます", "確認", JOptionPane.YES_NO_OPTION);
+			skip = (ret != JOptOptionPane.YES_OPTION);
+			
+			if ( JOptOptionPane.isSelected() ) {
+				// 今回の選択を既定の動作とする
+				env.setForceLoadReserveDetails(skip ? 2 : 1);
+				env.save();
+				if (setting!=null) setting.updateSelections();
+			}
+		}
+		if ( skip ) {
+			mwin.appendMessage("【！】予約詳細情報の取得はスキップされました");
+			return true;
+		}
+		
+		if ( recorder.GetRdReserveDetails()) {
+			return true;	// 取得成功
+		}
+		
+		mwin.appendError(recorder.getErrmsg()+" "+recorder.Myself());
+		ringBeep();
+		return false;		// 取得失敗
+	}
+
+	private boolean _loadRdAutoReserves(HDDRecorder recorder, boolean force) {
+
+		if ( ! recorder.isEditAutoReserveSupported() ) {
+			return true;
+		}
+		
+		boolean skip = false;
+		if ( force && env.getForceLoadAutoReserves() == 2 ) {
+			skip = true;
+		}
+		else if ( force && env.getForceLoadAutoReserves() == 0 ) {
+			int ret = JOptOptionPane.showConfirmDialog(stwin, "<HTML>自動予約一覧を取得しますか？（時間がかかります）<BR><BR>"+recorder.Myself()+"</HTML>", "今回の選択を既定の動作とする", "※既定動作は各種設定で変更できます", "確認", JOptionPane.YES_NO_OPTION);
+			skip = (ret != JOptOptionPane.YES_OPTION);
+			
+			if ( JOptOptionPane.isSelected() ) {
+				// 今回の選択を既定の動作とする
+				env.setForceLoadAutoReserves(skip ? 2 : 1);
+				env.save();
+				if (setting!=null) setting.updateSelections();
+			}
+		}
+		if ( skip ) {
+			mwin.appendMessage("【！】自動予約一覧の取得はスキップされました");
+			return true;
+		}
+
+		if ( recorder.GetRdAutoReserve(force) ) {
+			return true;
+		}
+		
+		mwin.appendError(recorder.getErrmsg()+" "+recorder.Myself());
+		ringBeep();
+		return false;
+	}
+	
+	private boolean _loadRdRecorded(HDDRecorder recorder, boolean force) {
+		
+		if ( ! recorder.isRecordedListSupported() ) {
+			return true;
+		}
+		
+		boolean skip = false;
+		if ( force && env.getForceLoadRecorded() == 2 ) {
+			skip = true;
+		}
+		if ( force && env.getForceLoadRecorded() == 0 ) {
+			int ret = JOptOptionPane.showConfirmDialog(stwin, "<HTML>録画結果一覧を取得しますか？（時間がかかります）<BR><BR>"+recorder.Myself()+"</HTML>", "今回の選択を既定の動作とする", "※既定動作は各種設定で変更できます", "確認", JOptionPane.YES_NO_OPTION);
+			skip = (ret != JOptOptionPane.YES_OPTION);
+			
+			if ( JOptOptionPane.isSelected() ) {
+				// 今回の選択を既定の動作とする
+				env.setForceLoadRecorded(skip ? 2 : 1);
+				env.save();
+				if (setting!=null) setting.updateSelections();
+			}
+		}
+		if ( skip ) {
+			mwin.appendMessage("【！】録画結果一覧の取得はスキップされました");
+			return true;
+		}
+		
+		if ( recorder.GetRdRecorded(force) ) {
+			return true;
+		}
+		
+		mwin.appendError(recorder.getErrmsg()+" "+recorder.Myself());
+		ringBeep();
+		return false;
+	}
+
+	/**
+	 * レコーダから取得したエンコーダ情報で、登録済みレコーダ一覧を更新する
+	 * @param recorder
+	 */
+	private void setEncoderInfo2RecorderList(HDDRecorder recorder, boolean force) {
+		for (RecorderInfo ri : recInfoList ) {
+			//if (rl.getRecorderEncoderList().size() == 0)
+			{
+				//String mySelf = ri.getRecorderIPAddr()+":"+ri.getRecorderPortNo()+":"+ri.getRecorderId();
+				//String myMail = "MAIL"+":"+ri.getRecorderMacAddr()+":"+ri.getRecorderId();
+				//if (recorder.isMyself(mySelf) || recorder.isMyself(myMail)) {
+				if ( recorder.isMyself(ri.MySelf()) ) {
+					ri.clearEncoders();
+					for (TextValueSet enc : recorder.getEncoderList()) {
+						ri.addEncoder(enc.getText());
+					}
+					
+					if ( force ) {
+						recInfoList.save();
+					}
+					break;
+				}
+			}
+		}
+	}
+	
+	/**
+	 * 予約一覧の放送局名が正しい形式であるかどうかのチェック
+	 */
+	private void checkChNameIsRight(HDDRecorder recorder) {
+		HashMap<String,String> misCN = new HashMap<String,String>();
+		for ( ReserveList r : recorder.getReserves() ) {
+			if ( r.getCh_name() == null ) {
+				misCN.put(r.getChannel(),recorder.getRecorderId());
+			}
+		}
+		if ( misCN.size() > 0 ) {
+			for ( String cn : misCN.keySet() ) {
+				String msg = "【警告(予約一覧)】 <"+misCN.get(cn)+"> \"レコーダの放送局名\"を\"Web番組表の放送局名\"に変換できません。CHコード設定に設定を追加してください：\"レコーダの放送局名\"="+cn;
+				mwin.appendMessage(msg);
+			}
+			ringBeep();
+		}
+	}
+	
+	/***************************************
+	 * Web番組表を取得する
+	 **************************************/
+	
 	/**
 	 * Web番組表をＤＬする
 	 * <P>単体実行の場合はこちらを呼び出す
@@ -4353,12 +4593,6 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		);
 	}
 	
-	@Override
-	public void timerRised(TickTimerRiseEvent e) {
-		if (env.getDebug()) System.out.println("Timer Rised: now="+CommonUtils.getDateTimeYMDx(e.getCalendar()));
-		setTitleBar();
-	}
-	
 	// 終了処理関連
 	private void ExitOnClose() {
 		// 座標・サイズ
@@ -4614,7 +4848,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 			// 放送局の並び順もロード
 			chsort.load();
 			
-			loadRdReserve(runRecLoad, null);
+			loadRdReservesAll(runRecLoad, null);
 		}
 		catch ( Exception e ) {
 			System.err.println("【致命的エラー】設定の初期化に失敗しました");
@@ -4678,6 +4912,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener {
 		toolBar.addHDDRecorderChangeListener(autores);
 		
 		// [ツールバー/レコーダ選択]
+		toolBar.addHDDRecorderSelectionListener(this);		// 新聞形式
 		toolBar.addHDDRecorderSelectionListener(paper);		// 新聞形式
 		toolBar.addHDDRecorderSelectionListener(autores);	// 自動予約一覧
 		toolBar.addHDDRecorderSelectionListener(rdialog);	// 予約ダイアログ

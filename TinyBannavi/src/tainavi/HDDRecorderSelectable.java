@@ -10,7 +10,7 @@ public interface HDDRecorderSelectable {
 
 	public void removeHDDRecorderSelectionListener(HDDRecorderListener l);
 
-	public String getSelectedId();
+	public String getSelectedMySelf();
 	
 	public HDDRecorderList getSelectedList();
 

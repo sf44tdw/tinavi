@@ -102,8 +102,8 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	// 部品
 	protected abstract boolean addKeywordSearch(SearchKey search);
 	protected abstract boolean reLoadTVProgram(LoadFor lf);
-	protected abstract boolean reLoadRdReserve(String myself);
-	protected abstract boolean reLoadRdRecorded(String myself);
+	
+	protected abstract boolean doLoadRdRecorder(LoadRsvedFor lrf);
 
 	/*******************************************************************************
 	 * 呼び出し元から引き継いだもの
@@ -229,7 +229,7 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	
 	// その他
 	
-	private String selectedRecorderId = null;
+	private String selectedMySelf = null;
 	private HDDRecorderList selectedRecorderList = null;
 	
 	private boolean statusarea_shown = bounds.getShowStatus();
@@ -712,8 +712,8 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	}
 	
 	@Override
-	public String getSelectedId() {
-		return selectedRecorderId;
+	public String getSelectedMySelf() {
+		return selectedMySelf;
 	}
 	
 	@Override
@@ -748,7 +748,7 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 		
 		HDDRecorderSelectionEvent e = new HDDRecorderSelectionEvent(this);
 
-		if (debug) System.out.println(DBGID+"recorder selection rised.");
+		if (debug) System.out.println(DBGID+"recorder select rise.");
 
 		for ( HDDRecorderListener l : lsnrs_recsel ) {
 			l.valueChanged(e);
@@ -756,13 +756,13 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	}
 	
 	/**
-	 * レコーダ選択イベントトリガー
+	 * レコーダ状態変更イベントトリガー
 	 */
 	private void fireHDDRecorderChanged() {
 		
 		HDDRecorderChangeEvent e = new HDDRecorderChangeEvent(this);
 
-		if (debug) System.out.println(DBGID+"change rised.");
+		if (debug) System.out.println(DBGID+"recorder change rise.");
 
 		for ( HDDRecorderListener l : lsnrs_infochg ) {
 			l.stateChanged(e);
@@ -888,15 +888,16 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	/**
 	 * 選択中のレコーダ情報を保存
 	 */
-	private void setSelectedRecorderInfo(String recid) {
-		selectedRecorderId = recid;
-		selectedRecorderList = recorders.findInstance(recid);
+	private void setSelectedRecorderInfo(String myself) {
+		selectedMySelf = myself;
+		selectedRecorderList = recorders.findInstance(myself);
 	}
 	
 	// 予約一覧の再取得
 	private final ActionListener al_reloadReserved = new ActionListener(){
 		public void actionPerformed(ActionEvent e){
-			reLoadRdReserve(getSelectedRecorder());
+			
+			doLoadRdRecorder(null);
 			
 			fireHDDRecorderChanged();		// 各タブへの反映
 		}
@@ -906,16 +907,10 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	private final ActionListener al_reloadReservedIndividual = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			String selected = ((JMenuItem)e.getSource()).getText();
-			LoadRsvedFor lrf = LoadRsvedFor.get(selected);
-			switch (lrf) {
-			case RECORDED:
-				reLoadRdRecorded(getSelectedRecorder());
-				break;
-			case SETTING: 
-			default:
-				break;
-			}
+			
+			doLoadRdRecorder(LoadRsvedFor.get(((JMenuItem)e.getSource()).getText()));
+			
+			fireHDDRecorderChanged();		// 各タブへの反映
 		}
 	};
 

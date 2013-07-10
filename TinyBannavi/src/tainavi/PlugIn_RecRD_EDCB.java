@@ -41,6 +41,9 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	// 自動予約を編集できる
 	@Override
 	public boolean isEditAutoReserveSupported() { return true; }
+	// 録画結果一覧を取得できる
+	@Override
+	public boolean isRecordedListSupported() { return true; }
 	// 自動エンコーダ選択は禁止
 	@Override
 	public boolean isAutoEncSelectEnabled() { return false; }

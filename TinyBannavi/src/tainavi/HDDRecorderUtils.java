@@ -55,6 +55,8 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	@Override
 	public boolean isEditAutoReserveSupported() { return false; }
 	@Override
+	public boolean isRecordedListSupported() { return false; }
+	@Override
 	public boolean isRepeatReserveSupported() { return true; }
 	@Override
 	public boolean isPursuesEditable() { return false; }
@@ -459,7 +461,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	/**
 	 * チューナーにあった画質を拾ってみる
 	 */
-	public String getPreferredVardiaVrate(String tuner) {
+	public String getPreferredVrate_VARDIA(String tuner) {
 		
 		if ( ! isOldVARDIA() ) {
 			return null;
@@ -497,7 +499,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	/**
 	 * 画質にあったチューナーだけ拾ってみる
 	 */
-	public ArrayList<TextValueSet> getPreferredVardiaTuners(String vrate) {
+	public ArrayList<TextValueSet> getPreferredTuners_VARDIA(String vrate) {
 		
 		if ( ! isOldVARDIA() ) {
 			return null;

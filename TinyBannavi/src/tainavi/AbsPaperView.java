@@ -1359,7 +1359,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		String passedCritDateTime = CommonUtils.getCritDateTime(env.getDisplayPassedReserve());
 		
 		// ツールバーで選択されている実レコーダ
-		String myself = ( env.getEffectComboToPaper() ) ? (getSelectedRecorderId()) : (null);
+		String myself = ( env.getEffectComboToPaper() ) ? (getSelectedMySelf()) : (null);
 		
 		// 予約枠の描画
 		drawReserveBorders(date, Center, q, topDateTime, bottomDateTime, passedCritDateTime, myself);
@@ -1715,8 +1715,8 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		updateReserveBorder(null);
 	}
 	
-	private String getSelectedRecorderId() {
-		return ( src_recsel!=null ? src_recsel.getSelectedId() : null );
+	private String getSelectedMySelf() {
+		return ( src_recsel!=null ? src_recsel.getSelectedMySelf() : null );
 	}
 	
 	private HDDRecorderList getSelectedRecorderList() {

@@ -854,7 +854,8 @@ public class TitleEditorPanel extends JPanel {
 		cal.add(Calendar.MINUTE, getRecMinVal());
 		r.setEndDateTime(CommonUtils.getDateTime(cal));									// PostRdEntry()中で取得するのでここはダミー
 
-		if ( jLabel_eventId.getText() != null && ! (jLabel_eventId.getText().endsWith("0000") ||jLabel_eventId.getText().endsWith("FFFF")) ) {
+		//if ( jLabel_eventId.getText() != null && ! (jLabel_eventId.getText().endsWith("0000") ||jLabel_eventId.getText().endsWith("FFFF")) ) {
+		if ( jLabel_eventId.getText() != null ) {
 			r.setContentId(jLabel_eventId.getValue());
 		}
 		else {
