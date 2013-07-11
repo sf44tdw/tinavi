@@ -418,6 +418,28 @@
      <string>アニメ/特撮		</string> 
     </void> 
     <void property="label"> 
+     <string>アニメ副音声</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="target"> 
+     <string>4	20	</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.SearchKey"> 
+    <void property="condition"> 
+     <string>0</string> 
+    </void> 
+    <void property="contain"> 
+     <string>0	0	</string> 
+    </void> 
+    <void property="keyword"> 
+     <string>アニメ/特撮		</string> 
+    </void> 
+    <void property="label"> 
      <string>アニメ視聴年齢制限</string> 
     </void> 
     <void property="okiniiri"> 

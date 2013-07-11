@@ -158,6 +158,10 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 //	private static final String ERRID = "[ERROR]"+MSGID;
 	private static final String DBGID = "[DEBUG]"+MSGID;
 	
+	/*
+	 * [メモ] enumのtoString()をoverrideすると、シリアライズの際とても困るのでやらないこと
+	 */
+	
 	/**
 	 * Web番組表のどれとどれを読めばいいのか
 	 */
@@ -195,7 +199,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 	 * レコーダ情報のどれとどれを読めばいいのか
 	 */
 	public static enum LoadRsvedFor {
-		SETTING		( "設定情報のみ取得(future use.)" ),
+//		SETTING		( "設定情報のみ取得(future use.)" ),
 		RECORDED	( "録画結果一覧のみ取得" ),
 		AUTORESERVE	( "自動予約一覧のみ取得" ),
 		;
@@ -224,6 +228,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 	 *  リスト形式のカラム定義
 	 * @deprecated しっぱいした 半年くらいしたら削除する
 	 */
+	@Deprecated
 	public static enum ListedColumn {
 		RSVMARK		("予約",			35),
 		DUPMARK		("重複",			35),
@@ -274,6 +279,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 	 *  本体予約一覧のカラム定義
 	 * @deprecated しっぱいした 半年くらいしたら削除する
 	 */
+	@Deprecated
 	public static enum RsvedColumn {
 		PATTERN		("パタン",			110),
 		DUPMARK		("重複",			35),
@@ -2634,7 +2640,6 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 				return doLoadRdRecorded();
 			case AUTORESERVE:
 				return doLoadRdAutoReserves();
-			case SETTING: 
 			default:
 				break;
 			}
@@ -3458,6 +3463,10 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 								tvd.title = tvd.title.replaceFirst("^アニメ[ 　・]+","");
 								tvd.titlePop = TraceProgram.replacePop(tvd.title);
 								tvd.SearchStrKeys = TraceProgram.splitKeys(tvd.titlePop);
+							}
+							if ( tvd.title.contains("コメンタリ") || tvd.detail.contains("コメンタリ") ) {
+								// "コメンタリ"の記述のあるものは「副音声」扱いにする（副音声でなくても）
+								tvd.option.add(ProgOption.MULTIVOICE);
 							}
 							if ( (tvd.title.contains("劇場版") || tvd.detail.contains("映画")) && ! tvd.isEqualsGenre(ProgGenre.MOVIE, ProgSubgenre.MOVIE_ANIME) ) {
 								// ジャンル＝アニメだがタイトルに「劇場版」が含まれるならジャンル＝映画（アニメ映画）を追加する

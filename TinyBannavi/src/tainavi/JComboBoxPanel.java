@@ -1,5 +1,6 @@
 package tainavi;
 
+import java.awt.Color;
 import java.awt.ItemSelectable;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
@@ -15,29 +16,25 @@ public class JComboBoxPanel extends JPanel implements ItemSelectable,WideCompone
 
 	private static final long serialVersionUID = 1L;
 
-	private JComboBoxWithPopup jcombobox = null;
-	private JLabel jlabel = null;
+	private final JComboBoxWithPopup jcombobox;
+	private final JLabel jlabel;
 	
 	// 旧版
-	public JComboBoxPanel(String s, int labelWidth, int comboboxWidth) {
-		super();
-		makeComboBoxPanel(s, labelWidth, false);
+	public JComboBoxPanel(String label, int labelWidth, int comboboxWidth) {
+		this(label, labelWidth, 0, false);
 	}
 
 	// 新版
-	public JComboBoxPanel(String s, int labelWidth, int comboboxWidth, boolean horizontal) {
+	public JComboBoxPanel(String label, int labelWidth, int comboboxWidth, boolean horizontal) {
+
 		super();
-		makeComboBoxPanel(s, labelWidth, horizontal);
-	}
-	
-	private void makeComboBoxPanel(String s, int labelWidth, boolean horizontal) {
+		
+		jcombobox = new JComboBoxWithPopup();
+		jlabel = new JLabel(label);
 		
 		SpringLayout layout = new SpringLayout();
 		setLayout(layout);
 		
-		jlabel = new JLabel(s);
-		jcombobox = new JComboBoxWithPopup();
-
 		this.add(jlabel);
 		this.add(jcombobox);
 		
@@ -150,6 +147,10 @@ public class JComboBoxPanel extends JPanel implements ItemSelectable,WideCompone
 	
 	public void removeActionListener(ActionListener l) {
 		this.jcombobox.removeActionListener(l);
+	}
+	
+	public void setLabelForeground(Color c) {
+		this.jlabel.setForeground(c);
 	}
 	
 	// オーバーライド

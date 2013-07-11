@@ -513,63 +513,41 @@ abstract class AbsKeywordDialog extends JDialog {
 			}
 			//
 			TargetId target = (TargetId) jComboBox_target.getSelectedItem();
-			if (target == TargetId.NEW || target == TargetId.LAST || target == TargetId.REPEAT || target == TargetId.FIRST || target == TargetId.REPEAT || target == TargetId.NOSCRUMBLE) {
-				jComboBox_regex.setEnabled(false);
-				jComboBox_regex.setEditable(false);
-				jComboBox_regex.removeAllItems();
-				jComboBox_regex.addItem("");
-			}
-			else if (target == TargetId.LENGTH) {
-				jComboBox_regex.removeAllItems();
-				jComboBox_regex.setEnabled(true);
-				jComboBox_regex.setEditable(false);
+			
+			jComboBox_regex.setEditable(target.getUseRegexpr());
+			jComboBox_regex.setEnabled(target.getUseKeyword());
+			jComboBox_regex.removeAllItems();
+
+			if (target == TargetId.LENGTH) {
 				for (int i=1; i <= 120; i++) {
 					jComboBox_regex.addItem(i+" 分以上である");
 				}
 				jComboBox_regex.setSelectedIndex(29);
 			}
 			else if (target == TargetId.STARTA) {
-				jComboBox_regex.removeAllItems();
-				jComboBox_regex.setEnabled(true);
-				jComboBox_regex.setEditable(false);
 				for (int i=0; i < 24; i++) {
 					jComboBox_regex.addItem(String.format("%02d:00以降である", (i+5)%24));
 				}
 				jComboBox_regex.setSelectedIndex(18-5);
 			}
 			else if (target == TargetId.STARTZ) {
-				jComboBox_regex.removeAllItems();
-				jComboBox_regex.setEnabled(true);
-				jComboBox_regex.setEditable(false);
 				for (int i=0; i < 24; i++) {
 					jComboBox_regex.addItem(String.format("%02d:00以前である", (i+5)%24));
 				}
 				jComboBox_regex.setSelectedIndex(23-5);
 			}
 			else if (target == TargetId.GENRE) {
-				jComboBox_regex.removeAllItems();
-				jComboBox_regex.setEnabled(true);
-				jComboBox_regex.setEditable(false);
 				for ( ProgGenre genre : ProgGenre.values()) {
 					jComboBox_regex.addItem(genre.toString());
 				}
 			}
 			else if (target == TargetId.SUBGENRE) {
-				jComboBox_regex.removeAllItems();
-				jComboBox_regex.setEnabled(true);
-				jComboBox_regex.setEditable(false);
 				for ( ProgSubgenre subgenre : ProgSubgenre.values()) {
 					jComboBox_regex.addItem(subgenre.toString());
 				}
 			}
 			else {
-				// 番組名・番組詳細・放送局・開始日時
-				jComboBox_regex.setEnabled(true);
-				jComboBox_regex.setEditable(true);
-				if (jComboBox_regex.getItemCount() > 1) {
-					jComboBox_regex.removeAllItems();
-					jComboBox_regex.addItem("");
-				}
+				jComboBox_regex.addItem("");
 			}
 		}
 	};
@@ -1069,6 +1047,7 @@ abstract class AbsKeywordDialog extends JDialog {
 		add_target_item(TargetId.LIVE);
 		add_target_item(TargetId.BILINGUAL);
 		add_target_item(TargetId.STANDIN);
+		add_target_item(TargetId.MULTIVOICE);
 		add_target_item(TargetId.LENGTH);
 		add_target_item(TargetId.STARTA);
 		add_target_item(TargetId.STARTZ);

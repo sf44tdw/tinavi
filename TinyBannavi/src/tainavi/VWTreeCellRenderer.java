@@ -15,6 +15,7 @@ public class VWTreeCellRenderer extends DefaultTreeCellRenderer {
 	public Component getTreeCellRendererComponent(JTree tree, Object value,
 			boolean selected, boolean expanded, boolean leaf, int row,
 			boolean hasFocus) {
+		
 		Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 		// 'instanceof'は使っていいものやらわるいものやら
 		if ( value instanceof VWListedTreeNode ) {
@@ -23,7 +24,7 @@ public class VWTreeCellRenderer extends DefaultTreeCellRenderer {
 			}
 		}
 		else {
-			System.err.println("[error] VWListedTreeNode じゃないよ. "+((DefaultMutableTreeNode)value).toString());
+			//System.err.println("[error] VWListedTreeNode じゃないよ. "+((DefaultMutableTreeNode)value).toString());
 		}
 		return c;
 	}

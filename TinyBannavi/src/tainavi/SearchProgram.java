@@ -391,6 +391,14 @@ public class SearchProgram {
 					}
 				}
 				break;
+			case MULTIVOICE:
+				for (ProgOption o : tvd.getOption()) {
+					if (o == ProgOption.MULTIVOICE) {
+						isCurMatch = true;
+						break;
+					}
+				}
+				break;
 			case STANDIN:
 				for (ProgOption o : tvd.getOption()) {
 					if (o == ProgOption.STANDIN) {

@@ -25,7 +25,7 @@ public class SearchKey {
 		LAST			("6",	false,	false,	"最終回"),
 		REPEAT			("7",	false,	false,	"再放送"),
 		FIRST			("8",	false,	false,	"初回放送"),
-		LENGTH			("9",	false,	false,	"番組長が"),
+		LENGTH			("9",	false,	true,	"番組長が"),
 		STARTA			("10",	false,	true,	"開始時刻(上限)が"),
 		STARTZ			("11",	false,	true,	"開始時刻(下限)が"),
 		SPECIAL			("12",	false,	false,	"特番"),
@@ -36,6 +36,7 @@ public class SearchKey {
 		BILINGUAL		("17",	false,	false,	"二か国語放送"),
 		STANDIN			("18",	false,	false,	"吹替放送"),
 		RATING			("19",	false,	false,	"視聴制限"),
+		MULTIVOICE		("20",	false,	false,	"副音声/コメンタリ"),
 		;
 		
 		private String id;

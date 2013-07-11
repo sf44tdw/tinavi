@@ -773,6 +773,10 @@ public class RecSettingEditorPanel extends JPanel {
 				return;
 			}
 
+			jCBXPanel_msChapter.setLabelForeground(Color.BLACK);
+			jCBXPanel_mvChapter.setLabelForeground(Color.BLACK);
+			jCBXPanel_pursues.setEnabled(true);
+			
 			String pgtype = (String) jCBXPanel_audiorate.getSelectedItem();
 			if ( pgtype == HDDRecorder.ITEM_REC_TYPE_PROG ) {
 				// "ﾌﾟﾗｸﾞﾗﾑ予約"なら触る必要なし
@@ -780,7 +784,24 @@ public class RecSettingEditorPanel extends JPanel {
 				jCBXPanel_pursues.setEnabled(false);
 			}
 			else {
-				jCBXPanel_pursues.setEnabled(true);
+				if ( pgtype == HDDRecorder.ITEM_REC_TYPE_EPG ) {
+					try {
+						if ( Integer.valueOf((String) jCBXPanel_msChapter.getSelectedItem()) <= 0 ) {
+							jCBXPanel_msChapter.setLabelForeground(Color.RED);
+						}
+					}
+					catch (NumberFormatException ev) {
+						//
+					}
+					try {
+						if ( Integer.valueOf((String) jCBXPanel_mvChapter.getSelectedItem()) <= 0 ) {
+							jCBXPanel_mvChapter.setLabelForeground(Color.RED);
+						}
+					}
+					catch (NumberFormatException ev) {
+						//
+					}
+				}
 			}
 		}
 	};
