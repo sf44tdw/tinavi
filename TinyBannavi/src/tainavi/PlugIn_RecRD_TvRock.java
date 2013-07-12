@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,6 +92,9 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 	private final String ERRID = "[ERROR]"+MSGID;
 	private final String DBGID = "[DEBUG]"+MSGID;
 
+	// 録画結果一覧の特殊日付
+	private static final String RECORDED_SPDATE = CommonUtils.getDate(CommonUtils.getCalendar("1970/01/01"));
+	
 	// 定数ではない
 	private int retryMax = 3;
 
@@ -957,16 +961,30 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 	
 	private boolean GetRdRecordedList(ArrayList<RecordedInfo> newRecordedList) {
 		
+		String cutDate = CommonUtils.getDate(CommonUtils.getCalendar(-86400*getRecordedSaveScope()));
 		String critDate = null;
 		if ( newRecordedList.size() > 0 ) {
 			// 最新の情報の前日分までチェックする
 			GregorianCalendar cal = CommonUtils.getCalendar(newRecordedList.get(0).getDate());
 			cal.add(Calendar.DATE, -1);
 			critDate = CommonUtils.getDate(cal);
+			
+			// 期限切れの情報のカット
+			ArrayList<RecordedInfo> removeList = new ArrayList<RecordedInfo>();
+			int index=0;
+			for ( ; index < newRecordedList.size(); index++ ) {
+				RecordedInfo entry = newRecordedList.get(index);
+				if ( ! entry.getDate().equals(RECORDED_SPDATE) && entry.getDate().compareTo(cutDate) < 0 ) {
+					removeList.add(entry);
+				}
+			}
+			for ( RecordedInfo entry : removeList ) {
+				newRecordedList.remove(entry);
+			}
 		}
 		else {
 			// 既存情報が無ければ上限まで
-			critDate = CommonUtils.getDate(CommonUtils.getCalendar(-86400*getRecordedSaveScope()));
+			critDate = cutDate;
 		}
 		
 		//　RDから予約一覧を取り出す
@@ -983,9 +1001,9 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 		}
 		
 		String[] list = response.split("\n");
-		String other_messages = "";
 		
 		HashMap<String,RecordedInfo> results = new HashMap<String,RecordedInfo>();
+		ArrayList<RecordedInfo> other_messages_buf = new ArrayList<RecordedInfo>();
 		
 		for ( int n=list.length-1; n>=0; n--) {
 			if ( list[n].matches(".*(TvRockの(起動|終了)|システム休止|(休止|スタンバイ)[のを]キャンセル|番組情報の取得).*") ) {
@@ -1070,9 +1088,9 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 					Matcher mb = Pattern.compile("Sig=(\\d+\\.\\d+),.*, Drop=(\\d+),.*, DiskFree=(\\d+\\.\\d+)\\%",Pattern.DOTALL).matcher(message);
 					if ( mb.find() ) {
 						entry.setSig_z(Float.valueOf(mb.group(1)));
-						entry.setDrop(Integer.valueOf(mb.group(2)));	// リストに追加するときに調整してください
+						entry.setDrop(Integer.valueOf(mb.group(2)));			// リストに追加するときに調整してください
 						entry.setResult(String.format("DiskFree=%s%% Sig=%.2f-%.2fdb",mb.group(3),entry.getSig_a(),entry.getSig_z()));
-						entry.setSucceeded(Float.valueOf(mb.group(3))>0.1F);
+						entry.setSucceeded(Float.valueOf(mb.group(3))>0.1F);	// 録画終了時にディスクの空き容量が0.1%(3000GBで3GB)を切っていたら録画失敗じゃないかと
 					}
 					
 					entry.setDetail(entry.getDetail().replaceFirst("#録画終了#", list[n]));
@@ -1115,25 +1133,54 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			ma = Pattern.compile("\\[(\\d\\d/\\d\\d/\\d\\d) (\\d\\d):(\\d\\d):.+?\\]:(.*)$",Pattern.DOTALL).matcher(list[n]);
 			if ( ma.find() ) {
 				
-				String title = "";
-				String message = "";
-				Matcher mb = Pattern.compile("番組「(.*?)」の(予約は実行されませんでした)",Pattern.DOTALL).matcher(ma.group(4));
-				if ( mb.find() ) {
-					title = mb.group(1);
-					message = mb.group(2);
-				}
-				else if ( (mb = Pattern.compile("ターゲットアプリケーションの異常終了コードを検出しました",Pattern.DOTALL).matcher(ma.group(4))) != null && mb.find() ) {
-					title = "＜＜＜エラーメッセージ＞＞＞";
-					message = ma.group(4);
-				}
-				else {
-					other_messages += list[n]+"\n";
-					continue;
-				}
-				
+				// 日付時刻
 				String date = "20"+ma.group(1);
 				String hh = ma.group(2);
 				String mm = ma.group(3);
+				
+				String title = "";
+				String message = "";
+				Matcher mb; 
+				if ( (mb = Pattern.compile("ターゲットアプリケーションの異常終了コードを検出しました",Pattern.DOTALL).matcher(ma.group(4))) != null && mb.find() ) {
+					title = "＜＜＜エラーメッセージ＞＞＞";
+					message = ma.group(4);
+				}
+				else if ( (mb = Pattern.compile("番組「(.*?)」の(予約は実行されませんでした)",Pattern.DOTALL).matcher(ma.group(4))) != null && mb.find() ) {
+					title = mb.group(1);
+					message = mb.group(2);
+				}
+				else {
+					RecordedInfo e = new RecordedInfo();
+					e.setDate(date);
+					e.setAhh(hh);
+					e.setAmm(mm);
+					if ( (mb = Pattern.compile("番組「(.*?)」の(?:開始|終了)時間を(?:\\d+?)分(?:\\d+?)秒調整しました",Pattern.DOTALL).matcher(ma.group(4))) != null && mb.find() ) {
+						e.setSucceeded(true);
+						e.setTitle(mb.group(1));	// 変更された番組のタイトル
+						e.setDetail(null);
+						e.setResult(list[n]);
+						other_messages_buf.add(e);
+						continue;
+					}
+					else if ( (mb = Pattern.compile("番組「(.*?)」のタイトルを「(.*?)」へ調整しました",Pattern.DOTALL).matcher(ma.group(4))) != null && mb.find() ) {
+						e.setSucceeded(true);
+						e.setTitle(mb.group(1));	// 変更前のタイトル
+						e.setDetail(mb.group(2));	// 変更後のタイトル
+						e.setResult(list[n]);
+						other_messages_buf.add(e);
+						continue;
+					}
+					else {
+						e.setSucceeded(false);
+						e.setTitle(null);
+						e.setDetail(null);
+						e.setResult(list[n]);
+						other_messages_buf.add(e);
+						continue;
+					}
+				}
+				
+				// 新規のエントリを追加する
 				
 				RecordedInfo entry = new RecordedInfo();
 					
@@ -1152,16 +1199,15 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 				
 				entry.setChannel(null);
 				entry.setCh_name("TvRockでは取得できません");
+				entry.setCh_orig(entry.getCh_name());
 				
 				entry.setResult(message);
 				
 				entry.setSucceeded(false);
 				
 				if (entry.getDate().compareTo(critDate) >= 0) addRecorded(newRecordedList, entry);
-			
 				continue;
 			}
-		
 		}
 		
 		for ( RecordedInfo entry : results.values() ) {
@@ -1169,12 +1215,68 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 				if (entry.getDate().compareTo(critDate) >= 0) addRecorded(newRecordedList,entry);
 			}
 		}
+		
+		// その他のメッセージの整理
+		String other_messages = "";
+		for ( RecordedInfo e : other_messages_buf ) {
+			if ( ! e.getSucceeded() ) {
+				other_messages += e.getResult()+"\n";
+				continue;
+			}
+			
+			GregorianCalendar cea = CommonUtils.getCalendar(e.getDate()+" "+e.getAhh()+":"+e.getAmm());
+			for ( RecordedInfo f : newRecordedList ) {
+				GregorianCalendar cfz = CommonUtils.getCalendar(f.getDate()+" "+f.getAhh()+":"+f.getAmm());
+				cfz.add(Calendar.MINUTE, f.getLength());
+				Long dz = CommonUtils.getCompareDateTime(cea, cfz);
+				if ( (dz<=0L && dz>-86400000L*7L) &&
+						(f.getTitle().equals(e.getTitle()) || (e.getDetail()!=null && f.getTitle().equals(e.getDetail()))) ) {
+					f.setDetail(f.getDetail()+e.getResult()+"\n");
+					cea = null;
+					break;
+				}
+			}
+			if ( cea != null ) {
+				other_messages += e.getResult()+"\n";
+			}
+		}
 
 		// その他のログ
 		if ( other_messages.length() > 0 ) {
+			// 古いその他ログの削除
+			for ( int index=newRecordedList.size()-1; index>=0; index-- ) {
+				if ( ! RECORDED_SPDATE.equals(newRecordedList.get(index).getDate()) ) {
+					break;
+				}
+				
+				newRecordedList.remove(index);
+			}
+			/* - 新旧ログの重複チェックをしなくてはいけないので保留
+			String old_other_messages = "";
+			String messages_tmp = null;
+			for ( int index=newRecordedList.size()-1; index>=0; index-- ) {
+				if ( ! RECORDED_SPDATE.equals(newRecordedList.get(index).getDate()) ) {
+					break;
+				}
+				
+				messages_tmp = newRecordedList.remove(index).getDetail();
+			}
+			if ( messages_tmp != null ) {
+				String dt = critDate.substring(2,9);
+				String[] a = messages_tmp.split("\n");
+				
+				for ( String m : a ) {
+					String mdt = m.substring(1,8);
+					if ( mdt.compareTo(dt) >= 0 ) {
+						old_other_messages += m+"\n";
+					}
+				}
+			}
+			*/
+			
 			RecordedInfo entry = new RecordedInfo();
 			
-			entry.setDate(CommonUtils.getDate(CommonUtils.getCalendar("1970/01/01")));
+			entry.setDate(RECORDED_SPDATE);
 			entry.setAhh("00");
 			entry.setAmm("00");
 			entry.setZhh("00");
@@ -1187,14 +1289,12 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			
 			entry.setChannel(null);
 			entry.setCh_name("TvRockでは取得できません");
+			entry.setCh_orig(entry.getCh_name());
 			
 			entry.setResult("その他のメッセージ");
 			
 			entry.setSucceeded(false);
 
-			if ( newRecordedList.get(newRecordedList.size()-1).getTitle().equals("＜＜＜その他のメッセージ＞＞＞") ) {
-				newRecordedList.remove(newRecordedList.size()-1);
-			}
 			newRecordedList.add(entry);
 		}
 
