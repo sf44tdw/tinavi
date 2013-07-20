@@ -1,5 +1,6 @@
 package tainavi;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -101,9 +102,9 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	protected abstract boolean isTabSelected(MWinTab tab);
 	// 部品
 	protected abstract boolean addKeywordSearch(SearchKey search);
-	protected abstract boolean reLoadTVProgram(LoadFor lf);
+	protected abstract boolean doLoadTVProgram(String selected);
 	
-	protected abstract boolean doLoadRdRecorder(LoadRsvedFor lrf);
+	protected abstract boolean doLoadRdRecorder(String selected);
 
 	/*******************************************************************************
 	 * 呼び出し元から引き継いだもの
@@ -646,11 +647,50 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 
 		jComboBox_select_recorder.addItemListener(il_recorderSelected);
 	}
+	
+	/**
+	 * 
+	 */
+	public boolean updateReloadReservedExtension() {
+		
+		// 消して
+		jPopupMenu_reloadrsvedmenu.removeAll();
+		
+		// 追加する（毎回無視設定のメニューは赤で強調）
+		for ( LoadRsvedFor lrf : LoadRsvedFor.values() ) {
+			JMenuItem menuItem = new JMenuItem(lrf.getName());
+			switch ( lrf ) {
+			case DETAILS:
+				if ( env.getForceLoadReserveDetails() == 2 ) {
+					menuItem.setForeground(Color.RED);
+				}
+				break;
+			case AUTORESERVE:
+				if ( env.getForceLoadAutoReserves() == 2 ) {
+					menuItem.setForeground(Color.RED);
+				}
+				break;
+			case RECORDED:
+				if ( env.getForceLoadRecorded() == 2 ) {
+					menuItem.setForeground(Color.RED);
+				}
+				break;
+			default:
+				break;
+			}
+			
+			jPopupMenu_reloadrsvedmenu.add(menuItem);
+			
+			menuItem.addActionListener(al_reloadReservedIndividual);
+		}
+		
+		return true;
+	}
 
 	/**
 	 * 
 	 */
-	public boolean updateReloadProgramExtention() {
+	public boolean updateReloadProgramExtension() {
 		
 		// 消して
 		jPopupMenu_reloadprogmenu.removeAll();
@@ -820,12 +860,12 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	private final MouseListener ml_reloadProgram = new MouseAdapter() {
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			reLoadTVProgram(LoadFor.ALL);
+			doLoadTVProgram(null);
 		}
 	};
 	
 	// 番組表の再取得の拡張メニュー
-	private final MouseAdapter ma_reloadProgramExtention = new MouseAdapter() {
+	private final MouseAdapter ma_reloadProgramExtension = new MouseAdapter() {
 		@Override
 		public void mousePressed(MouseEvent e) {
 			jPopupMenu_reloadprogmenu.show(jButton_reloadprogs,0,jButton_reloadprogs.getHeight());
@@ -836,22 +876,9 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	private final ActionListener al_reloadProgramIndividual = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			String selected = ((JMenuItem)e.getSource()).getText();
-			LoadFor lf = LoadFor.get(selected);
-			switch (lf) {
-			case CSwSD: 
-				if ( env.isShutdownEnabled() ) {
-					reLoadTVProgram(LoadFor.CS);
-					CommonUtils.executeCommand(env.getShutdownCmd());
-				}
-				else {
-					JOptionPane.showMessageDialog(parent, "シャットダウンコマンドが利用できません");
-				}
-				break;
-			default:
-				reLoadTVProgram(lf);
-				break;
-			}
+			
+			doLoadTVProgram(((JMenuItem)e.getSource()).getText());
+			
 		}
 	};
 	
@@ -908,14 +935,14 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			
-			doLoadRdRecorder(LoadRsvedFor.get(((JMenuItem)e.getSource()).getText()));
+			doLoadRdRecorder(((JMenuItem)e.getSource()).getText());
 			
 			fireHDDRecorderChanged();		// 各タブへの反映
 		}
 	};
 
 	// 番組表の再取得の拡張メニュー
-	private final MouseAdapter ma_reloadReservedExtention = new MouseAdapter() {
+	private final MouseAdapter ma_reloadReservedExtension = new MouseAdapter() {
 		@Override
 		public void mousePressed(MouseEvent e) {
 			jPopupMenu_reloadrsvedmenu.show(jButton_reloadrsved,0,jButton_reloadrsved.getHeight());
@@ -1197,11 +1224,11 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 			jPopupMenu_reloadprogmenu = new JPopupMenu();
 
 			// アイテムの登録
-			updateReloadProgramExtention();
+			updateReloadProgramExtension();
 			
 			ImageIcon arrow = new ImageIcon(ICONFILE_PULLDOWNMENU);
 			jButton_reloadprogmenu = new JButton(arrow);
-			jButton_reloadprogmenu.addMouseListener(ma_reloadProgramExtention);
+			jButton_reloadprogmenu.addMouseListener(ma_reloadProgramExtension);
 		}
 		return jButton_reloadprogmenu;
 	}
@@ -1260,18 +1287,11 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 			jPopupMenu_reloadrsvedmenu = new JPopupMenu();
 
 			// アイテムの登録
-			{
-				for ( LoadRsvedFor lrf : LoadRsvedFor.values() ) {
-					JMenuItem menuItem = new JMenuItem(lrf.getName());
-					jPopupMenu_reloadrsvedmenu.add(menuItem);
-					
-					menuItem.addActionListener(al_reloadReservedIndividual);
-				}
-			}
+			updateReloadReservedExtension();
 			
 			ImageIcon arrow = new ImageIcon(ICONFILE_PULLDOWNMENU);
 			jButton_reloadrsvedmenu = new JButton(arrow);
-			jButton_reloadrsvedmenu.addMouseListener(ma_reloadReservedExtention);
+			jButton_reloadrsvedmenu.addMouseListener(ma_reloadReservedExtension);
 		}
 		return jButton_reloadrsvedmenu;
 	}

@@ -449,6 +449,11 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			MWin.appendMessage(MSGID+"画質・音質の自動設定候補がありません： "+recId+" & "+selected_key);
 		}
 		
+		// TvRockではコンピュータ名は指定しない
+		if ( "TvRock".equals(recId) ) {
+			myavs.setLvoice(null);
+		}
+		
 		return myavs;
 	}
 	
@@ -482,6 +487,11 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		r.setRec_autodel(getDefaultText(recorder, recorder.getAutodel()));
 		
 		r.setExec(true);
+		
+		// TvRockではコンピュータ名は指定しない
+		if ( "TvRock".equals(recorder.getRecorderId()) ) {
+			r.setRec_lvoice(null);
+		}
 		
 		return r;
 	}

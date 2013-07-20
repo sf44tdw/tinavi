@@ -200,6 +200,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 	 */
 	public static enum LoadRsvedFor {
 //		SETTING		( "設定情報のみ取得(future use.)" ),
+		DETAILS		( "予約一覧＋録画詳細のみ取得" ),
 		RECORDED	( "録画結果一覧のみ取得" ),
 		AUTORESERVE	( "自動予約一覧のみ取得" ),
 		;
@@ -837,88 +838,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			//listed.pauseTimer();
 			timer_now.pause();
 			
-			bounds.save();
-			cbitems.save();
-			env.save();
-
-			// CommonUtilsの設定変更
-			CommonUtils.setAdjLateNight(env.getAdjLateNight());
-			CommonUtils.setExpandTo8(env.getExpandTo8());
-			CommonUtils.setUseRundll32(env.getUseRundll32());
-			CommonUtils.setDisplayPassedReserve(env.getDisplayPassedReserve());
-			CommonUtils.setDebug(env.getDebug());
+			Viewer.this.setEnv(reload_prog);
 			
-			SwingBackgroundWorker.setDebug(env.getDebug());
-
-			// ほにゃらら
-			toolBar.setDebug(env.getDebug());
-			autores.setDebug(env.getDebug());
-
-			// PassedProgramListの設定変更
-			tvprograms.getPassed().setPassedDir(env.getPassedDir());
-
-			// レコーダプラグインの設定変更
-			for ( HDDRecorder rec : recorders ) {
-				// 拡張設定だけ
-				setSettingRecPluginExt(rec, env);
-			}
-
-			// Web番組表共通設定
-			setSettingProgPluginCommon(env);
-			
-			// web番組表のリフレッシュ
-			setSettingProgPluginAll(env);
-			
-			// リロードメニューの書き換え
-			toolBar.updateReloadProgramExtention();
-			
-			// ページャーコンボボックスの書き換え
-			toolBar.setPagerItems();
-			
-			// 列の表示・非表示
-			listed.setMarkColumnVisible(env.getSplitMarkAndTitle());
-			listed.setDetailColumnVisible(env.getShowDetailOnList());
-			listed.setRowHeaderVisible(env.getRowHeaderVisible());
-			reserved.setRowHeaderVisible(env.getRowHeaderVisible());
-			
-			// 強調色
-			listed.setMatchedKeywordColor(env.getMatchedKeywordColor());
-			listed.setRsvdLineColor((env.getRsvdLineEnhance())?(env.getRsvdLineColor()):(null));
-			listed.setPickedLineColor((env.getRsvdLineEnhance())?(env.getPickedLineColor()):(null));
-			listed.setCurrentLineColor((env.getCurrentLineEnhance())?(env.getCurrentLineColor()):(null));
-			
-			// システムトレイアイコン
-			setTrayIconVisible(env.getShowSysTray());
-			setXButtonAction(env.getShowSysTray() && env.getHideToTray());
-			
-			// 新聞形式のツールチップの表示時間を変更する
-			setTooltipDelay();
-			
-			// Web番組表の再構築
-			mpList.setHistoryOnlyUpdateOnce(env.getHistoryOnlyUpdateOnce());
-			mpList.setShowOnlyNonrepeated(env.getShowOnlyNonrepeated());
-			
-			// 番組情報の再取得
-			if ( reload_prog ) {
-				loadTVProgram(false,LoadFor.ALL);	// 部品呼び出し
-			}
-			
-			// 新聞描画枠のリセット
-			paper.clearPanel();
-			paper.buildMainViewByDate();
-			
-			// 再度ツリーの再構築
-			paper.redrawTreeByDate();
-			paper.redrawTreeByPassed();
-			
-			listed.redrawTreeByHistory();
-			listed.redrawTreeByCenter();
-			
-			// 再描画
-			paper.reselectTree();
-			listed.reselectTree();
-
-			//listed.continueTimer();	// まあreselectTree()で再開しているはずだが
 			timer_now.start();
 		}
 	}
@@ -1449,52 +1370,9 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			
 			timer_now.pause();
 			
-			try {
-				String fname;
-				if ( mainWindow.isTabSelected(MWinTab.LISTED) ) {
-					fname = String.format("snapshot.%s",env.getSnapshotFmt().getExtension());
-					CommonSwingUtils.saveComponentAsJPEG(listed.getCurrentView(), listed.getTableHeader(), null, listed.getTableBody(), fname, env.getSnapshotFmt(), Viewer.this);
-				}
-				else if ( mainWindow.isTabSelected(MWinTab.PAPER) ){
-					if ( env.getDrawcacheEnable() || ! env.isPagerEnabled() ) {
-						fname = String.format("snapshot.%s",env.getSnapshotFmt().getExtension());
-					}
-					else {
-						int pcur = getSelectedPagerIndex();
-						int pmax = getPagerCount();
-						if ( env.getAllPageSnapshot() ) {
-							for ( int i=0; i<pmax; i++ ) {
-								if ( i != pcur ) {
-									setSelectedPagerIndex(i);
-									fname = String.format("snapshot%02d.%s",i+1,env.getSnapshotFmt().getExtension());
-									CommonSwingUtils.saveComponentAsJPEG(paper.getCurrentView(), paper.getCenterPane(), paper.getTimebarPane(), paper.getCurrentPane(), fname, env.getSnapshotFmt(), Viewer.this);
-								}
-							}
-						}
-						fname = String.format("snapshot%02d.%s",pcur+1,env.getSnapshotFmt().getExtension());
-						setSelectedPagerIndex(pcur);
-					}
-					CommonSwingUtils.saveComponentAsJPEG(paper.getCurrentView(), paper.getCenterPane(), paper.getTimebarPane(), paper.getCurrentPane(), fname, env.getSnapshotFmt(), Viewer.this);
-				}
-				else {
-					return; // おかしーよ
-				}
-				Desktop desktop = Desktop.getDesktop();
-				if (env.getPrintSnapshot()) {
-					desktop.print(new File(fname));
-				}
-				else {
-					String emsg = CommonUtils.openFile(fname);
-					if (emsg != null) {
-						mwin.appendError(emsg);
-					}
-				}
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			finally {
-				timer_now.start();
-			}
+			Viewer.this.getSnapshot(getSelectedPagerIndex(),getPagerCount());
+			
+			timer_now.start();
 		}
 
 		@Override
@@ -1545,24 +1423,34 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		}
 
 		@Override
-		protected boolean reLoadTVProgram(LoadFor lf) {
+		protected boolean doLoadTVProgram(String selected) {
 			timer_now.pause();
-			boolean b = Viewer.this.reLoadTVProgram(lf);
+			
+			LoadFor lf = (selected != null) ? LoadFor.get(selected) : LoadFor.ALL;
+			boolean b = Viewer.this.doLoadTVProgram(true, lf);
+			
+			if ( b && lf == LoadFor.CSwSD ) {
+				// ロード後シャットダウン
+				CommonUtils.executeCommand(env.getShutdownCmd());
+			}
+
+			Viewer.this.doRedrawTVProgram();	// か き な お し
+
 			timer_now.start();
 			return b;
 		}
 
 		@Override
-		protected boolean doLoadRdRecorder(LoadRsvedFor lrf) {
+		protected boolean doLoadRdRecorder(String selected) {
 			timer_now.pause();
 			
-			boolean b = Viewer.this.doLoadRdRecorder(lrf);;
+			LoadRsvedFor lrf = (selected != null) ? LoadRsvedFor.get(selected) : null;
+			boolean b = Viewer.this.doLoadRdRecorder(lrf);
 			
 			timer_now.start();
 			return b;
 		}
 	}
-	
 	
 	/*******************************************************************************
 	 * ハンドラ―メソッド
@@ -1695,7 +1583,11 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			}
 			
 			JMenuItem menuItem = new JMenuItem(String.format("%s【%s %s - %s(%s)】",target,tvd.accurateDate,tvd.start,tvd.title,tvd.center));
-			menuItem.setForeground(new Color(0,127,0));
+			{
+				menuItem.setForeground(Color.BLUE);
+				Font f = menuItem.getFont();
+				menuItem.setFont(f.deriveFont(f.getStyle()|Font.BOLD));
+			}
 			
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -2613,13 +2505,9 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		return null;
 	}
 	
-	/*******************************************************************************
-	 * タイマー関連
-	 ******************************************************************************/
-	
 		
 	/*******************************************************************************
-	 * ここからおおむね初期化処理にかかわるメソッド群
+	 * レコーダの予約情報をDLする
 	 ******************************************************************************/
 	
 	/***************************************
@@ -2636,6 +2524,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		}
 		else {
 			switch (lrf) {
+			case DETAILS:
+				return doLoadRdReserveDetails();
 			case RECORDED:
 				return doLoadRdRecorded();
 			case AUTORESERVE:
@@ -2692,6 +2582,97 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		return true;
 	}
 	
+	
+	/**
+	 * 予約一覧＋予約詳細をＤＬする
+	 */
+	private boolean doLoadRdReserveDetails() {
+		
+		final String myself = getSelectedMySelf();
+		
+		//
+		StWinClear();
+		
+		new SwingBackgroundWorker(false) {
+			
+			@Override
+			protected Object doWorks() throws Exception {
+				
+				TatCount tc = new TatCount();
+			
+				boolean succeeded = true;
+				
+				HDDRecorderList recs;
+				if ( myself != null ) {
+					recs = recorders.findInstance(myself);
+				}
+				else {
+					recs = recorders;
+				}
+				for ( HDDRecorder recorder : recs ) {
+					
+					if ( ! recorder.isReserveListSupported() ) {
+						continue;
+					}
+					
+					// 各種設定の取得
+					if ( ! recorder.GetRdSettings(true) ) {
+						succeeded = false;
+						continue;
+					}
+					
+					// 予約一覧の取得
+					if ( ! recorder.GetRdReserve(true) ) {
+						succeeded = false;
+						continue;
+					}
+					
+					// レコーダから取得したエンコーダ情報で、登録済みレコーダ一覧を更新する
+					setEncoderInfo2RecorderList(recorder,true);
+					
+					// 予約詳細の取得
+					if ( recorder.isThereAdditionalDetails() ) {
+						if ( ! recorder.GetRdReserveDetails() ) {
+							succeeded = false;
+							continue;
+						}
+					}
+					
+					// レコーダの放送局名をWeb番組表の放送局名に置き換え
+					checkChNameIsRight(recorder);
+					
+					// 録画結果一覧を予約一覧に反映
+					if ( recorder.isRecordedListSupported() ) {
+						recorder.GetRdRecorded(false);
+					}
+				}
+				
+				if ( succeeded ) {
+					reserved.redrawReservedList();
+					recorded.redrawRecordedList();
+					
+					mwin.appendMessage(String.format("【予約詳細の取得処理が完了しました】 所要時間： %.2f秒",tc.end()));
+				}
+				else {
+					ringBeep();
+					mwin.appendMessage(String.format("【予約詳細の取得処理に失敗しました】 所要時間： %.2f秒",tc.end()));
+				}
+				return null;
+			}
+			
+			@Override
+			protected void doFinally() {
+				StWinSetVisible(false);
+			}
+		}.execute();
+		
+		StWinSetLocationCenter(this);
+		StWinSetVisible(true);
+		
+		return true;
+	}
+	
+	
 	/**
 	 * 録画結果一覧をＤＬする
 	 */
@@ -2709,7 +2690,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 				
 				TatCount tc = new TatCount();
 			
-				boolean succeeded = false;
+				boolean succeeded = true;
 				
 				HDDRecorderList recs;
 				if ( myself != null ) {
@@ -2720,11 +2701,12 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 				}
 				for ( HDDRecorder recorder : recs ) {
 					if ( ! recorder.isRecordedListSupported() ) {
+						succeeded = false;
 						continue;
 					}
 
-					if ( recorder.GetRdRecorded(true) ) {
-						succeeded = true;
+					if ( ! recorder.GetRdRecorded(true) ) {
+						succeeded = false;
 					}
 				}
 				
@@ -2753,6 +2735,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		return true;
 	}
 
+
 	/**
 	 * 録画結果一覧をＤＬする
 	 */
@@ -2770,7 +2753,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 				
 				TatCount tc = new TatCount();
 			
-				boolean succeeded = false;
+				boolean succeeded = true;
 				
 				HDDRecorderList recs;
 				if ( myself != null ) {
@@ -2781,11 +2764,12 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 				}
 				for ( HDDRecorder recorder : recs ) {
 					if ( ! recorder.isEditAutoReserveSupported() ) {
+						succeeded = false;
 						continue;
 					}
 					
-					if ( recorder.GetRdAutoReserve(true) ) {
-						succeeded = true;
+					if ( ! recorder.GetRdAutoReserve(true) ) {
+						succeeded = false;
 					}
 				}
 				
@@ -2854,15 +2838,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		boolean success = true;
 		
 		for ( HDDRecorder recorder : recs ) {
-			switch ( recorder.getType() ) {
-			case RECORDER:
-			case EPG:
-			case MAIL:
-			case NULL:
-			case TUNER:
+			if ( recorder.isReserveListSupported() ) {
 				success = success & _loadRdRecorder(recorder, force);
-			default:
-				break;
 			}
 		}
 		
@@ -3093,16 +3070,21 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		}
 	}
 	
+	/*******************************************************************************
+	 * Web番組表をDLする
+	 ******************************************************************************/
+	
 	/***************************************
-	 * Web番組表を取得する
+	 * ツールバートリガー（と、各種設定変更トリガー）による
 	 **************************************/
 	
 	/**
-	 * Web番組表をＤＬする
+	 * Web番組表をＤＬ→再描画まで
 	 * <P>単体実行の場合はこちらを呼び出す
 	 * <P>部品実行の場合はこちらを呼び出す：{@link #loadTVProgram(boolean, LoadFor)}
+	 * @see #doRedrawTVProgram()
 	 */
-	private boolean reLoadTVProgram(final LoadFor lf) {
+	private boolean doLoadTVProgram(final boolean force, final LoadFor lf) {
 		//
 		StWinClear();
 		
@@ -3113,18 +3095,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 				
 				TatCount tc = new TatCount();
 				
-				loadTVProgram(true, lf);
-				
-				// 新聞描画枠のリセット
-				paper.clearPanel();
-				paper.buildMainViewByDate();
-				
-				// サイドツリーの再構築
-				paper.redrawTreeByPassed();
-				
-				// 再描画
-				paper.reselectTree();
-				listed.reselectTree();
+				loadTVProgram(force, lf);
 				
 				mwin.appendMessage(String.format("[Web番組表取得] 【完了しました】 所要時間： %.2f秒",tc.end()));
 				return null;
@@ -3141,120 +3112,138 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		
 		return true;
 	}
+
+	/**
+	 * 
+	 * @see #doLoadTVProgram(boolean, LoadFor)
+	 */
+	private void doRedrawTVProgram() {
+		
+		// 新聞描画枠のリセット
+		paper.clearPanel();
+		paper.buildMainViewByDate();
+		
+		// サイドツリーの再構築
+		paper.redrawTreeByDate();
+		paper.redrawTreeByPassed();
+		
+		listed.redrawTreeByHistory();
+		listed.redrawTreeByCenter();
+		
+		// 再描画
+		paper.reselectTree();
+		listed.reselectTree();
+	}
+	
+	/***************************************
+	 * 自クラス内呼び出しによる
+	 **************************************/
 	
 	/**
 	 * Web番組表をＤＬする
-	 * <P>単体実行の場合はこちらを呼び出す：{@link #reLoadTVProgram(LoadFor)}
+	 * <P>単体実行の場合はこちらを呼び出す：{@link #doLoadTVProgram(LoadFor)}
 	 * <P>部品実行の場合はこちらを呼び出す
 	 */
-	private void loadTVProgram(final boolean b, final LoadFor lf) {
+	private boolean loadTVProgram(final boolean force, final LoadFor lf) {
 		
 		final String FUNCID = "[Web番組表取得] ";
 		final String ERRID = "[ERROR]"+FUNCID;
-		//
-		new SwingBackgroundWorker(true) {
+		
+		try {
+			String msg;
+			TVProgram tvp;
 			
-			@Override
-			protected Object doWorks() throws Exception {
-				try {
-					String msg;
-					TVProgram tvp;
-					
-					tvp = tvprograms.getTvProgPlugin(null);
-					if ( tvp != null )
-					{
-						String sType = "地上波＆ＢＳ番組表";
-						if (lf == LoadFor.ALL || lf == LoadFor.TERRA) {
-							loadTVProgramOnce(tvp, sType, tvp.getSelectedArea(), false, b);
-						}
-						else {
-							stwin.appendMessage(FUNCID+sType+"へのアクセスはスキップされました: "+tvp.getTVProgramId());
-						}
-					}
-					
-					tvp = tvprograms.getCsProgPlugin(null);
-					if ( tvp != null )
-					{
-						String sType = "ＣＳ番組表[プライマリ]";
-						if (lf == LoadFor.ALL || lf == LoadFor.CS || lf == LoadFor.CSo1) {
-							loadTVProgramOnce(tvp, sType, tvp.getSelectedArea(), false, b);
-						}
-						else {
-							stwin.appendMessage(FUNCID+sType+"へのアクセスはスキップされました: "+tvp.getTVProgramId());
-						}
-					}
-					
-					tvp = tvprograms.getCs2ProgPlugin(null);
-					if ( tvp != null )
-					{
-						String sType = "ＣＳ番組表[セカンダリ]";
-						if (lf == LoadFor.ALL || lf == LoadFor.CS || lf == LoadFor.CSo2) {
-							loadTVProgramOnce(tvp, sType, tvp.getSelectedArea(), false, b);
-						}
-						else {
-							stwin.appendMessage(FUNCID+sType+"へのアクセスはスキップされました: "+tvp.getTVProgramId());
-						}
-					}
-					
-					tvp = tvprograms.getSyobo();
-					if ( tvp != null ) {
-						String sType = "しょぼかる";
-						if ( (lf == LoadFor.ALL || lf == LoadFor.SYOBO) && enableWebAccess && env.getUseSyobocal()) {
-							tvp.loadCenter(tvp.getSelectedCode(), b);	// しょぼかるには放送局リストを取得するイベントが他にないので
-							loadTVProgramOnce(tvp, sType, null, true, b);
-						}
-						else {
-							stwin.appendMessage(FUNCID+sType+"へのアクセスはスキップされました.");
-						}
-						
-						// しょぼかるの新番組マークを引き継ぐ
-						attachSyoboNew();
-					}
+			tvp = tvprograms.getTvProgPlugin(null);
+			if ( tvp != null )
+			{
+				String sType = "地上波＆ＢＳ番組表";
+				if (lf == LoadFor.ALL || lf == LoadFor.TERRA) {
+					loadTVProgramOnce(tvp, sType, tvp.getSelectedArea(), false, force);
+				}
+				else {
+					stwin.appendMessage(FUNCID+sType+"へのアクセスはスキップされました: "+tvp.getTVProgramId());
+				}
+			}
+			
+			tvp = tvprograms.getCsProgPlugin(null);
+			if ( tvp != null )
+			{
+				String sType = "ＣＳ番組表[プライマリ]";
+				if (lf == LoadFor.ALL || lf == LoadFor.CS || lf == LoadFor.CSo1 || lf == LoadFor.CSwSD) {
+					loadTVProgramOnce(tvp, sType, tvp.getSelectedArea(), false, force);
+				}
+				else {
+					stwin.appendMessage(FUNCID+sType+"へのアクセスはスキップされました: "+tvp.getTVProgramId());
+				}
+			}
+			
+			tvp = tvprograms.getCs2ProgPlugin(null);
+			if ( tvp != null )
+			{
+				String sType = "ＣＳ番組表[セカンダリ]";
+				if (lf == LoadFor.ALL || lf == LoadFor.CS || lf == LoadFor.CSo2 || lf == LoadFor.CSwSD) {
+					loadTVProgramOnce(tvp, sType, tvp.getSelectedArea(), false, force);
+				}
+				else {
+					stwin.appendMessage(FUNCID+sType+"へのアクセスはスキップされました: "+tvp.getTVProgramId());
+				}
+			}
+			
+			tvp = tvprograms.getSyobo();
+			if ( tvp != null ) {
+				String sType = "しょぼかる";
+				if ( (lf == LoadFor.ALL || lf == LoadFor.SYOBO) && enableWebAccess && env.getUseSyobocal()) {
+					tvp.loadCenter(tvp.getSelectedCode(), force);	// しょぼかるには放送局リストを取得するイベントが他にないので
+					loadTVProgramOnce(tvp, sType, null, true, force);
+				}
+				else {
+					stwin.appendMessage(FUNCID+sType+"へのアクセスはスキップされました.");
+				}
 				
-					PickedProgram pickup = tvprograms.getPickup();
-					if ( tvp != null ) {
-						pickup.refresh();
-						//pickup.save();
-					}
-					
-					// 番組タイトルを整形する
-					fixTitle();
-					fixDetail();
-					
-					// 検索結果の再構築
-					stwin.appendMessage(FUNCID+"検索結果を生成します.");
-					mpList.clear(env.getDisableFazzySearch(), env.getDisableFazzySearchReverse());
-					mpList.build(tvprograms, trKeys.getTraceKeys(), srKeys.getSearchKeys());
-					
-					// 過去ローグ
-					if ( env.getUsePassedProgram() ) {
-						TatCount tc = new TatCount();
-						stwin.appendMessage(FUNCID+"過去ログを生成します.");
-						if ( tvprograms.getPassed().save(tvprograms.getIterator(), chsort.getClst(), env.getPrepPassedProgramCount()) ) {
-							msg = String.format(FUNCID+"過去ログを生成しました [%.2f秒].",tc.end());
-							StdAppendMessage(msg);
-						}
-						//PassedProgramList.getDateList(env.getPassedLogLimit());
-					}
-					else {
-						stwin.appendMessage(FUNCID+"過去ログは記録されません.");
-					}
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-					mwin.appendError(ERRID+"番組情報の取得で例外が発生");
-					ringBeep();
-					return null;
-				}
-				return null;
+				// しょぼかるの新番組マークを引き継ぐ
+				attachSyoboNew();
+			}
+		
+			PickedProgram pickup = tvprograms.getPickup();
+			if ( tvp != null ) {
+				pickup.refresh();
+				//pickup.save();
 			}
 			
-			@Override
-			protected void doFinally() {
+			// 番組タイトルを整形する
+			fixTitle();
+			fixDetail();
+			
+			// 検索結果の再構築
+			stwin.appendMessage(FUNCID+"検索結果を生成します.");
+			mpList.clear(env.getDisableFazzySearch(), env.getDisableFazzySearchReverse());
+			mpList.build(tvprograms, trKeys.getTraceKeys(), srKeys.getSearchKeys());
+			
+			// 過去ローグ
+			if ( env.getUsePassedProgram() ) {
+				TatCount tc = new TatCount();
+				stwin.appendMessage(FUNCID+"過去ログを生成します.");
+				if ( tvprograms.getPassed().save(tvprograms.getIterator(), chsort.getClst(), env.getPrepPassedProgramCount()) ) {
+					msg = String.format(FUNCID+"過去ログを生成しました [%.2f秒].",tc.end());
+					StdAppendMessage(msg);
+				}
+				//PassedProgramList.getDateList(env.getPassedLogLimit());
 			}
-		}.execute();
+			else {
+				stwin.appendMessage(FUNCID+"過去ログは記録されません.");
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			mwin.appendError(ERRID+"番組情報の取得で例外が発生");
+			ringBeep();
+			return false;
+		}
+		
+		return true;
 	}
 	
+	// 分割
 	private void loadTVProgramOnce(TVProgram tvp, String sType, String aName, boolean loadonly, boolean force) {
 		
 		final String FUNCID = "[Web番組表取得] ";
@@ -3468,7 +3457,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 								// "コメンタリ"の記述のあるものは「副音声」扱いにする（副音声でなくても）
 								tvd.option.add(ProgOption.MULTIVOICE);
 							}
-							if ( (tvd.title.contains("劇場版") || tvd.detail.contains("映画")) && ! tvd.isEqualsGenre(ProgGenre.MOVIE, ProgSubgenre.MOVIE_ANIME) ) {
+							if ( (tvd.title.contains("劇場版") || (tvd.detail.contains("映画") && ! tvd.detail.contains("映画館"))) && ! tvd.isEqualsGenre(ProgGenre.MOVIE, ProgSubgenre.MOVIE_ANIME) ) {
 								// ジャンル＝アニメだがタイトルに「劇場版」が含まれるならジャンル＝映画（アニメ映画）を追加する
 								if ( tvd.genrelist == null ) {
 									tvd.genrelist = new ArrayList<ProgGenre>();
@@ -3535,6 +3524,11 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		
 		tvd.dontoverlapdown = (tvd.center.startsWith("ＮＨＫ") || tvd.center.startsWith("NHK"));
 	}
+	
+	
+	/*******************************************************************************
+	 * 過去ログ検索
+	 ******************************************************************************/
 	
 	/**
 	 * <P>過去ログから検索キーワードにマッチする情報を取得する
@@ -3617,6 +3611,154 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		return true;
 	}
 
+	
+	/*******************************************************************************
+	 * スナップ・ショット！
+	 ******************************************************************************/
+	
+	/**
+	 * 番組表のスナップショットをファイルに保存したり印刷したりする
+	 */
+	private boolean getSnapshot(int currentpage, int numberofpages) {
+		
+		try {
+			String fname;
+			if ( mainWindow.isTabSelected(MWinTab.LISTED) ) {
+				// リスト形式
+				fname = String.format("snapshot.%s",env.getSnapshotFmt().getExtension());
+				CommonSwingUtils.saveComponentAsJPEG(listed.getCurrentView(), listed.getTableHeader(), null, listed.getTableBody(), fname, env.getSnapshotFmt(), Viewer.this);
+			}
+			else if ( mainWindow.isTabSelected(MWinTab.PAPER) ){
+				// 新聞形式
+				if ( env.getDrawcacheEnable() || ! env.isPagerEnabled() ) {
+					fname = String.format("snapshot.%s",env.getSnapshotFmt().getExtension());
+				}
+				else {
+					if ( env.getAllPageSnapshot() ) {
+						for ( int i=0; i<numberofpages; i++ ) {
+							if ( i != currentpage ) {
+								// カレントページは最後にスナップる（再描画を１回で済ませるため）
+								toolBar.setSelectedPagerIndex(i);
+								fname = String.format("snapshot%02d.%s",i+1,env.getSnapshotFmt().getExtension());
+								CommonSwingUtils.saveComponentAsJPEG(paper.getCurrentView(), paper.getCenterPane(), paper.getTimebarPane(), paper.getCurrentPane(), fname, env.getSnapshotFmt(), Viewer.this);
+							}
+						}
+					}
+					fname = String.format("snapshot%02d.%s",currentpage+1,env.getSnapshotFmt().getExtension());
+					toolBar.setSelectedPagerIndex(currentpage);
+				}
+				CommonSwingUtils.saveComponentAsJPEG(paper.getCurrentView(), paper.getCenterPane(), paper.getTimebarPane(), paper.getCurrentPane(), fname, env.getSnapshotFmt(), Viewer.this);
+			}
+			else {
+				// 他のタブ
+				return true;
+			}
+			
+			Desktop desktop = Desktop.getDesktop();
+			if (env.getPrintSnapshot()) {
+				// 印刷
+				desktop.print(new File(fname));
+			}
+			else {
+				// ファイルに保存
+				String emsg = CommonUtils.openFile(fname);
+				if (emsg != null) {
+					mwin.appendError(emsg);
+					return false;
+				}
+			}
+			
+			return true;
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	
+	/*******************************************************************************
+	 * ここからおおむね初期化処理にかかわるメソッド群
+	 ******************************************************************************/
+
+	/**
+	 * 各種設定の変更の反映
+	 */
+	private boolean setEnv(final boolean reload_prog) {
+		
+		bounds.save();
+		cbitems.save();
+		env.save();
+
+		// CommonUtilsの設定変更
+		CommonUtils.setAdjLateNight(env.getAdjLateNight());
+		CommonUtils.setExpandTo8(env.getExpandTo8());
+		CommonUtils.setUseRundll32(env.getUseRundll32());
+		CommonUtils.setDisplayPassedReserve(env.getDisplayPassedReserve());
+		CommonUtils.setDebug(env.getDebug());
+		
+		SwingBackgroundWorker.setDebug(env.getDebug());
+
+		// ほにゃらら
+		toolBar.setDebug(env.getDebug());
+		autores.setDebug(env.getDebug());
+
+		// PassedProgramListの設定変更
+		tvprograms.getPassed().setPassedDir(env.getPassedDir());
+
+		// レコーダプラグインの設定変更
+		for ( HDDRecorder rec : recorders ) {
+			// 拡張設定だけ
+			setSettingRecPluginExt(rec, env);
+		}
+
+		// Web番組表共通設定
+		setSettingProgPluginCommon(env);
+		
+		// web番組表のリフレッシュ
+		setSettingProgPluginAll(env);
+		
+		// リロードメニューの書き換え
+		toolBar.updateReloadReservedExtension();
+		toolBar.updateReloadProgramExtension();
+		
+		// ページャーコンボボックスの書き換え
+		toolBar.setPagerItems();
+		
+		// 列の表示・非表示
+		listed.setMarkColumnVisible(env.getSplitMarkAndTitle());
+		listed.setDetailColumnVisible(env.getShowDetailOnList());
+		listed.setRowHeaderVisible(env.getRowHeaderVisible());
+		reserved.setRowHeaderVisible(env.getRowHeaderVisible());
+		
+		// 強調色
+		listed.setMatchedKeywordColor(env.getMatchedKeywordColor());
+		listed.setRsvdLineColor((env.getRsvdLineEnhance())?(env.getRsvdLineColor()):(null));
+		listed.setPickedLineColor((env.getRsvdLineEnhance())?(env.getPickedLineColor()):(null));
+		listed.setCurrentLineColor((env.getCurrentLineEnhance())?(env.getCurrentLineColor()):(null));
+		
+		// システムトレイアイコン
+		setTrayIconVisible(env.getShowSysTray());
+		setXButtonAction(env.getShowSysTray() && env.getHideToTray());
+		
+		// 新聞形式のツールチップの表示時間を変更する
+		setTooltipDelay();
+		
+		// 番組情報の再取得
+		if ( reload_prog ) {
+			loadTVProgram(false, LoadFor.ALL);	// 部品呼び出し
+		}
+		
+		// Web番組表の再構築
+		mpList.setHistoryOnlyUpdateOnce(env.getHistoryOnlyUpdateOnce());
+		mpList.setShowOnlyNonrepeated(env.getShowOnlyNonrepeated());
+		
+		doRedrawTVProgram();	// か き な お し
+
+		return true;
+	}
+	
 	// システムトレイ関係
 	private void getTrayIcon() {
 		if ( trayicon != null ) {

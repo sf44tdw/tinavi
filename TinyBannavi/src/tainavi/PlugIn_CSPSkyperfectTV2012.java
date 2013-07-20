@@ -354,29 +354,29 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 			String person = "";
 			Matcher mb = Pattern.compile("\"(.+?)\":(\\[(.*?)\\]|\"?(.*?)\"?)[,}]").matcher(ma.group(1));
 			while ( mb.find() ) {
-				if ( mb.group(1).equals("start") ) {
+				if ( mb.group(1).equals("start") && mb.group(2) != null ) {
 					GregorianCalendar c = new GregorianCalendar();
 					c.setTimeInMillis(Long.valueOf(mb.group(2).replaceFirst("\\.\\d+$", ""))*1000L);
 					pdl.accurateDate = CommonUtils.getDate(c);
 					pdl.startDateTime = CommonUtils.getDateTime(c); 
 					pdl.start = CommonUtils.getTime(c).replaceFirst("^.+ ", "");
 				}
-				else if ( mb.group(1).equals("end") ) {
+				else if ( mb.group(1).equals("end") && mb.group(2) != null ) {
 					GregorianCalendar c = new GregorianCalendar();
 					c.setTimeInMillis(Long.valueOf(mb.group(2).replaceFirst("\\.\\d+$", ""))*1000L);
 					pdl.endDateTime = CommonUtils.getDateTime(c); 
 					pdl.end = CommonUtils.getTime(c).replaceFirst("^.+ ", "");
 				}
-				else if ( mb.group(1).equals("title") ) {
+				else if ( mb.group(1).equals("title") && mb.group(4) != null  ) {
 					pdl.title = mb.group(4).replace("\\\"", "\"");
 				}
-				else if ( mb.group(1).equals("episode_title") ) {
+				else if ( mb.group(1).equals("episode_title") && mb.group(4) != null  ) {
 					subtitle = mb.group(4);
 				}
-				else if ( mb.group(1).equals("explanation") ) {
+				else if ( mb.group(1).equals("explanation") && mb.group(4) != null ) {
 					pdl.detail = mb.group(4).replace("\\\"", "\"").replace("\\n", "\n");
 				}
-				else if ( mb.group(1).equals("person") ) {
+				else if ( mb.group(1).equals("person") && mb.group(3) != null ) {
 					String[] d = mb.group(3).split(",");
 					for ( String s : d ) {
 						Matcher mc = Pattern.compile("\"(.+?)\"").matcher(s);
@@ -391,35 +391,42 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 				else if ( mb.group(1).equals("duration") ) {
 					//pdl.length = Integer.valueOf(mb.group(4))/60;	// 使えないっぽい
 				}
-				else if ( mb.group(1).equals("genres") ) {
-					// サブジャンルは無視することにする
-					String[] d = mb.group(3).split(",");
-					if ( d.length >= 1 ) {
-						Matcher mc = Pattern.compile("\"(.+?)\"").matcher(d[0]);
-						if ( mc.find() ) {
-							 ProgGenre genre = genremap.get(mc.group(1));
-							 if ( genre == null ) {
-								 // 未定義のジャンルです！
-								 pdl.genre = ProgGenre.NOGENRE;
-								 gf.put(mc.group(1),null);
-							 }
-							 else {
-								 pdl.genre = genre;
-							 }
+				else if ( mb.group(1).equals("genres") && mb.group(3) != null ) {
+					Matcher mc = Pattern.compile("\\[\"(.*?)\",\"(.*?)\"[,\\]]", Pattern.DOTALL).matcher(mb.group(3));
+					if ( mc.find() ) {
+						
+						String grstr = mc.group(1).replaceAll("／", "/");
+						ProgGenre gr = ProgGenre.get(grstr);
+						if ( gr == null ) {
+							// 未定義のジャンルです！
+							gr = ProgGenre.NOGENRE;
+							gf.put(mc.group(1),null);
 						}
+						if ( pdl.genre == null || (pdl.genre == ProgGenre.NOGENRE && gr != ProgGenre.NOGENRE) ) {
+							pdl.genre = gr;
+						}
+						
+						String sgstr = mc.group(2).replaceAll("ィー", "ィ");
+						ProgSubgenre sg = ProgSubgenre.get(gr, sgstr);
+						if ( sg == null ) {
+							// 未定義のサブジャンルです！
+							ArrayList<ProgSubgenre> vals = ProgSubgenre.values(gr);
+							sg = vals.get(vals.size()-1);
+						}
+						pdl.subgenre = sg;
 					}
-					if ( d.length >= 2 ) {
-						// サブジャンルは使用しないことにする
-						/*
-						Matcher mc = Pattern.compile("\"(.+?)\"").matcher(d[1]);
-						if ( mc.find() ) {
-							String subgenrestr = mc.group(1);
-						}
-						*/
+					else {
+						pdl.genre = ProgGenre.NOGENRE;
+						pdl.subgenre = ProgSubgenre.NOGENRE_ETC;
 					}
 				}
-				else if ( mb.group(1).equals("no_scramble") ) {
+				else if ( mb.group(1).equals("no_scramble") && mb.group(4) != null ) {
 					pdl.noscrumble = (mb.group(4).equals("ノンスクランブル"))?(ProgScrumble.NOSCRUMBLE):(ProgScrumble.SCRUMBLED);
+				}
+				else if ( mb.group(1).equals("caption_dubbing") && mb.group(4) != null ) {
+					if ( mb.group(4).contains("字幕") ) {
+						pdl.option.add(ProgOption.SUBTITLE);
+					}
 				}
 			}
 			

@@ -51,6 +51,8 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	 ******************************************************************************/
 	
 	@Override
+	public boolean isReserveListSupported() { return true; }
+	@Override
 	public boolean isThereAdditionalDetails() { return false; }
 	@Override
 	public boolean isEditAutoReserveSupported() { return false; }

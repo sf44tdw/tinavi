@@ -74,11 +74,11 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	@Override
 	public String getLabel_Device() { return "指定ｻｰﾋﾞｽ対象"; }
 	@Override
-	public String getLabel_XChapter() { return "録画開始(秒前)"; }
+	public String getLabel_XChapter() { return "復帰後再起動"; }		// [mv->x]
 	@Override
-	public String getLabel_MsChapter() { return "録画終了(秒後)"; }
+	public String getLabel_MsChapter() { return "録画開始(秒前)"; }	// [x->ms]
 	@Override
-	public String getLabel_MvChapter() { return "復帰後再起動"; }
+	public String getLabel_MvChapter() { return "録画終了(秒後)"; }	// [ms->mv]
 	@Override
 	public String getLabel_DVDCompat() { return "連続録画動作"; }
 	@Override
@@ -210,17 +210,17 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 	private String getTextSuspendMode(ReserveList r)			{ return r.getRec_aspect(); }
 	private void setTextSuspendMode(ReserveList r, String text)	{ r.setRec_aspect(text); }
 	
-	private ArrayList<TextValueSet> getListRebootFlag()			{ return mvchapter; }	// 復帰後再起動する
-	private String getTextRebootFlag(ReserveList r)				{ return r.getRec_mvchapter(); }
-	private void setTextRebootFlag(ReserveList r, String text)	{ r.setRec_mvchapter(text); }
+	private ArrayList<TextValueSet> getListRebootFlag()			{ return xchapter; }	// 復帰後再起動する [mv->x]
+	private String getTextRebootFlag(ReserveList r)				{ return r.getRec_xchapter(); }
+	private void setTextRebootFlag(ReserveList r, String text)	{ r.setRec_xchapter(text); }
 	
-	private ArrayList<TextValueSet> getListStartMargine()		{ return xchapter; }	// 録画マージン(開始)
-	private String getTextStartMargine(ReserveList r)			{ return r.getRec_xchapter(); }
-	private void setTextStartMargine(ReserveList r, String text){ r.setRec_xchapter(text); }
+	private ArrayList<TextValueSet> getListStartMargine()		{ return mschapter; }	// 録画マージン(開始) [x->ms]
+	private String getTextStartMargine(ReserveList r)			{ return r.getRec_mschapter(); }
+	private void setTextStartMargine(ReserveList r, String text){ r.setRec_mschapter(text); }
 	
-	private ArrayList<TextValueSet> getListEndMargine()			{ return mschapter; }	// 録画マージン(終了)
-	private String getTextEndMargine(ReserveList r)				{ return r.getRec_mschapter(); }
-	private void setTextEndMargine(ReserveList r, String text)	{ r.setRec_mschapter(text); }
+	private ArrayList<TextValueSet> getListEndMargine()			{ return mvchapter; }	// 録画マージン(終了) [ms->mv]
+	private String getTextEndMargine(ReserveList r)				{ return r.getRec_mvchapter(); }
+	private void setTextEndMargine(ReserveList r, String text)	{ r.setRec_mvchapter(text); }
 	
 	private ArrayList<TextValueSet> getListContinueRecFlag()	{ return dvdcompat; }		// 連続録画動作
 	private String getTextContinueRecFlag(ReserveList r)		{ return r.getRec_dvdcompat(); }
@@ -441,6 +441,25 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		if ( force == false && f.exists() ) {
 			// キャッシュから読み出し（予約一覧）
 			setReserves(ReservesFromFile(rsvedFile));
+			
+			// ３種の入れ替え（しばらくしたら削除する）
+			{
+				boolean modified = false;
+				for ( ReserveList r : getReserves() ) {
+					if ( ITEM_YES.equals(r.getRec_mvchapter()) || ITEM_NO.equals(r.getRec_mvchapter()) ) {
+						String s = r.getRec_mvchapter();
+						r.setRec_mvchapter(r.getRec_mschapter());
+						r.setRec_mschapter(r.getRec_xchapter());
+						r.setRec_xchapter(s);
+						
+						modified = true;
+					}
+				}
+				if ( modified ) {
+					ReservesToFile(getReserves(), rsvedFile);	// キャッシュに保存
+				}
+			}
+			
 			replaceChNames(cc);
 			if (getDebug()) ShowReserves(getReserves());
 

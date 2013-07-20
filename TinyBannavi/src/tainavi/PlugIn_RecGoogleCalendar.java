@@ -41,6 +41,8 @@ public class PlugIn_RecGoogleCalendar extends HDDRecorderUtils implements HDDRec
 	public RecType getType() { return RecType.CALENDAR; }
 	
 	@Override
+	public boolean isReserveListSupported() { return false; }
+	@Override
 	public boolean isBackgroundOnly() { return true; }
 	
 	/*******************************************************************************

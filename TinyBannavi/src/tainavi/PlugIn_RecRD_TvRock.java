@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -482,8 +481,12 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 		// レコーダから読み出し（予約一覧）
 		ArrayList<ReserveList> newReserveList = new ArrayList<ReserveList>();
 		if ( ! GetRdReservedList(newReserveList) ) {
-			return(false);
+			return false;
 		}
+		if ( ! GetRdReservedDetails(newReserveList) ) {
+			return false;
+		}
+		
 		setReserves(newReserveList);
 		ReservesToFile(getReserves(), rsvedFile);	// キャッシュに保存
 
@@ -666,26 +669,46 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 				// チューナー重複警告
 				entry.setTunershort(tunershort);
 				
-				// タイトル自動補完フラグなど本体からは取得できない情報を引き継ぐ
-				copyAttributes(entry, getReserves());
-				
 				// 予約情報を保存
 				newReserveList.add(entry);
 			}
-		}
-
-		// 予約詳細を追加取得する
-		int cnt = 0;
-		for (ReserveList r : newReserveList) {
-			// 進捗状況を報告する
-			++cnt;
-			reportProgress("+番組詳細を取得します("+cnt+"/"+newReserveList.size()+")");
-			getReserveDetail(r);
 		}
 		
 		return true;
 	}
 	
+
+	// 予約詳細を追加取得する
+	private boolean GetRdReservedDetails(ArrayList<ReserveList> newReserveList) {
+		int cnt = 0;
+		for ( ReserveList r : newReserveList ) {
+			// 進捗状況を報告する
+			++cnt;
+			reportProgress("+番組詳細を取得します("+cnt+"/"+newReserveList.size()+")");
+			if ( ! getReserveDetail(r) ) {
+				return false;
+			}
+			
+			// 情報の引き継ぎ
+			for ( ReserveList ro : getReserves() ) {
+				if ( ro.getId().equals(r.getId()) ) {
+					r.setRec_genre(ro.getRec_genre());
+					r.setRec_subgenre(ro.getRec_subgenre());
+					if (
+							ro.getDetail() != null &&
+							(r.getDetail() == null || r.getDetail().length() < ro.getDetail().length()) ) {
+						r.setDetail(ro.getDetail());
+					}
+					if ( ! ContentIdEDCB.decodeContentId(r.getContentId()) || ContentIdEDCB.getEvId() == 0xFFFF ) {
+						r.setContentId(ro.getContentId());
+					}
+					break;
+				}
+			}
+		}
+		
+		return true;
+	}
 	
 	/**
 	 * 予約詳細を取得する
@@ -744,7 +767,9 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 					getPattern(r,res);
 					r.setPursues(false);
 				}
-				r.setContentId(ContentIdEDCB.getContentId(0xFFFF,0xFFFF,0xFFFF,0xFFFF));
+				if ( r.getContentId() == null || r.getContentId().length() == 0 ) {
+					r.setContentId(ContentIdEDCB.getContentId(0xFFFF,0xFFFF,0xFFFF,0xFFFF));
+				}
 				r.setRec_audio(ITEM_REC_TYPE_EPG);
 			}
 			else {
@@ -971,9 +996,7 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			
 			// 期限切れの情報のカット
 			ArrayList<RecordedInfo> removeList = new ArrayList<RecordedInfo>();
-			int index=0;
-			for ( ; index < newRecordedList.size(); index++ ) {
-				RecordedInfo entry = newRecordedList.get(index);
+			for ( RecordedInfo entry : newRecordedList ) {
 				if ( ! entry.getDate().equals(RECORDED_SPDATE) && entry.getDate().compareTo(cutDate) < 0 ) {
 					removeList.add(entry);
 				}

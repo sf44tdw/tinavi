@@ -31,6 +31,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SpringLayout;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
+import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -659,7 +660,7 @@ public abstract class AbsSettingView extends JScrollPane {
 			int marks_h = PARTS_HEIGHT*12; 
 			CommonSwingUtils.putComponentOn(jPanel_setting, getJLabel_showmarks("表示マークの選択"), LABEL_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			CommonSwingUtils.putComponentOn(jPanel_setting, getJScrollPane_showmarks(), 320, marks_h, LABEL_WIDTH+SEP_WIDTH, y);
-			// RELOADリスナー不要
+			// ★★★ RELOADリスナーは getJScrollPane_showmarks()内でつける
 			
 			y+=(marks_h+SEP_HEIGHT);
 			int cbitems_w = 320;
@@ -725,6 +726,8 @@ public abstract class AbsSettingView extends JScrollPane {
 			
 			y+=(PARTS_HEIGHT+SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_setting, getNoticeMsg("※起動時に、Web番組表の再取得を自動で「実行させたくない」場合は０にしてください。"), DESCRIPTION_WIDTH, PARTS_HEIGHT, SEP_WIDTH*2, y);
+			y+=(PARTS_HEIGHT);
+			CommonSwingUtils.putComponentOn(jPanel_setting, getNoticeMsg("※シャットダウンコマンドを設定すると、Web番組表取得メニューに「CSのみ取得(取得後シャットダウン)」が追加されます。"), DESCRIPTION_WIDTH, PARTS_HEIGHT, SEP_WIDTH*2, y);
 			
 			y+=(PARTS_HEIGHT+SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_expandTo8 = new JCheckBoxPanel("可能なら番組表を８日分取得する",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
@@ -856,9 +859,12 @@ public abstract class AbsSettingView extends JScrollPane {
 				
 				// 選択肢
 				updateSelections();
+				
+				y+=(getdetail_h+SEP_HEIGHT);
+				CommonSwingUtils.putComponentOn(jPanel_setting, getNoticeMsg("※「常に取得しない」を選択した場合でも、ツールバーのプルダウンメニューから強制的に取得を実行できます。"), DESCRIPTION_WIDTH, PARTS_HEIGHT, SEP_WIDTH*2, y);
 			}
 			
-			y+=(getdetail_h+SEP_HEIGHT);
+			y+=(PARTS_HEIGHT+SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_setting, jCBX_recordedSaveScope = new JComboBoxPanel("録画結果一覧の保存期間",LABEL_WIDTH,250,true), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			jCBX_recordedSaveScope.addItem("保存しない");
 			for ( int n=1; n<=HDDRecorder.SCOPEMAX; n++ ) {
@@ -1311,7 +1317,18 @@ public abstract class AbsSettingView extends JScrollPane {
 			setUpdateButtonEnhanced(true);
 		}
 	};
-	
+	private final CellEditorListener CEL_RELOAD_PROG_NEEDED = new CellEditorListener() {
+		@Override
+		public void editingStopped(ChangeEvent e) {
+			if (debug) System.err.println(DBGID+"MODIFIED");
+			setUpdateButtonEnhanced(true);
+		}
+		
+		@Override
+		public void editingCanceled(ChangeEvent e) {
+		}
+	};
+
 	// あいまい検索
 	ItemListener al_fazzysearch = new ItemListener() {
 		@Override
@@ -1689,7 +1706,12 @@ public abstract class AbsSettingView extends JScrollPane {
 					return JCheckBox.CENTER;
 				}
 			});
+			
+			editor.addCellEditorListener(CEL_RELOAD_PROG_NEEDED);
+			
+			//
 			jTable_showmarks.getColumn("ﾁｪｯｸ").setCellEditor(editor);
+			
 			// レンダラに手を入れる
 			DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
 

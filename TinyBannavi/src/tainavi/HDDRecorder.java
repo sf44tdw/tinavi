@@ -185,6 +185,11 @@ public interface HDDRecorder {
 	 */
 	
 	/**
+	 * 予約一覧をサポートしているかどうか、ってサポートしてないのはカレンダーだけっすよ
+	 */
+	public boolean isReserveListSupported();
+	
+	/**
 	 * <P>予約一覧へのアクセスだけでは予約の詳細がわからないレコーダなので詳細情報の個別取得が必要か？どうかを返します。
 	 * <P>ただし、これをtrueにするのは個別取得に時間がかかる（旧RD系など）だけで、高速なもの（TvRockやEDCBなど）ではfalseでかまいません。
 	 * @see #GetRdReserveDetails()

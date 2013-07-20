@@ -111,7 +111,7 @@ public class RecSettingEditorPanel extends JPanel {
 		setGenreItems();
 		
 		// 付けたり外したりしないリスナー
-		jCBXPanel_genre.addItemListener(f_il_resetSubgenreItems);
+		jCBXPanel_genre.addItemListener(f_il_genreSelected);
 		
 		jButton_load.addActionListener(f_al_loadAction);
 		jButton_save.addActionListener(f_al_saveAction);
@@ -608,6 +608,7 @@ public class RecSettingEditorPanel extends JPanel {
 		if ( genre == null || genre.length() == 0 ) {
 			genre = ProgGenre.NOGENRE.toString();
 		}
+		jCBXPanel_genre.setSelectedItem(null);
 		jCBXPanel_genre.setSelectedItem(genre);
 		
 		if ( subgenre == null || subgenre.length() == 0 ) {
@@ -625,14 +626,17 @@ public class RecSettingEditorPanel extends JPanel {
 	 */
 	private String setSelectedValue(JComboBoxPanel comp, String value) {
 		
-		if ( value != null ) {
+		if ( value != null && value.length() > 0 ) {
+			comp.setSelectedItem(null);
 			comp.setSelectedItem(value);
 		}
 		else if ( comp.getItemCount() > 0 ){
+			comp.setSelectedItem(null);
 			comp.setSelectedIndex(0);
 		}
 		
-		return (String) comp.getSelectedItem();
+		String s = (String) comp.getSelectedItem();
+		return s;
 	}
 	
 	/*******************************************************************************
@@ -722,11 +726,64 @@ public class RecSettingEditorPanel extends JPanel {
 	 * 永続的なリスナー
 	 **************************************/
 	
-	private final ItemListener f_il_resetSubgenreItems = new ItemListener() {
+	/**
+	 * ジャンルを選択したらサブジャンルの選択肢を入れ替える
+	 */
+	private final ItemListener f_il_genreSelected = new ItemListener() {
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			// サブジャンルのアイテムをリセットする
-			setSubgenreItems(ProgGenre.get((String) jCBXPanel_genre.getSelectedItem()));
+			String gstr = (String) jCBXPanel_genre.getSelectedItem();
+			if ( gstr != null ) {
+				setSubgenreItems(ProgGenre.get(gstr));
+			}
+		}
+	};
+	
+	/**
+	 * EPG予約以外では番組追従が設定できないようにしたいな
+	 */
+	private final ItemListener f_il_arateChanged = new ItemListener() {
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			if ( e.getStateChange() != ItemEvent.SELECTED ) {
+				return;
+			}
+
+			jCBXPanel_msChapter.setLabelForeground(Color.BLACK);
+			jCBXPanel_mvChapter.setLabelForeground(Color.BLACK);
+			jCBXPanel_pursues.setEnabled(true);
+			
+			String pgtype = (String) jCBXPanel_audiorate.getSelectedItem();
+			if ( pgtype == HDDRecorder.ITEM_REC_TYPE_PROG ) {
+				// "ﾌﾟﾗｸﾞﾗﾑ予約"なら触る必要なし
+				jCBXPanel_pursues.setSelectedItem(ITEM_NO);
+				jCBXPanel_pursues.setEnabled(false);
+			}
+			else {
+				if ( pgtype == HDDRecorder.ITEM_REC_TYPE_EPG ) {
+					try {
+						jCBXPanel_pursues.setSelectedItem(ITEM_YES);	// EPG予約にするなら追従ありがデフォルトでいいだろ？
+						
+						if ( Integer.valueOf((String) jCBXPanel_msChapter.getSelectedItem()) <= 0 ) {
+							// 開始マージン０は危ないよね
+							jCBXPanel_msChapter.setLabelForeground(Color.RED);
+						}
+					}
+					catch (NumberFormatException ev) {
+						//
+					}
+					try {
+						if ( Integer.valueOf((String) jCBXPanel_mvChapter.getSelectedItem()) <= 0 ) {
+							// 終了マージン０は危ないよね
+							jCBXPanel_mvChapter.setLabelForeground(Color.RED);
+						}
+					}
+					catch (NumberFormatException ev) {
+						//
+					}
+				}
+			}
 		}
 	};
 	
@@ -760,49 +817,6 @@ public class RecSettingEditorPanel extends JPanel {
 	private final ActionListener f_al_saveDefaultAction = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			if ( recsetsel != null ) recsetsel.doSaveAVSettings(true);
-		}
-	};
-	
-	/**
-	 * EPG予約以外では番組追従が設定できないようにしたいな
-	 */
-	private final ItemListener f_il_arateChanged = new ItemListener() {
-		@Override
-		public void itemStateChanged(ItemEvent e) {
-			if ( e.getStateChange() != ItemEvent.SELECTED ) {
-				return;
-			}
-
-			jCBXPanel_msChapter.setLabelForeground(Color.BLACK);
-			jCBXPanel_mvChapter.setLabelForeground(Color.BLACK);
-			jCBXPanel_pursues.setEnabled(true);
-			
-			String pgtype = (String) jCBXPanel_audiorate.getSelectedItem();
-			if ( pgtype == HDDRecorder.ITEM_REC_TYPE_PROG ) {
-				// "ﾌﾟﾗｸﾞﾗﾑ予約"なら触る必要なし
-				jCBXPanel_pursues.setSelectedItem(ITEM_NO);
-				jCBXPanel_pursues.setEnabled(false);
-			}
-			else {
-				if ( pgtype == HDDRecorder.ITEM_REC_TYPE_EPG ) {
-					try {
-						if ( Integer.valueOf((String) jCBXPanel_msChapter.getSelectedItem()) <= 0 ) {
-							jCBXPanel_msChapter.setLabelForeground(Color.RED);
-						}
-					}
-					catch (NumberFormatException ev) {
-						//
-					}
-					try {
-						if ( Integer.valueOf((String) jCBXPanel_mvChapter.getSelectedItem()) <= 0 ) {
-							jCBXPanel_mvChapter.setLabelForeground(Color.RED);
-						}
-					}
-					catch (NumberFormatException ev) {
-						//
-					}
-				}
-			}
 		}
 	};
 	
