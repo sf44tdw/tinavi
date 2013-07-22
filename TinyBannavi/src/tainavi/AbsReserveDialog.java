@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -449,11 +450,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 			MWin.appendMessage(MSGID+"画質・音質の自動設定候補がありません： "+recId+" & "+selected_key);
 		}
 		
-		// TvRockではコンピュータ名は指定しない
-		if ( "TvRock".equals(recId) ) {
-			myavs.setLvoice(null);
-		}
-		
 		return myavs;
 	}
 	
@@ -487,11 +483,6 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		r.setRec_autodel(getDefaultText(recorder, recorder.getAutodel()));
 		
 		r.setExec(true);
-		
-		// TvRockではコンピュータ名は指定しない
-		if ( "TvRock".equals(recorder.getRecorderId()) ) {
-			r.setRec_lvoice(null);
-		}
 		
 		return r;
 	}
@@ -857,6 +848,13 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 		jPane_title.getSelectedValues(newRsv);			// タイトル
 		jPane_recsetting.getSelectedValues(newRsv);		// 録画設定
 		
+		if ( newRsv.getRec_audio() == HDDRecorder.ITEM_REC_TYPE_EPG &&
+				(newRsv.getContentId() == null || newRsv.getContentId().length() == 0) ) {
+			ringBeep();
+			JOptionPane.showConfirmDialog(this, "EPG予約では番組IDが必要になります。", "警告", JOptionPane.CLOSED_OPTION);
+			return;
+		}
+		
 		newRsv.setId(null);								// PostRdEntry()中で取得するのでここはダミー
 		newRsv.setUpdateOnlyExec(false);				// 新規ONLYなのでfalse固定
 
@@ -937,6 +935,13 @@ abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,R
 
 		jPane_title.getSelectedValues(newRsv);				// タイトル
 		jPane_recsetting.getSelectedValues(newRsv);			// 録画設定
+		
+		if ( (newRsv.getRec_audio() == HDDRecorder.ITEM_REC_TYPE_EPG || newRsv.getRec_audio() == HDDRecorder.ITEM_REC_TYPE_PROG) &&
+				(newRsv.getRec_audio() != oldRsv.getRec_audio()) ) {
+			ringBeep();
+			JOptionPane.showConfirmDialog(this, String.format("%s予約を%s予約には変更できません。",oldRsv.getRec_audio(),newRsv.getRec_audio()), "警告", JOptionPane.CLOSED_OPTION);
+			return;
+		}
 		
 		newRsv.setId(oldRsv.getId());						// 更新では引き継ぐ
 		newRsv.setUpdateOnlyExec(vals.isUpdateOnlyExec);	// 実行ON・OFFのみかもしんない

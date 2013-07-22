@@ -13,12 +13,13 @@ public class TraceProgram {
 	private ArrayList<TraceKey> traceKeys = new ArrayList<TraceKey>();
 	
 	// 設定ファイルに書き出し
-	public void save() {
+	public boolean save() {
 		System.out.println(MSGID+"保存します: "+traceKeyFile);
 		if ( ! CommonUtils.writeXML(traceKeyFile, traceKeys) ) {
 			System.err.println(ERRID+"保存に失敗しました： "+traceKeyFile);
+			return false;
 		}
-		return;
+		return true;
 	}
 	
 	// 設定ファイルから読み出し

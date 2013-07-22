@@ -635,10 +635,10 @@
      <string>1</string> 
     </void> 
     <void property="contain"> 
-     <string>0	0	0	0	0	</string> 
+     <string>0	0	0	0	0	0	</string> 
     </void> 
     <void property="keyword"> 
-     <string>下野紘	後藤邑子	田村睦心	日笠陽子	井上麻里奈	</string> 
+     <string>下野紘	梶裕貴	後藤邑子	田村睦心	日笠陽子	井上麻里奈	</string> 
     </void> 
     <void property="label"> 
      <string>声優</string> 
@@ -647,7 +647,7 @@
      <string>★★★★</string> 
     </void> 
     <void property="target"> 
-     <string>0	0	0	0	0	</string> 
+     <string>0	0	0	0	0	0	</string> 
     </void> 
    </object> 
   </void> 
@@ -673,6 +673,28 @@
     </void> 
     <void property="target"> 
      <string>0	0	0	</string> 
+    </void> 
+   </object> 
+  </void> 
+  <void method="add"> 
+   <object class="tainavi.SearchKey"> 
+    <void property="condition"> 
+     <string>0</string> 
+    </void> 
+    <void property="contain"> 
+     <string>0	0	</string> 
+    </void> 
+    <void property="keyword"> 
+     <string>はじめの一歩【連日】#55−56	ファミリー劇場	</string> 
+    </void> 
+    <void property="label"> 
+     <string>はじめの一歩【連日】</string> 
+    </void> 
+    <void property="okiniiri"> 
+     <string>★★★★★</string> 
+    </void> 
+    <void property="target"> 
+     <string>1	3	</string> 
     </void> 
    </object> 
   </void> 

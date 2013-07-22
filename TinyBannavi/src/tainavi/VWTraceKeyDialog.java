@@ -4,8 +4,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -14,6 +12,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
@@ -33,10 +32,13 @@ public class VWTraceKeyDialog extends JDialog {
 
 	private TraceProgram xKeys = null;
 	private TraceKey xKey = null;
+	private ProgDetailList xTvd = null;
 	
 	private boolean reg = false;
 	
-	public String getNewLabel() { return jTextField_title.getText()+" ("+jTextField_channel.getText()+")"; }
+	public String getNewLabel() { return getNewLabel(jTextField_title.getText(),jTextField_channel.getText()); }
+	
+	public static String getNewLabel(String title, String center) { return title+" ("+center+")"; }
 	
 	private ArrayList<String> okiniiri_items = new ArrayList<String>(); 
 	public void clean_okiniiri_items() { okiniiri_items.clear(); }
@@ -46,7 +48,7 @@ public class VWTraceKeyDialog extends JDialog {
 	
 	private JPanel jPanel = null;
 	
-	private JLabel jLabel_title = null;
+	private JButton jButton_title = null;
 	private JTextField jTextField_title = null;
 	private JLabel jLabel_channel = null;
 	private JTextField jTextField_channel = null;
@@ -65,32 +67,53 @@ public class VWTraceKeyDialog extends JDialog {
 
 	public boolean isRegistered() { return reg; }
 	
-	public void reopen(String s, TraceProgram sKeys) {
-		//
+	public void open(TraceProgram sKeys, ProgDetailList tvd, int threshold) {
+		
 		xKeys = sKeys;
-		//
-		for (TraceKey k : xKeys.getTraceKeys()) {
-			if (k.getLabel().equals(s)) {
-				//
-				xKey = k;
-				//
-				Matcher ma = Pattern.compile("^(.+) \\(.+?\\)$",Pattern.DOTALL).matcher(k.getLabel());
-				if (ma.find()) {
-					jTextField_title.setText(ma.group(1));
-					jTextField_title.setCaretPosition(0);
-				}
-				else {
-					jTextField_title.setText(k.getLabel());
-				}
-				jTextField_channel.setText(k.getCenter());
-				jSlider_fazzyThreshold.setValue(k.getFazzyThreshold());
-				jComboBox_okiniiri.setSelectedItem(k.getOkiniiri());
-				jCheckBox_disableRepeat.setSelected(k.getDisableRepeat());
-				jCheckBox_showLatestOnly.setSelected(k.getShowLatestOnly());
-			}
-		}
+		xKey = null;
+		xTvd = tvd;
+		
+		jTextField_title.setText(tvd.title);
+		jTextField_title.setCaretPosition(0);
+		jTextField_channel.setText(tvd.center);
+		jSlider_fazzyThreshold.setValue(threshold);
+		jComboBox_okiniiri.setSelectedItem(TVProgram.OKINIIRI[0]);
+		jCheckBox_disableRepeat.setSelected(false);
+		jCheckBox_showLatestOnly.setSelected(false);
+		
+		jButton_title.setEnabled(true);
 	}
 	
+	public void reopen(String label, TraceProgram sKeys) {
+		
+		xKeys = sKeys;
+		xKey = null;
+		xTvd = null;
+		
+		for (TraceKey k : xKeys.getTraceKeys()) {
+			if (k.getLabel().equals(label)) {
+				// 操作対象をみつけた
+				xKey = k;
+				break;
+			}
+		}
+		
+		int index = xKey.getLabel().indexOf("("+xKey.getCenter()+")");
+		if ( index > 0 ) {
+			jTextField_title.setText(xKey.getLabel().substring(0,index));
+		}
+		else {
+			jTextField_title.setText(xKey.getLabel());
+		}
+		jTextField_title.setCaretPosition(0);
+		jTextField_channel.setText(xKey.getCenter());
+		jSlider_fazzyThreshold.setValue(xKey.getFazzyThreshold());
+		jComboBox_okiniiri.setSelectedItem(xKey.getOkiniiri());
+		jCheckBox_disableRepeat.setSelected(xKey.getDisableRepeat());
+		jCheckBox_showLatestOnly.setSelected(xKey.getShowLatestOnly());
+		
+		jButton_title.setEnabled(false);
+	}
 	
 	//
 	private JPanel getJPanel() {
@@ -103,7 +126,7 @@ public class VWTraceKeyDialog extends JDialog {
 			int iw = 200;
 			int ix = 10+lw+10;
 			int y = 10;
-			_getJComponent(jPanel, getJLabel_title("番組タイトル"), lw, 25, 10, y);
+			_getJComponent(jPanel, getJButton_title("番組タイトル"), lw, 25, 10, y);
 			_getJComponent(jPanel, getJTextField_title(), iw, 25, ix, y);
 			
 			y += 30;
@@ -151,11 +174,20 @@ public class VWTraceKeyDialog extends JDialog {
 	
 	
 	//
-	private JLabel getJLabel_title(String s) {
-		if (jLabel_title == null) {
-			jLabel_title = new JLabel(s);
+	private JButton getJButton_title(String s) {
+		if (jButton_title == null) {
+			jButton_title = new JButton(s);
+			
+			jButton_title.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					jTextField_title.setText(jTextField_title.getText().equals(xTvd.title) ? xTvd.splitted_title : xTvd.title);
+					jTextField_title.setCaretPosition(jTextField_title.getText().length());
+					jTextField_title.requestFocusInWindow();
+				}
+			});
 		}
-		return(jLabel_title);
+		return(jButton_title);
 	}
 	
 	//
@@ -261,29 +293,47 @@ public class VWTraceKeyDialog extends JDialog {
 			jButton_label.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					if (jTextField_title.getText().equals("")) {
-						return;
+					if ( addToTraceKeyList() ) {
+						// ウィンドウを閉じる
+						dispose();
 					}
-					
-					//xKey.setLabel(jTextField_title.getText()+" ("+jTextField_channel.getText()+")");
-					xKey.setLabel(getNewLabel());
-					xKey.setTitlePop(TraceProgram.replacePop(jTextField_title.getText()));
-					xKey.setSearchStrKeys(TraceProgram.splitKeys(xKey.getTitlePop()));
-					xKey.setFazzyThreshold(jSlider_fazzyThreshold.getValue());
-					xKey.setOkiniiri((String) jComboBox_okiniiri.getSelectedItem());
-					xKey.setDisableRepeat(jCheckBox_disableRepeat.isSelected());
-					xKey.setShowLatestOnly(jCheckBox_showLatestOnly.isSelected());
-					xKeys.save();
-					
-					//
-					reg = true;
-					
-					// ウィンドウを閉じる
-					dispose();
-			}
+				}
 			});
 		}
 		return(jButton_label);
+	}
+	
+	private boolean addToTraceKeyList() {
+		if (jTextField_title.getText().equals("")) {
+			return false;
+		}
+		
+		// 重複登録を許さない
+		for (TraceKey k : xKeys.getTraceKeys()) {
+			if ( k != xKey && k.getLabel().equals(getNewLabel()) ) {
+				JOptionPane.showConfirmDialog(this, "既に登録されています:"+getNewLabel(), "警告", JOptionPane.CLOSED_OPTION);							// キーワード検索の追加ではダイアログで修正できるので止めない
+				return false;
+			}
+		}
+		
+		if ( xKey == null ) {
+			// 新規登録の場合はエントリがないので作成する
+			xKey = new TraceKey();
+			xKeys.add(xKey);
+		}
+		
+		xKey.setLabel(getNewLabel());
+		xKey.setCenter(jTextField_channel.getText());
+		xKey.setTitlePop(TraceProgram.replacePop(jTextField_title.getText()));
+		xKey.setSearchStrKeys(TraceProgram.splitKeys(xKey.getTitlePop()));
+		xKey.setFazzyThreshold(jSlider_fazzyThreshold.getValue());
+		xKey.setOkiniiri((String) jComboBox_okiniiri.getSelectedItem());
+		xKey.setDisableRepeat(jCheckBox_disableRepeat.isSelected());
+		xKey.setShowLatestOnly(jCheckBox_showLatestOnly.isSelected());
+		
+		reg = xKeys.save();
+		
+		return reg;
 	}
 	
 	//

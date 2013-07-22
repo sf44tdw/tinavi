@@ -330,7 +330,10 @@ public class Viewer extends JFrame {
 		
 		// 必要なレコーダのみ抽出する
 		for (RecorderInfo r : recInfos) {
-	    	if (r.getRecorderIPAddr().equals("") == true || r.getRecorderId().indexOf("RD-") == -1) {
+			if ( r.getRecorderIPAddr().equals("") ) {
+				continue;
+			}
+	    	if ( r.getRecorderId().contains("RD-") || r.getRecorderId().contains("DBR-Z") ) {
 	    		continue;
 	    	}
 	    	

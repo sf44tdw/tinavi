@@ -1403,7 +1403,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			AbsKeywordDialog kD = new VWKeywordDialog();
 			CommonSwingUtils.setLocationCenter(Viewer.this,kD);
 			
-			kD.open(search.getLabel(), search, srKeys, srGrps);
+			kD.open(search.getLabel(), srKeys, srGrps, search);
 			kD.setVisible(true);
 			
 			if (kD.isRegistered()) {
@@ -1731,26 +1731,15 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		
 		// 番組追跡へ追加する
 		{
-			final String label = tvd.title+" ("+tvd.center+")";
+			final String label = VWTraceKeyDialog.getNewLabel(tvd.title, tvd.center);
 			JMenuItem menuItem = new JMenuItem("番組追跡への追加【"+label+"】");
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					//
-					for (TraceKey tr : trKeys.getTraceKeys()) {
-						if (tr.getLabel().equals(label)) {
-							mwin.appendMessage("【警告】すでに番組追跡に登録されています："+label);
-							ringBeep();
-							return;
-						}
-					}
-					
-					//
-					trKeys.add(label, tvd.title, tvd.center, env.getDefaultFazzyThreshold());
-
 					VWTraceKeyDialog tD = new VWTraceKeyDialog(0,0);
 					CommonSwingUtils.setLocationCenter(mainWindow,tD);
 					
-					tD.reopen(label, trKeys);
+					tD.open(trKeys, tvd, env.getDefaultFazzyThreshold());
 					tD.setVisible(true);
 					
 					if (tD.isRegistered()) { 
@@ -1784,51 +1773,28 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			JMenuItem menuItem = new JMenuItem("キーワード検索への追加【"+label+"】");
 			menuItem.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e){
-					//
-					for (SearchKey sr : srKeys.getSearchKeys()) {
-						if (sr.getLabel().equals(tvd.title)) {
-							ringBeep();
-							String msg = "すでにキーワード検索に登録されています： "+tvd.title;
-							mwin.appendMessage(msg);
-							JOptionPane.showConfirmDialog(null, msg, "警告", JOptionPane.CLOSED_OPTION);							// キーワード検索の追加ではダイアログで修正できるので止めない
-							//return;
-						}
-					}
+					
 					// 「キーワード検索の設定」ウィンドウを開く
-					SearchKey search = new SearchKey();
-					{
-						search.setCondition("0");
-						search.alTarget.add(TargetId.TITLE);
-						search.alContain.add("0");
-						search.alKeyword.add(tvd.title);
-					}
-					{
-						search.setCondition("0");
-						search.alTarget.add(TargetId.CHANNEL);
-						search.alContain.add("0");
-						search.alKeyword.add(tvd.center);
-					}
-					{
-						AbsKeywordDialog kD = new VWKeywordDialog();
-						CommonSwingUtils.setLocationCenter(mainWindow,kD);
+					
+					AbsKeywordDialog kD = new VWKeywordDialog();
+					CommonSwingUtils.setLocationCenter(mainWindow,kD);
+					
+					kD.open(srKeys, srGrps, tvd);
+					kD.setVisible(true);
+					
+					if (kD.isRegistered()) {
+						// 検索結果の再構築
+						mpList.clear(env.getDisableFazzySearch(), env.getDisableFazzySearchReverse());
+						mpList.build(tvprograms, trKeys.getTraceKeys(), srKeys.getSearchKeys());
 						
-						kD.open(tvd.title, search, srKeys, srGrps);
-						kD.setVisible(true);
-						
-						if (kD.isRegistered()) {
-							// 検索結果の再構築
-							mpList.clear(env.getDisableFazzySearch(), env.getDisableFazzySearchReverse());
-							mpList.build(tvprograms, trKeys.getTraceKeys(), srKeys.getSearchKeys());
-							
-							// ツリーに反映する
-							listed.redrawTreeByKeyword();
+						// ツリーに反映する
+						listed.redrawTreeByKeyword();
 
-							// 表示を更新する
-							paper.updateBangumiColumns();
-							listed.reselectTree();
-							
-							mwin.appendMessage("キーワード検索へ追加しました【"+label+"】");
-						}
+						// 表示を更新する
+						paper.updateBangumiColumns();
+						listed.reselectTree();
+						
+						mwin.appendMessage("キーワード検索へ追加しました【"+label+"】");
 					}
 				}
 			});
@@ -4620,7 +4586,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		}
 		else {
 			// 設定が存在する場合
-			mainWindow.setSelectedTab(MWinTab.getAt(bounds.getSelectedTab()));
+			MWinTab tab = MWinTab.getAt(bounds.getSelectedTab());
+			mainWindow.setSelectedTab(tab);
 		}
 	}
 	

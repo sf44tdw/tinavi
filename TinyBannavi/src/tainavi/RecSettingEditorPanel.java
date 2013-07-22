@@ -116,7 +116,9 @@ public class RecSettingEditorPanel extends JPanel {
 		jButton_load.addActionListener(f_al_loadAction);
 		jButton_save.addActionListener(f_al_saveAction);
 		jButton_savedefault.addActionListener(f_al_saveDefaultAction);
-		jCBXPanel_audiorate.addItemListener(f_il_arateChanged);
+		jCBXPanel_audiorate.addItemListener(f_il_recTypeChanged);
+		jCBXPanel_msChapter.addItemListener(f_il_marginTopChanged);
+		jCBXPanel_mvChapter.addItemListener(f_il_marginBottomChanged);
 		
 		// 付けたり外したりするリスナー
 		setEnabledListenerAll(true);
@@ -627,8 +629,16 @@ public class RecSettingEditorPanel extends JPanel {
 	private String setSelectedValue(JComboBoxPanel comp, String value) {
 		
 		if ( value != null && value.length() > 0 ) {
+			int index = comp.getSelectedIndex();
 			comp.setSelectedItem(null);
 			comp.setSelectedItem(value);
+			String s = (String) comp.getSelectedItem();
+			if ( s != null ) {
+				return s;
+			}
+			
+			// 存在しない選択肢が指定されたからもともと選択してた項目を選びなおすわー
+			comp.setSelectedIndex(index);
 		}
 		else if ( comp.getItemCount() > 0 ){
 			comp.setSelectedItem(null);
@@ -743,49 +753,84 @@ public class RecSettingEditorPanel extends JPanel {
 	/**
 	 * EPG予約以外では番組追従が設定できないようにしたいな
 	 */
-	private final ItemListener f_il_arateChanged = new ItemListener() {
+	private final ItemListener f_il_recTypeChanged = new ItemListener() {
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			if ( e.getStateChange() != ItemEvent.SELECTED ) {
 				return;
 			}
 
-			jCBXPanel_msChapter.setLabelForeground(Color.BLACK);
-			jCBXPanel_mvChapter.setLabelForeground(Color.BLACK);
-			jCBXPanel_pursues.setEnabled(true);
-			
+
 			String pgtype = (String) jCBXPanel_audiorate.getSelectedItem();
 			if ( pgtype == HDDRecorder.ITEM_REC_TYPE_PROG ) {
 				// "ﾌﾟﾗｸﾞﾗﾑ予約"なら触る必要なし
 				jCBXPanel_pursues.setSelectedItem(ITEM_NO);
 				jCBXPanel_pursues.setEnabled(false);
+				checkMarginTop(true);
+				checkMarginBottom(true);
+			}
+			else if ( pgtype == HDDRecorder.ITEM_REC_TYPE_EPG ) {
+				jCBXPanel_pursues.setSelectedItem(ITEM_YES);	// EPG予約にするなら追従ありがデフォルトでいいだろ？
+				jCBXPanel_pursues.setEnabled(true);
+				checkMarginTop(true);
+				checkMarginBottom(true);
 			}
 			else {
-				if ( pgtype == HDDRecorder.ITEM_REC_TYPE_EPG ) {
-					try {
-						jCBXPanel_pursues.setSelectedItem(ITEM_YES);	// EPG予約にするなら追従ありがデフォルトでいいだろ？
-						
-						if ( Integer.valueOf((String) jCBXPanel_msChapter.getSelectedItem()) <= 0 ) {
-							// 開始マージン０は危ないよね
-							jCBXPanel_msChapter.setLabelForeground(Color.RED);
-						}
-					}
-					catch (NumberFormatException ev) {
-						//
-					}
-					try {
-						if ( Integer.valueOf((String) jCBXPanel_mvChapter.getSelectedItem()) <= 0 ) {
-							// 終了マージン０は危ないよね
-							jCBXPanel_mvChapter.setLabelForeground(Color.RED);
-						}
-					}
-					catch (NumberFormatException ev) {
-						//
-					}
-				}
+				jCBXPanel_pursues.setEnabled(true);
+				checkMarginTop(false);
+				checkMarginBottom(false);
+			}
+			
+		}
+	};
+	private final ItemListener f_il_marginTopChanged = new ItemListener() {
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			if ( e.getStateChange() != ItemEvent.SELECTED ) {
+				return;
+			}
+			
+			String pgtype = (String) jCBXPanel_audiorate.getSelectedItem();
+			if ( pgtype == HDDRecorder.ITEM_REC_TYPE_EPG || pgtype == HDDRecorder.ITEM_REC_TYPE_PROG ) {
+				checkMarginTop(true);
 			}
 		}
 	};
+	private final ItemListener f_il_marginBottomChanged = new ItemListener() {
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			if ( e.getStateChange() != ItemEvent.SELECTED ) {
+				return;
+			}
+			
+			String pgtype = (String) jCBXPanel_audiorate.getSelectedItem();
+			if ( pgtype == HDDRecorder.ITEM_REC_TYPE_EPG || pgtype == HDDRecorder.ITEM_REC_TYPE_PROG ) {
+				checkMarginBottom(true);
+			}
+		}
+	};
+	private void checkMarginTop(boolean check) {
+		Color c = Color.BLACK;
+		try {
+			if ( check && Integer.valueOf((String) jCBXPanel_msChapter.getSelectedItem()) <= 0) {
+				c = Color.RED;
+			}
+		}
+		catch (NumberFormatException ev) {
+		}
+		jCBXPanel_msChapter.setLabelForeground(c);	// 開始マージン０は危ないよね
+	}
+	private void checkMarginBottom(boolean check) {
+		Color c = Color.BLACK;
+		try {
+			if ( check && Integer.valueOf((String) jCBXPanel_msChapter.getSelectedItem()) <= 0) {
+				c = Color.RED;
+			}
+		}
+		catch (NumberFormatException ev) {
+		}
+		jCBXPanel_mvChapter.setLabelForeground(c);	// 終了マージン０は危ないよね
+	}
 	
 	/**
 	 * ジャンル別ＡＶ設定のロード

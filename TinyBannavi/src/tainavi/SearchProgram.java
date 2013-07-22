@@ -25,15 +25,17 @@ public class SearchProgram {
 	protected void setSearchKeyLabel(String s) { searchKeyLabel = s; }
 	
 	// 設定ファイルに書き出し
-	public void save() {
+	public boolean save() {
 		System.out.println(searchKeyLabel+"設定を保存します: "+searchKeyFile);
 		if ( ! CommonUtils.writeXML(searchKeyFile, searchKeys) ) {
 			System.err.println(searchKeyLabel+"設定の保存に失敗しました.");
-			return;
+			return false;
 		}
+		return true;
 	}
 	
 	// 設定ファイルから読み出し
+	@SuppressWarnings("unchecked")
 	public void load() {
 		System.out.println(searchKeyLabel+"設定を読み込みます: "+searchKeyFile);
 		searchKeys = (ArrayList<SearchKey>) CommonUtils.readXML(searchKeyFile);
@@ -79,17 +81,14 @@ public class SearchProgram {
 	}
 	
 	// キーワード検索の置き換え
-	public SearchKey replace(String key, SearchKey sk) {
-		int i = 0;
-		for ( SearchKey k : searchKeys ) {
-			if (k.getLabel().equals(key)) {
-				searchKeys.add(i,sk);
-				searchKeys.remove(i+1);
-				return(sk);
-			}
-			i++;
+	public SearchKey replace(SearchKey xk, SearchKey sk) {
+		int index = searchKeys.indexOf(xk);
+		if ( index >= 0 ) {
+			searchKeys.remove(xk);
+			searchKeys.add(index,sk);
+			return sk;
 		}
-		return(null);
+		return null ;
 	}
 	
 	// キーワード検索の整理

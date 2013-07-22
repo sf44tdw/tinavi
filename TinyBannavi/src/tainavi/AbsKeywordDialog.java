@@ -1,10 +1,13 @@
 package tainavi;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -126,6 +129,7 @@ abstract class AbsKeywordDialog extends JDialog {
 	private JComboBox jComboBox_regex = null;
 	private JComboBox jComboBox_contain = null;
 	private JButton jButton_add = null;
+	private JButton jButton_replace = null;
 	private JButton jButton_remove = null;
 	private JComboBox jComboBox_condition = null;
 	private JComboBox jComboBox_infection = null;
@@ -143,11 +147,13 @@ abstract class AbsKeywordDialog extends JDialog {
 	// コンポーネント以外
 	
 	private String windowTitle = "";
-	private String originalLabel = "";
 	private SearchProgram xKeys = null;
 	private SearchGroupList xGroups = null;
+	private SearchKey xKey = null;
 	
 	private boolean reg = false;
+	
+	private int selectedRow = -1;
 	
 	private ArrayList<TargetId> target_items = new ArrayList<TargetId>();
 	private ArrayList<String> contain_items = new ArrayList<String>(); 
@@ -209,31 +215,45 @@ abstract class AbsKeywordDialog extends JDialog {
 	 */
 	public boolean isRegistered() { return reg; } 
 	
-	// 使っている人いないね…
-	/*
-	private void open(String s, SearchProgram sKeys) {
-		//
-		xKeys = sKeys;
-		//
-		jComboBox_target.setSelectedIndex(0);
-		jComboBox_contain.setSelectedIndex(0);
-		jComboBox_condition.setSelectedIndex(0);
-		for (int i=jTable_keywords.getRowCount()-1; i>=0; i--) {
-			jTable_keywords.getRowItemList().remove(i);
-		}
-		//
-		jTextField_label.setText(s);
-		jTextField_label.setCaretPosition(0);
-		jComboBox_regex.addItem(s);
-	}
-	*/
+	/***************************************
+	 * 新規オープン２種＋１種
+	 **************************************/
 	
-	// キーワード検索管理としてのオープン（新規）
-	public void open(String label, SearchKey sK, SearchProgram sKeys, SearchGroupList gList) {
-		//
+	// キーワード検索管理としてのオープン（右クリックメニューから新規）
+	public void open(SearchProgram sKeys, SearchGroupList gList, ProgDetailList tvd) {
+		
+		SearchKey sK = new SearchKey();
+		
+		// タイトル
+		{
+			sK.setCondition("0");
+			sK.alTarget.add(TargetId.TITLE);
+			sK.alContain.add("0");
+			sK.alKeyword.add(tvd.title);
+		}
+		
+		// 放送局
+		{
+			sK.setCondition("0");
+			sK.alTarget.add(TargetId.CHANNEL);
+			sK.alContain.add("0");
+			sK.alKeyword.add(tvd.center);
+		}
+		
+		sK.setCaseSensitive(false);
+		sK.setShowInStandby(true);
+		
+		open(tvd.title,sKeys,gList,sK);
+	}
+	
+	// キーワード検索管理としてのオープン（ツールバーから新規）
+	public void open(String label, SearchProgram sKeys, SearchGroupList gList, SearchKey sK) {
+		
 		xKeys = sKeys;
-		xGroups = gList; 
-		//
+		xGroups = gList;
+		xKey = null;
+		
+		// テーブルの作り直し
 		jComboBox_target.setSelectedIndex(0);
 		jComboBox_contain.setSelectedIndex(0);
 		jComboBox_condition.setSelectedIndex(0);
@@ -242,7 +262,6 @@ abstract class AbsKeywordDialog extends JDialog {
 		}
 		//
 		for (int i=0; i<sK.alTarget.size(); i++) {
-			
 			KDItem data = new KDItem();
 			data.target = sK.alTarget.get(i);
 			data.regex = sK.alKeyword.get(i);
@@ -252,9 +271,11 @@ abstract class AbsKeywordDialog extends JDialog {
 		}
 		jTable_keywords.fireChanged();
 		
+		// ラベル
 		jTextField_label.setText(label);
 		jTextField_label.setCaretPosition(0);
-		//
+		
+		// グループリスト
 		if ( xGroups != null && xGroups.size() != 0 ) {
 			jComboBox_group.setEnabled(true);
 			jComboBox_group.addItem("");
@@ -263,14 +284,22 @@ abstract class AbsKeywordDialog extends JDialog {
 			}
 		}
 
+		// オプション
+		jComboBox_okiniiri.setEnabled(true);
 		jCheckBox_caseSensitive.setSelected(sK.getCaseSensitive());
 		jCheckBox_showInStandby.setSelected(sK.getShowInStandby());
+		jCheckBox_showInStandby.setEnabled(true);
+		
+		//
+		jButton_add.setText("登録");
 	}
 	
 	// 延長警告管理としてのオープン（新規）
 	public void open(String title, String center, boolean isInfection, SearchProgram sKeys) {
 		//
 		xKeys = sKeys;
+		xGroups = null;
+		xKey = null;
 		//
 		if (isInfection) {
 			jTextField_label.setText("●"+title);
@@ -309,17 +338,59 @@ abstract class AbsKeywordDialog extends JDialog {
 		jTable_keywords.getRowItemList().add(d2);
 		
 		jTable_keywords.fireChanged();
+		
+		// オプション
+		jComboBox_okiniiri.setEnabled(false);
+		jCheckBox_caseSensitive.setSelected(false);
+		jCheckBox_showInStandby.setSelected(false);
+		jCheckBox_showInStandby.setEnabled(false);
+		
+		//
+		jButton_label.setText("登録");
 	}
 	
+	/***************************************
+	 * 新規オープン１種＋１種＋α
+	 **************************************/
+	
 	// キーワード検索管理としてのオープン（更新）
-	public void reopen(String s, SearchProgram sKeys) {
-		//
+	public void reopen(String label, SearchProgram sKeys) {
+	
 		xKeys = sKeys;
-		originalLabel = s;
-		//
-		jTextField_label.setText(s);
-		jTextField_label.setCaretPosition(0);
-
+		xGroups = null;
+		
+		for (SearchKey k : xKeys.getSearchKeys()) {
+			if (k.getLabel().equals(label)) {
+				// 操作対象をみつけた
+				_reopen(sKeys, k);
+				break;
+			}
+		}
+	}
+	
+	// 延長警告管理としてのオープン（更新）
+	public void reopen(String label, ExtProgram sKeys) {
+	
+		xKeys = sKeys;
+		xGroups = null;
+		
+		for (SearchKey k : sKeys.getSearchKeys()) {
+			if (k.getLabel().equals(label)) {
+				// 操作対象をみつけた
+				int idx = Integer.valueOf(k.getInfection());
+				if (jComboBox_infection.getItemCount() >= idx) {
+					jComboBox_infection.setSelectedIndex(idx);
+				}
+				_reopen((SearchProgram)sKeys, k);
+				break;
+			}
+		}
+	}
+	
+	private void _reopen(SearchProgram sKeys, SearchKey sKey) {
+		
+		xKey = sKey;
+		
 		jComboBox_regex.addItem("");
 		jComboBox_target.setSelectedIndex(0);
 		jComboBox_contain.setSelectedIndex(0);
@@ -327,47 +398,45 @@ abstract class AbsKeywordDialog extends JDialog {
 		for (int i=jTable_keywords.getRowCount()-1; i>=0; i--) {
 			jTable_keywords.getRowItemList().remove(i);
 		}
-		//
-		for (SearchKey k : xKeys.getSearchKeys()) {
-			if (k.getLabel().equals(s)) {
-	    		jComboBox_condition.setSelectedIndex(Integer.valueOf(k.getCondition()));
-	    		
-				Matcher ma = Pattern.compile("(.*?)\t").matcher(k.getTarget());
-				Matcher mb = Pattern.compile("(.*?)\t").matcher(k.getKeyword());
-				Matcher mc = Pattern.compile("(.*?)\t").matcher(k.getContain());
-				while (ma.find()) {
-					mb.find();
-					mc.find();
-					KDItem data = new KDItem();
-					data.target = TargetId.getTargetId(ma.group(1));
-					data.regex = mb.group(1);
-					data.contain = contain_items.get(Integer.valueOf(mc.group(1)));
-					data.fireChanged();
-					jTable_keywords.getRowItemList().add(data);
-				}
-				
-				jComboBox_okiniiri.setSelectedItem(k.getOkiniiri());
-				
-				jCheckBox_caseSensitive.setSelected(k.getCaseSensitive());
-				jCheckBox_showInStandby.setSelected(k.getShowInStandby());
-			}
+		
+		jComboBox_condition.setSelectedIndex(Integer.valueOf(xKey.getCondition()));
+		
+		Matcher ma = Pattern.compile("(.*?)\t").matcher(xKey.getTarget());
+		Matcher mb = Pattern.compile("(.*?)\t").matcher(xKey.getKeyword());
+		Matcher mc = Pattern.compile("(.*?)\t").matcher(xKey.getContain());
+		while (ma.find()) {
+			mb.find();
+			mc.find();
+			KDItem data = new KDItem();
+			data.target = TargetId.getTargetId(ma.group(1));
+			data.regex = mb.group(1);
+			data.contain = contain_items.get(Integer.valueOf(mc.group(1)));
+			data.fireChanged();
+			jTable_keywords.getRowItemList().add(data);
 		}
 		
-		jTable_keywords.fireChanged();
-	}
-	
-	// 延長警告管理としてのオープン（更新）
-	public void reopen(String s, ExtProgram sKeys) {
-		//
-		for (SearchKey k : sKeys.getSearchKeys()) {
-			if (k.getLabel().equals(s)) {
-				int idx = Integer.valueOf(k.getInfection());
-				if (jComboBox_infection.getItemCount() >= idx) {
-					jComboBox_infection.setSelectedIndex(idx);
-				}
-			}
+		jComboBox_okiniiri.setSelectedItem(xKey.getOkiniiri());
+		
+		jCheckBox_caseSensitive.setSelected(xKey.getCaseSensitive());
+		if ( sKeys instanceof ExtProgram ) {
+			jComboBox_okiniiri.setEnabled(false);
+			jCheckBox_showInStandby.setSelected(false);
+			jCheckBox_showInStandby.setEnabled(false);
 		}
-		reopen(s,(SearchProgram)sKeys);
+		else {
+			jComboBox_okiniiri.setEnabled(true);
+			jCheckBox_showInStandby.setSelected(xKey.getShowInStandby());
+			jCheckBox_showInStandby.setEnabled(true);
+		}
+		
+		jTextField_label.setText(xKey.getLabel());
+		jTextField_label.setCaretPosition(0);
+
+		//
+		jTable_keywords.fireChanged();
+		
+		//
+		jButton_label.setText("更新");
 	}
 	
 	/**
@@ -449,34 +518,49 @@ abstract class AbsKeywordDialog extends JDialog {
 	private final ActionListener al_save = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (jTextField_label.getText().equals("") || jTable_keywords.getRowCount()<=0) {
-				return;
-			}
-			
-			SearchKey sk = skCompile();
-			if (sk == null) {
-				return;
-			}
-			
-			// 検索キーワードを保存する
-			if (xKeys.replace(originalLabel, sk) == null) {
-				xKeys.add(sk);
-			}
-			xKeys.save();
-			
-			// グループに登録するかも
-			if ( jComboBox_group.getSelectedItem() != null && ! ((String)jComboBox_group.getSelectedItem()).equals("")) {
-				xGroups.add((String)jComboBox_group.getSelectedItem(),sk.getLabel());
-				xGroups.save();
-			}
-			
-			// 登録したお！
-			reg = true;
-			
 			// ウィンドウを閉じる
-			dispose();
+			if ( addToSearchKeyList() ) {
+				dispose();
+			}
 		}
 	};
+	
+	private boolean addToSearchKeyList() {
+		if (jTextField_label.getText().equals("") || jTable_keywords.getRowCount()<=0) {
+			return false;
+		}
+		
+		// 重複登録を許さない
+		for ( SearchKey k : xKeys.getSearchKeys() ) {
+			if ( k != xKey && k.getLabel().equals(getNewLabel()) ) {
+				JOptionPane.showConfirmDialog(this, "既に登録されています:"+getNewLabel(), "警告", JOptionPane.CLOSED_OPTION);							// キーワード検索の追加ではダイアログで修正できるので止めない
+				return false;
+			}
+		}
+		
+		SearchKey sk = skCompile();
+		if (sk == null) {
+			return false;
+		}
+		
+		// 検索キーワードを保存する
+		if ( xKey == null ) {
+			xKeys.add(sk);
+		}
+		else {
+			xKeys.replace(xKey, sk);
+		}
+		reg = xKeys.save();
+		
+		// グループに登録するかも
+		String grpName = (String)jComboBox_group.getSelectedItem();
+		if ( grpName != null && grpName.length() > 0 ) {
+			xGroups.add(grpName,sk.getLabel());
+			xGroups.save();
+		}
+		
+		return reg;
+	}
 	
 	/**
 	 * キャンセルしたい
@@ -552,6 +636,7 @@ abstract class AbsKeywordDialog extends JDialog {
 		}
 	};
 	
+	
 	/**
 	 * 条件を追加する
 	 */
@@ -571,15 +656,62 @@ abstract class AbsKeywordDialog extends JDialog {
 			data.regex = re;
 			data.contain = (String) jComboBox_contain.getSelectedItem();
 			data.fireChanged();
-			jTable_keywords.getRowItemList().add(data);
+			if ( selectedRow == -1 ) {
+				jTable_keywords.getRowItemList().add(data);
+			}
+			else {
+				jTable_keywords.getRowItemList().add(selectedRow+1, data);
+			}
 			jTable_keywords.fireChanged();
 			
 			if (jComboBox_regex.getItemCount() <= 1) {
 				jComboBox_regex.removeAllItems();
 				jComboBox_regex.addItem("");
 			}
+			
+			selectedRow = -1;
+			jButton_replace.setEnabled(false);
+			jButton_remove.setEnabled(false);
 		}
 	};
+	
+	
+	/**
+	 * 条件を置換する
+	 */
+	private final ActionListener al_replaceTarget = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if ( selectedRow == -1 ) {
+				return;
+			}
+			
+			TargetId ti = (TargetId) jComboBox_target.getSelectedItem();
+			String re = (String) jComboBox_regex.getSelectedItem();
+			
+			if ( ti.getUseKeyword() && re.length() == 0 ) {
+				// キーワードが必要なのに入力されていなければＮＧ
+				return;
+			}
+			
+			KDItem data = jTable_keywords.getRowItemList().get(selectedRow);
+			data.target = ti;
+			data.regex = re;
+			data.contain = (String) jComboBox_contain.getSelectedItem();
+			data.fireChanged();
+			jTable_keywords.fireChanged();
+			
+			if (jComboBox_regex.getItemCount() <= 1) {
+				jComboBox_regex.removeAllItems();
+				jComboBox_regex.addItem("");
+			}
+			
+			selectedRow = -1;
+			jButton_replace.setEnabled(false);
+			jButton_remove.setEnabled(false);
+		}
+	};
+	
 	
 	/**
 	 * 条件を削除する（コンボボックスに戻す）
@@ -587,28 +719,16 @@ abstract class AbsKeywordDialog extends JDialog {
 	private final ActionListener al_removeTarget = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			int row = -1;
-			if ((row = jTable_keywords.getSelectedRow()) == -1) {
+			if ( selectedRow == -1 ) {
 				return;
 			}
 			
-			KDItem c = jTable_keywords.getRowItemList().get(row);
-			jComboBox_target.setSelectedItem(c.target);
-			if (jComboBox_target.getSelectedItem() ==  TargetId.GENRE ||
-					jComboBox_target.getSelectedItem() ==  TargetId.SUBGENRE ||
-					jComboBox_target.getSelectedItem() ==  TargetId.LENGTH ||
-					jComboBox_target.getSelectedItem() ==  TargetId.STARTA ||
-					jComboBox_target.getSelectedItem() ==  TargetId.STARTZ ) {
-				jComboBox_regex.setSelectedItem(c.regex);
-			}
-			else {
-				jComboBox_regex.removeAllItems();
-				jComboBox_regex.addItem(c.regex);
-			}
-			jComboBox_contain.setSelectedItem(c.contain);
-			
-			jTable_keywords.getRowItemList().remove(jTable_keywords.getSelectedRow());
+			jTable_keywords.getRowItemList().remove(selectedRow);
 			jTable_keywords.fireChanged();
+			
+			selectedRow = -1;
+			jButton_replace.setEnabled(false);
+			jButton_remove.setEnabled(false);
 		}
 	};
 	
@@ -622,6 +742,7 @@ abstract class AbsKeywordDialog extends JDialog {
 			if ( jTable_keywords.getRowItemList().up(row, 1) ) {
 				jTable_keywords.fireChanged();
 				jTable_keywords.setRowSelectionInterval(row-1,row-1);
+				selectedRow = row-1;
 			}
 		}
 	};
@@ -636,10 +757,45 @@ abstract class AbsKeywordDialog extends JDialog {
 			if ( jTable_keywords.getRowItemList().down(row, 1) ) {
 				jTable_keywords.fireChanged();
 				jTable_keywords.setRowSelectionInterval(row+1,row+1);
+				selectedRow = row+1;
 			}
 		}
 	};
 
+	/**
+	 * 行を選択したら編集ブロックにコピーする
+	 */
+	private final MouseAdapter ml_keywordSelected = new MouseAdapter() {
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			int row = jTable_keywords.getSelectedRow();
+			if (row == -1) {
+				return;
+			}
+			
+			KDItem c = jTable_keywords.getRowItemList().get(row);
+			
+			jComboBox_target.setSelectedItem(c.target);
+			
+			if ( ! c.target.getUseRegexpr() && c.target.getUseKeyword() ) {
+				jComboBox_regex.setSelectedItem(c.regex);
+			}
+			else {
+				jComboBox_regex.removeAllItems();
+				if ( c.target.getUseRegexpr() ) {
+					jComboBox_regex.addItem(c.regex);
+				}
+			}
+			
+			jComboBox_contain.setSelectedItem(c.contain);
+			
+			selectedRow = row;
+			jButton_replace.setEnabled(true);
+			jButton_remove.setEnabled(true);
+		}
+	};
+	
+	
 	/*******************************************************************************
 	 * コンポーネント
 	 ******************************************************************************/
@@ -667,9 +823,9 @@ abstract class AbsKeywordDialog extends JDialog {
 			CommonSwingUtils.putComponentOn(jPanel, getJComboBox_contain(), TARGET_WIDTH, PARTS_HEIGHT, x+=REGEX_WIDTH+SEP_WIDTH, y);
 			
 			y += PARTS_HEIGHT+SEP_HEIGHT_NARROW;
-			x = (TABLE_WIDTH/2-(BUTTON_WIDTH_L+SEP_WIDTH/2))+SEP_WIDTH;
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_add("追加↓"), BUTTON_WIDTH_L, PARTS_HEIGHT, x , y);
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_remove("↑削除"), BUTTON_WIDTH_L, PARTS_HEIGHT, x+=BUTTON_WIDTH_L+SEP_WIDTH, y);
+			x = SEP_HEIGHT+TABLE_WIDTH/2;
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_add("追加↓"), BUTTON_WIDTH_L, PARTS_HEIGHT, x-(BUTTON_WIDTH_L+SEP_WIDTH*2) , y);
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_replace("置換↓"), BUTTON_WIDTH_L, PARTS_HEIGHT, x+(SEP_WIDTH*2), y);
 			
 			CommonSwingUtils.putComponentOn(jPanel, getJCheckBox_caseSensitive("文字列比較は完全一致で",CHECKLABEL_WIDTH,false), CHECKBOX_WIDTH, PARTS_HEIGHT, PANEL_WIDTH-CHECKBOX_WIDTH-SEP_WIDTH, y);
 			
@@ -682,6 +838,7 @@ abstract class AbsKeywordDialog extends JDialog {
 			int yz = y + (TABLE_HEIGHT/2-(PARTS_HEIGHT+SEP_HEIGHT/2));
 			CommonSwingUtils.putComponentOn(jPanel, getJButton_up("↑"), UPDOWN_WIDTH, PARTS_HEIGHT, TABLEPANE_WIDTH+SEP_WIDTH*2, yz);
 			CommonSwingUtils.putComponentOn(jPanel, getJButton_down("↓"), UPDOWN_WIDTH, PARTS_HEIGHT, TABLEPANE_WIDTH+SEP_WIDTH*2, yz+=SEP_HEIGHT+PARTS_HEIGHT);
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_remove("削除"), UPDOWN_WIDTH, PARTS_HEIGHT, TABLEPANE_WIDTH+SEP_WIDTH*2, yz+=SEP_HEIGHT*2+PARTS_HEIGHT);
 
 			y += TABLE_HEIGHT+SEP_HEIGHT;
 			x = SEP_WIDTH;
@@ -881,10 +1038,24 @@ abstract class AbsKeywordDialog extends JDialog {
 		if (jButton_add == null) {
 			jButton_add = new JButton();
 			jButton_add.setText(s);
+			jButton_add.setEnabled(true);
 			
 			jButton_add.addActionListener(al_addTarget);
 		}
 		return(jButton_add);
+	}
+	
+	// 条件置換のボタン
+	private JButton getJButton_replace(String s) {
+		if (jButton_replace == null) {
+			jButton_replace = new JButton();
+			jButton_replace.setText(s);
+			jButton_replace.setEnabled(false);
+			jButton_replace.setForeground(Color.BLUE);
+			
+			jButton_replace.addActionListener(al_replaceTarget);
+		}
+		return(jButton_replace);
 	}
 	
 	// 条件削除のボタン
@@ -892,6 +1063,8 @@ abstract class AbsKeywordDialog extends JDialog {
 		if (jButton_remove == null) {
 			jButton_remove = new JButton();
 			jButton_remove.setText(s);
+			jButton_remove.setEnabled(false);
+			jButton_remove.setForeground(Color.RED);
 			
 			jButton_remove.addActionListener(al_removeTarget);
 		}
@@ -956,6 +1129,8 @@ abstract class AbsKeywordDialog extends JDialog {
 				columnModel.getColumn(rc.ordinal()).setPreferredWidth(rc.getIniWidth());;
 			}
 
+			// 行を選択したら入力に値を戻す
+			jTable_keywords.addMouseListener(ml_keywordSelected);
 		}
 		return(jTable_keywords);
 	}

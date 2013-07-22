@@ -26,6 +26,7 @@ public class JListSortDialog extends JDialog {
 	private JPanel jpan = null;
 	private JButton jbtn_update = null;
 	private JButton jbtn_cancel = null;
+	private JButton jbtn_sort = null;
 	private JButton jbtn_remove = null;
 	private JButton jbtn_up = null;
 	private JButton jbtn_down = null;
@@ -75,6 +76,8 @@ public class JListSortDialog extends JDialog {
 			//
 			int y = 10;
 			CommonSwingUtils.putComponentOn(jpan, getJScr_entries(), 400, 500, 10, y);
+			
+			CommonSwingUtils.putComponentOn(jpan, getJBtn_sort("ソート"), 100, 25, 10+400+10, y+500-(10+25)*8);
 			
 			CommonSwingUtils.putComponentOn(jpan, getJBtn_remove("削除"), 100, 25, 10+400+10, y+500-(10+25)*4);
 			
@@ -127,6 +130,37 @@ public class JListSortDialog extends JDialog {
 			jtbl_entries.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		}
 		return jtbl_entries;
+	}
+	
+	// ソート
+	private JButton getJBtn_sort(String s) {
+		if (jbtn_sort == null) {
+			jbtn_sort = new JButton(s);
+			jbtn_sort.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					ArrayList<String> tmpData = new ArrayList<String>();
+					for ( String data : rowData ) {
+						int index = 0;
+						for ( ; index<tmpData.size(); index++ ) {
+							String tmp = tmpData.get(index);
+							if ( tmp.compareTo(data) > 0 ) {
+								break;
+							}
+						}
+						tmpData.add(index,data);
+					}
+					
+					rowData.clear();
+					for ( String tmp : tmpData ) {
+						rowData.add(tmp);
+					}
+					
+					((DefaultTableModel) jtbl_entries.getModel()).fireTableDataChanged();
+				}
+			});
+		}
+		return jbtn_sort;
 	}
 	
 	// 削除
