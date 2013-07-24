@@ -1731,7 +1731,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		
 		// 番組追跡へ追加する
 		{
-			final String label = VWTraceKeyDialog.getNewLabel(tvd.title, tvd.center);
+			final String label = TraceProgram.getNewLabel(tvd.title, tvd.center);
 			JMenuItem menuItem = new JMenuItem("番組追跡への追加【"+label+"】");
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -1742,7 +1742,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 					tD.open(trKeys, tvd, env.getDefaultFazzyThreshold());
 					tD.setVisible(true);
 					
-					if (tD.isRegistered()) { 
+					if (tD.isRegistered()) {
 						//
 						trKeys.save();
 						
@@ -2323,12 +2323,12 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 					
 					@Override
 					protected void doFinally() {
-						stwin.setVisible(false);
+						StWinSetVisible(false);
 					}
 				}.execute();
 				
 				CommonSwingUtils.setLocationCenter(Viewer.this, stwin);
-				stwin.setVisible(true);
+				StWinSetVisible(true);
 				
 				// 予約状況を更新
 				listed.updateReserveMark();

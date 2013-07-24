@@ -215,6 +215,10 @@ public interface TVProgram {
 			return(name);
 		}
 		
+		public String toFullString() {
+			return genre.toString()+" - "+name;
+		}
+		
 		public String toIEPG() {
 			return(iepg);
 		}
@@ -241,8 +245,12 @@ public interface TVProgram {
 			return null;
 		}
 		public static ProgSubgenre get(String s) {
+			if ( s == null ) {
+				return null;
+			}
+			boolean isfull = (s.indexOf(" - ") != -1);
 			for ( ProgSubgenre g : ProgSubgenre.values() ) {
-				if ( g.name.equals(s) ) {
+				if ( s.equals(isfull ? g.toFullString() : g.toString()) ) {
 					return g;
 				}
 			}

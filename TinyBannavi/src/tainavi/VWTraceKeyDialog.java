@@ -36,9 +36,7 @@ public class VWTraceKeyDialog extends JDialog {
 	
 	private boolean reg = false;
 	
-	public String getNewLabel() { return getNewLabel(jTextField_title.getText(),jTextField_channel.getText()); }
-	
-	public static String getNewLabel(String title, String center) { return title+" ("+center+")"; }
+	public String getNewLabel() { return TraceProgram.getNewLabel(jTextField_title.getText(),jTextField_channel.getText()); }
 	
 	private ArrayList<String> okiniiri_items = new ArrayList<String>(); 
 	public void clean_okiniiri_items() { okiniiri_items.clear(); }
@@ -91,20 +89,14 @@ public class VWTraceKeyDialog extends JDialog {
 		xTvd = null;
 		
 		for (TraceKey k : xKeys.getTraceKeys()) {
-			if (k.getLabel().equals(label)) {
+			if (k._getLabel().equals(label)) {
 				// 操作対象をみつけた
 				xKey = k;
 				break;
 			}
 		}
 		
-		int index = xKey.getLabel().indexOf("("+xKey.getCenter()+")");
-		if ( index > 0 ) {
-			jTextField_title.setText(xKey.getLabel().substring(0,index));
-		}
-		else {
-			jTextField_title.setText(xKey.getLabel());
-		}
+		jTextField_title.setText(xKey.getTitle());
 		jTextField_title.setCaretPosition(0);
 		jTextField_channel.setText(xKey.getCenter());
 		jSlider_fazzyThreshold.setValue(xKey.getFazzyThreshold());
@@ -310,7 +302,7 @@ public class VWTraceKeyDialog extends JDialog {
 		
 		// 重複登録を許さない
 		for (TraceKey k : xKeys.getTraceKeys()) {
-			if ( k != xKey && k.getLabel().equals(getNewLabel()) ) {
+			if ( k != xKey && k._getLabel().equals(getNewLabel()) ) {
 				JOptionPane.showConfirmDialog(this, "既に登録されています:"+getNewLabel(), "警告", JOptionPane.CLOSED_OPTION);							// キーワード検索の追加ではダイアログで修正できるので止めない
 				return false;
 			}
@@ -324,8 +316,9 @@ public class VWTraceKeyDialog extends JDialog {
 		
 		xKey.setLabel(getNewLabel());
 		xKey.setCenter(jTextField_channel.getText());
-		xKey.setTitlePop(TraceProgram.replacePop(jTextField_title.getText()));
-		xKey.setSearchStrKeys(TraceProgram.splitKeys(xKey.getTitlePop()));
+		xKey.setTitle(jTextField_title.getText().trim());
+		xKey.setTitlePop(TraceProgram.replacePop(xKey.getTitle()));
+		xKey.setSearchStrKeys(TraceProgram.splitKeys(xKey._getTitlePop()));
 		xKey.setFazzyThreshold(jSlider_fazzyThreshold.getValue());
 		xKey.setOkiniiri((String) jComboBox_okiniiri.getSelectedItem());
 		xKey.setDisableRepeat(jCheckBox_disableRepeat.isSelected());

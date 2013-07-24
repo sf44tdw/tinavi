@@ -64,9 +64,7 @@ abstract class AbsKeywordDialog extends JDialog {
 	
 	private static final int TEXT_WIDTH = 300;
 
-	private static final int UPDOWN_WIDTH = 50;
-	private static final int BUTTON_WIDTH_S = 75;
-	private static final int BUTTON_WIDTH_L = 100;
+	private static final int BUTTON_WIDTH = 75;
 
 	private static final int TARGET_WIDTH = 175;
 	private static final int REGEX_WIDTH = 300;
@@ -82,7 +80,7 @@ abstract class AbsKeywordDialog extends JDialog {
 	private static final int TABLEPANE_WIDTH = TABLE_WIDTH+25;	// スクロールバー分
 	private static final int TABLE_HEIGHT = 160;
 	
-	private static final int PANEL_WIDTH = TABLEPANE_WIDTH+UPDOWN_WIDTH+SEP_WIDTH*2;
+	private static final int PANEL_WIDTH = TABLEPANE_WIDTH+BUTTON_WIDTH+SEP_WIDTH*3;
 
 	// カラム関連
 	
@@ -193,12 +191,14 @@ abstract class AbsKeywordDialog extends JDialog {
 		//
 		this.setModal(true);
 		this.setContentPane(getJPanel());
+/* - JDialogでは意味がないのか？ -
 		// タイトルバーの高さも考慮する必要がある
-		Dimension d = getJPanel().getPreferredSize();
-		this.pack();
-		this.setPreferredSize(new Dimension(
+		Dimension d = getContentPane().getPreferredSize();
+		this.setSize(new Dimension(
 				d.width+(this.getInsets().left+this.getInsets().right),
 				d.height+(this.getInsets().top+this.getInsets().bottom)));
+*/
+		this.pack();
 		this.setResizable(false);
 		//
 		this.setTitle(windowTitle);
@@ -291,7 +291,7 @@ abstract class AbsKeywordDialog extends JDialog {
 		jCheckBox_showInStandby.setEnabled(true);
 		
 		//
-		jButton_add.setText("登録");
+		jButton_label.setText("登録");
 	}
 	
 	// 延長警告管理としてのオープン（新規）
@@ -627,7 +627,7 @@ abstract class AbsKeywordDialog extends JDialog {
 			}
 			else if (target == TargetId.SUBGENRE) {
 				for ( ProgSubgenre subgenre : ProgSubgenre.values()) {
-					jComboBox_regex.addItem(subgenre.toString());
+					jComboBox_regex.addItem(subgenre.toFullString());
 				}
 			}
 			else {
@@ -778,7 +778,22 @@ abstract class AbsKeywordDialog extends JDialog {
 			jComboBox_target.setSelectedItem(c.target);
 			
 			if ( ! c.target.getUseRegexpr() && c.target.getUseKeyword() ) {
+				jComboBox_regex.setSelectedItem(null);
 				jComboBox_regex.setSelectedItem(c.regex);
+				
+				// 旧版互換
+				String s = (String) jComboBox_regex.getSelectedItem();
+				if ( c.target == TargetId.SUBGENRE ) {
+					if ( s == null ) {
+						ProgSubgenre subg = ProgSubgenre.get(c.regex);
+						if ( subg != null ) {
+							jComboBox_regex.setSelectedItem(subg.toFullString());
+						}
+					}
+				}
+				else if ( s == null && jComboBox_regex.getItemCount() > 0 ) {
+					jComboBox_regex.setSelectedIndex(0);
+				}
 			}
 			else {
 				jComboBox_regex.removeAllItems();
@@ -812,9 +827,11 @@ abstract class AbsKeywordDialog extends JDialog {
 			x = SEP_WIDTH;
 			CommonSwingUtils.putComponentOn(jPanel, getJLabel_label("設定名"), LABEL_WIDTH_S, PARTS_HEIGHT, x, y);
 			CommonSwingUtils.putComponentOn(jPanel, getJTextField_label(), TEXT_WIDTH, PARTS_HEIGHT, x+=LABEL_WIDTH_S, y);
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_label("登録"), BUTTON_WIDTH_S, PARTS_HEIGHT, x+=TEXT_WIDTH+SEP_WIDTH, y);
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_cancel("ｷｬﾝｾﾙ"), BUTTON_WIDTH_S, PARTS_HEIGHT, x+=BUTTON_WIDTH_S+SEP_WIDTH, y);
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_preview("ﾌﾟﾚﾋﾞｭｰ"), BUTTON_WIDTH_S, PARTS_HEIGHT, PANEL_WIDTH-BUTTON_WIDTH_S-SEP_WIDTH, y);
+			
+			int xz = PANEL_WIDTH-(BUTTON_WIDTH+SEP_WIDTH);
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_label("登録"), BUTTON_WIDTH, PARTS_HEIGHT, xz, y);
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_cancel("ｷｬﾝｾﾙ"), BUTTON_WIDTH, PARTS_HEIGHT, xz, y+(SEP_HEIGHT_NARROW+PARTS_HEIGHT));
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_preview("ﾌﾟﾚﾋﾞｭｰ"), BUTTON_WIDTH, PARTS_HEIGHT, xz, y+(SEP_HEIGHT_NARROW+PARTS_HEIGHT)*2);
 			
 			y += PARTS_HEIGHT+SEP_HEIGHT;
 			x = SEP_WIDTH;
@@ -823,11 +840,12 @@ abstract class AbsKeywordDialog extends JDialog {
 			CommonSwingUtils.putComponentOn(jPanel, getJComboBox_contain(), TARGET_WIDTH, PARTS_HEIGHT, x+=REGEX_WIDTH+SEP_WIDTH, y);
 			
 			y += PARTS_HEIGHT+SEP_HEIGHT_NARROW;
-			x = SEP_HEIGHT+TABLE_WIDTH/2;
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_add("追加↓"), BUTTON_WIDTH_L, PARTS_HEIGHT, x-(BUTTON_WIDTH_L+SEP_WIDTH*2) , y);
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_replace("置換↓"), BUTTON_WIDTH_L, PARTS_HEIGHT, x+(SEP_WIDTH*2), y);
+			CommonSwingUtils.putComponentOn(jPanel, getJCheckBox_caseSensitive("文字列比較は完全一致で",CHECKLABEL_WIDTH,false), CHECKBOX_WIDTH, PARTS_HEIGHT, x, y);
 			
-			CommonSwingUtils.putComponentOn(jPanel, getJCheckBox_caseSensitive("文字列比較は完全一致で",CHECKLABEL_WIDTH,false), CHECKBOX_WIDTH, PARTS_HEIGHT, PANEL_WIDTH-CHECKBOX_WIDTH-SEP_WIDTH, y);
+			x = SEP_HEIGHT+TABLE_WIDTH/2;
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_add("↓追加"), BUTTON_WIDTH, PARTS_HEIGHT, x-(BUTTON_WIDTH+SEP_WIDTH*2) , y);
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_replace("↓置換"), BUTTON_WIDTH, PARTS_HEIGHT, x+(SEP_WIDTH*2), y);
+			
 			
 			y += PARTS_HEIGHT+SEP_HEIGHT_NARROW;
 			CommonSwingUtils.putComponentOn(jPanel, getJComboBox_condition(), CONDITION_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
@@ -835,10 +853,11 @@ abstract class AbsKeywordDialog extends JDialog {
 			
 			y += PARTS_HEIGHT+SEP_HEIGHT_NARROW;
 			CommonSwingUtils.putComponentOn(jPanel, getJScrollPane_keywords(), TABLEPANE_WIDTH, TABLE_HEIGHT, SEP_WIDTH, y);
+			
 			int yz = y + (TABLE_HEIGHT/2-(PARTS_HEIGHT+SEP_HEIGHT/2));
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_up("↑"), UPDOWN_WIDTH, PARTS_HEIGHT, TABLEPANE_WIDTH+SEP_WIDTH*2, yz);
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_down("↓"), UPDOWN_WIDTH, PARTS_HEIGHT, TABLEPANE_WIDTH+SEP_WIDTH*2, yz+=SEP_HEIGHT+PARTS_HEIGHT);
-			CommonSwingUtils.putComponentOn(jPanel, getJButton_remove("削除"), UPDOWN_WIDTH, PARTS_HEIGHT, TABLEPANE_WIDTH+SEP_WIDTH*2, yz+=SEP_HEIGHT*2+PARTS_HEIGHT);
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_up("↑"), BUTTON_WIDTH, PARTS_HEIGHT, xz, yz);
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_down("↓"), BUTTON_WIDTH, PARTS_HEIGHT, xz, yz+=SEP_HEIGHT+PARTS_HEIGHT);
+			CommonSwingUtils.putComponentOn(jPanel, getJButton_remove("削除"), BUTTON_WIDTH, PARTS_HEIGHT, xz, yz+=SEP_HEIGHT*2+PARTS_HEIGHT);
 
 			y += TABLE_HEIGHT+SEP_HEIGHT;
 			x = SEP_WIDTH;
@@ -848,9 +867,9 @@ abstract class AbsKeywordDialog extends JDialog {
 			CommonSwingUtils.putComponentOn(jPanel, getJComboBox_group(), SELECTION_WIDTH, PARTS_HEIGHT, x+=LABEL_WIDTH_L+SEP_WIDTH, y);
 			
 			CommonSwingUtils.putComponentOn(jPanel, getJCheckBox_showInStandby("予約待機に表示する",CHECKLABEL_WIDTH,true), CHECKBOX_WIDTH, PARTS_HEIGHT, PANEL_WIDTH-CHECKBOX_WIDTH-SEP_WIDTH, y);
-
-			y += PARTS_HEIGHT+SEP_HEIGHT*2;
 			
+			y += PARTS_HEIGHT+SEP_HEIGHT*2;
+
 			jPanel.setPreferredSize(new Dimension(PANEL_WIDTH, y));
 		}
 		return jPanel;

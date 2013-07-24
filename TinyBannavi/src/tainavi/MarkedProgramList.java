@@ -86,7 +86,7 @@ public class MarkedProgramList {
 			// 番組追跡
 			if (this.getTKey(n) != null) {
 				for ( TraceKey tk : this.getTKey(n) ) {
-					mpTrKeyLabels.put(tk.getLabel(), "BINGO!");
+					mpTrKeyLabels.put(tk._getLabel(), "BINGO!");
 				}
 			}
 			// キーワード検索
@@ -146,7 +146,7 @@ public class MarkedProgramList {
 				}
 				
 				if ( trace != null && trace.getShowLatestOnly() ) {
-					System.out.println(MSGID+"[リピート放送判定] リピート放送を排除する検索キー： *"+tvp.getType()+"* "+trace.getLabel());
+					System.out.println(MSGID+"[リピート放送判定] リピート放送を排除する検索キー： *"+tvp.getType()+"* "+trace._getLabel());
 				}
 				
 				// 一時保存用
@@ -177,19 +177,19 @@ public class MarkedProgramList {
 							
 							if (this.disableFazzySearch == true) {
 								// 完全一致
-								if (trace.getTitlePop().equals(tvd.titlePop)) {
+								if (trace._getTitlePop().equals(tvd.titlePop)) {
 									isFind = true;
 								}
 							}
 							else {
 								//あいまい検索・正引き
-								fazScore = TraceProgram.sumScore(tvd.SearchStrKeys,trace.getTitlePop());
+								fazScore = TraceProgram.sumScore(tvd.SearchStrKeys,trace._getTitlePop());
 								if (fazScore >= trace.getFazzyThreshold()) {
 									isFind = true;
 								}
 								else if ( ! this.disableFazzySearchReverse) {
 									// 逆引き
-									fazScore = TraceProgram.sumScore(trace.getSearchStrKeys(),tvd.titlePop);
+									fazScore = TraceProgram.sumScore(trace._getSearchStrKeys(),tvd.titlePop);
 									if (fazScore >= trace.getFazzyThreshold()) {
 										isFind = true;
 									}

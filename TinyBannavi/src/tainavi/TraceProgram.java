@@ -12,6 +12,8 @@ public class TraceProgram {
 	private final String traceKeyFile = "env"+File.separator+"tracekey.xml";
 	private ArrayList<TraceKey> traceKeys = new ArrayList<TraceKey>();
 	
+	public static String getNewLabel(String title, String center) { return title.trim()+" ("+center+")"; }
+	
 	// 設定ファイルに書き出し
 	public boolean save() {
 		System.out.println(MSGID+"保存します: "+traceKeyFile);
@@ -33,22 +35,23 @@ public class TraceProgram {
 		System.out.println(MSGID+"読み込みます: "+traceKeyFile);
 		
 		traceKeys = (ArrayList<TraceKey>)CommonUtils.readXML(traceKeyFile);
-		if ( traceKeys != null ) {
-	        for (TraceKey tr : traceKeys) {
-		        // 後方互換用
-	        	if (tr.getFazzyThreshold() == 0) {
-	        		tr.setFazzyThreshold(TraceKey.defaultFazzyThreshold);
-	        	}
-	        	if (tr.getOkiniiri() == null) {
-	        		tr.setOkiniiri("★");
-	        	}
-	        	if (tr.getSearchStrKeys() == null) {
-	        		tr.setSearchStrKeys(splitKeys(tr.getTitlePop()));
-	        	}
-	        }
-		}
 		if ( traceKeys == null ) {
     		System.out.println(ERRID+"設定を読み込めなかったので登録なしで起動します： "+traceKeyFile);
+    		return;
+		}
+		
+		// ファイルに保存しないようにするので
+        for (TraceKey tr : traceKeys) {
+        	if ( tr.getTitle() == null ) {
+        		int index = tr._getLabel().indexOf(" (");
+        		tr.setTitle(index > 0 ? tr._getLabel().substring(0,index) : "");
+        	}
+        	
+        	tr.setTitlePop(replacePop(tr.getTitle()));
+        	
+        	tr.setSearchStrKeys(splitKeys(tr._getTitlePop()));
+        	
+        	tr.setLabel(getNewLabel(tr.getTitle(), tr.getCenter()));
 		}
 	}
 	
@@ -58,19 +61,6 @@ public class TraceProgram {
 	}
 	
 	// 番組追跡の追加
-	public void add(String label, String key, String value, int fazzyThreshold) {
-		TraceKey newkey = new TraceKey();
-		newkey.setLabel(label);
-		newkey.setTitlePop(replacePop(key));
-	    newkey.setSearchStrKeys(splitKeys(newkey.getTitlePop()));
-		newkey.setCenter(value);
-		newkey.setFazzyThreshold(fazzyThreshold);
-		newkey.setOkiniiri(TVProgram.OKINIIRI[0]);
-		newkey.setDisableRepeat(false);
-		newkey.setShowLatestOnly(false);
-		
-		traceKeys.add(newkey);
-	}
 	public void add(TraceKey newkey) {
 		traceKeys.add(newkey);
 	}
@@ -78,7 +68,7 @@ public class TraceProgram {
 	// 番組追跡の削除
 	public void remove(String key) {
 		for ( TraceKey k : traceKeys ) {
-			if (k.getLabel().equals(key)) {
+			if (k._getLabel().equals(key)) {
 				traceKeys.remove(k);
 	        	break;
 			}

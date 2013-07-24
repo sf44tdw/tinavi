@@ -957,7 +957,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 					}
 				}
 				
-				label = td.get(i).getLabel();
+				label = td.get(i)._getLabel();
 				okini = td.get(i).getOkiniiri();
 				threshold = String.valueOf(td.get(i).getFazzyThreshold());
 				fazScore = String.valueOf(mpList.getTScore(n).get(i));
@@ -1874,7 +1874,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 						break;
 					case TRACE:
 						for (TraceKey trace : trKeys.getTraceKeys()) {
-							if (path.getLastPathComponent().toString().equals(trace.getLabel())) {
+							if (path.getLastPathComponent().toString().equals(trace._getLabel())) {
 								redrawListByTrace(trace);
 								break;
 							}
@@ -2089,7 +2089,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		
 		traceNode.removeAllChildren();
 		for ( TraceKey key : trKeys.getTraceKeys() ) {
-			traceNode.add(new VWListedTreeNode(key.getLabel(), mpList.isTrKeyUsed(key.getLabel())));
+			traceNode.add(new VWListedTreeNode(key._getLabel(), mpList.isTrKeyUsed(key._getLabel())));
 		}
 		
 		jTree_tree.setSelectionPath(tp);
@@ -2753,7 +2753,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		//
 		ArrayList<String> oList = new ArrayList<String>();
 		for ( TraceKey key : trKeys.getTraceKeys() ) {
-			oList.add(key.getLabel());
+			oList.add(key._getLabel());
 		}
 		
 		// 編集前のリストサイズ
@@ -2769,7 +2769,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			TraceProgram newTrKeys = new TraceProgram();
 			for ( String label : oList ) {
 				for ( TraceKey key : trKeys.getTraceKeys() ) {
-					if ( key.getLabel().equals(label) ) {
+					if ( key._getLabel().equals(label) ) {
 						newTrKeys.add(key);
 						break;
 					}
@@ -3195,7 +3195,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			ButtonGroup bg = new ButtonGroup();
 			
 			for ( TraceKey t : trKeys.getTraceKeys()) {
-				if (t.getLabel().equals(keyword)) {
+				if (t._getLabel().equals(keyword)) {
 					final TraceKey tk = t;
 					for (String o : TVProgram.OKINIIRI) {
 						final String okini = o; 
