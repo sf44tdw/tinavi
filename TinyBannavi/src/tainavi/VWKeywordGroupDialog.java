@@ -18,7 +18,7 @@ import javax.swing.SpringLayout;
  * 
  */
 
-public class VWKeywordGroupDialog extends JDialog {
+public class VWKeywordGroupDialog extends JEscCancelDialog {
 
 	private static final long serialVersionUID = 1L;
 
@@ -128,11 +128,16 @@ public class VWKeywordGroupDialog extends JDialog {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					dispose();
+					doCancel();
 				}
 			});
 		}
 		return jButton_cancel;
+	}
+	
+	@Override
+	protected void doCancel() {
+		dispose();
 	}
 	
 	

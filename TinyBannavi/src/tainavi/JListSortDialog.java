@@ -15,7 +15,7 @@ import javax.swing.SpringLayout;
 import javax.swing.table.DefaultTableModel;
 
 
-public class JListSortDialog extends JDialog {
+public class JListSortDialog extends JEscCancelDialog {
 
 	private static final long serialVersionUID = 1L;
 
@@ -247,11 +247,17 @@ public class JListSortDialog extends JDialog {
 			jbtn_cancel.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					reg = false;
-					dispose();
+					doCancel();
 				}
 			});
 		}
 		return jbtn_cancel;
 	}
+	
+	@Override
+	protected void doCancel() {
+		reg = false;
+		dispose();
+	}
+	
 }

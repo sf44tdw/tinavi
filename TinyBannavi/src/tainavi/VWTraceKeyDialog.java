@@ -26,7 +26,7 @@ import javax.swing.event.ChangeListener;
  * 
  */
 
-public class VWTraceKeyDialog extends JDialog {
+public class VWTraceKeyDialog extends JEscCancelDialog {
 
 	private static final long serialVersionUID = 1L;
 
@@ -339,11 +339,16 @@ public class VWTraceKeyDialog extends JDialog {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					dispose();
+					doCancel();
 				}
 			});
 		}
 		return jButton_cancel;
+	}
+	
+	@Override
+	protected void doCancel() {
+		dispose();
 	}
 	
 	

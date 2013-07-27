@@ -3,6 +3,7 @@ package tainavi;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -29,7 +31,7 @@ import tainavi.TVProgram.ProgSubgenre;
  * @since 3.15.4β　ReserveDialogからクラス名変更
  * @version 3.22.2β コンポーネントを、番組情報部・録画設定部、類似予約部の３つに分離（このまま突き進めばロジックとSwingコンポーネントを分離できるんじゃないかしら？）
  */
-abstract class AbsReserveDialog extends JDialog implements HDDRecorderListener,RecordExecutable,RecSettingSelectable,LikeReserveSelectable {
+abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderListener,RecordExecutable,RecSettingSelectable,LikeReserveSelectable {
 
 	private static final long serialVersionUID = 1L;
 

@@ -25,7 +25,7 @@ import javax.swing.JTable;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.table.TableCellRenderer;
 
-public class VWColorChooserDialog extends JDialog {
+public class VWColorChooserDialog extends JEscCancelDialog {
 
 	private static final long serialVersionUID = 1L;
 
@@ -44,11 +44,12 @@ public class VWColorChooserDialog extends JDialog {
 		// タイトルバーの高さも考慮する必要がある
 		Dimension d = getJPanel().getPreferredSize();
 		this.pack();
+/*
 		this.setPreferredSize(new Dimension(
 				d.width+(this.getInsets().left+this.getInsets().right),
 				d.height+(this.getInsets().top+this.getInsets().bottom)));
 		this.setResizable(false);
-		
+*/	
 		//
 		this.setTitle("色見本");
 	}
@@ -150,16 +151,20 @@ public class VWColorChooserDialog extends JDialog {
 	private JButton getJButton_cancel(String s) {
 		if (jButton_cancel == null) {
 			jButton_cancel = new JButton(s);
-			final JDialog jd = this;
 			jButton_cancel.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					selectedColor = null;
-					jd.setVisible(false);
+					doCancel();
 				}
 			});
 		}
 		return(jButton_cancel);
+	}
+	
+	@Override
+	protected void doCancel() {
+		selectedColor = null;
+		setVisible(false);
 	}
 	
 	/*

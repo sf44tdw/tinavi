@@ -327,9 +327,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 					if (
 							(code.startsWith(BroadcastType.TERRA.getName()+":") && enc.getText().startsWith("地上")) ||
 							((code.startsWith(BroadcastType.BS.getName()+":")||code.startsWith(BroadcastType.CS.getName()+":")) && enc.getText().startsWith("BS")) ||
-							(code.startsWith(BroadcastType.CAPTURE.getName()+":") && enc.getText().startsWith("キャプチャ")) ||
-							enc.getText().startsWith("外部")
-							) {
+							(code.startsWith(BroadcastType.CAPTURE.getName()+":") && enc.getText().startsWith("キャプチャ")) ) {
 						encs.add(enc.getText());
 					}
 				}

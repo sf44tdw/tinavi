@@ -37,7 +37,7 @@ import tainavi.JTXTButton.FontStyle;
 import tainavi.TVProgram.ProgGenre;
 
 
-abstract class AbsPaperColorsDialog extends JDialog {
+abstract class AbsPaperColorsDialog extends JEscCancelDialog {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -222,7 +222,8 @@ abstract class AbsPaperColorsDialog extends JDialog {
 		setVisible(false);
 	}
 	
-	private void doCancel() {
+	@Override
+	protected void doCancel() {
 		updatePaperColors(origenv,origpc);
 		updatePaperFonts(origenv);
 		updatePaperBounds(origenv,origbnd);

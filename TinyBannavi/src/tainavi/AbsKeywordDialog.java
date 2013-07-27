@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -36,7 +37,7 @@ import tainavi.TVProgram.ProgSubgenre;
 /**
  * キーワード検索の設定のクラス（延長警告管理でも流用する）
  */
-abstract class AbsKeywordDialog extends JDialog {
+abstract class AbsKeywordDialog extends JEscCancelDialog {
 
 	private static final long serialVersionUID = 1L;
 
@@ -203,6 +204,7 @@ abstract class AbsKeywordDialog extends JDialog {
 		//
 		this.setTitle(windowTitle);
 	}
+	
 	
 	/*******************************************************************************
 	 * アクション
@@ -568,9 +570,14 @@ abstract class AbsKeywordDialog extends JDialog {
 	private final ActionListener al_cancel = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			dispose();
+			doCancel();
 		}
 	};
+	
+	@Override
+	protected void doCancel() {
+		dispose();
+	}
 	
 	/**
 	 * プレビューしたい
