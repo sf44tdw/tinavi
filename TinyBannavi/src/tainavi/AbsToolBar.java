@@ -1064,6 +1064,15 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 			JSlider sl = (JSlider) e.getSource();
 			setPaperZoom(sl.getValue());
 		}
+		
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (e.getClickCount() == 2) {
+				JSlider sl = (JSlider) e.getSource();
+				sl.setValue(100);
+				setPaperZoom(sl.getValue());
+			}
+		}
 	};
 	
 	// スナップショットをとる
@@ -1430,11 +1439,11 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	
 	private JSlider getJSlider_paperZoom(String s) {
 		if ( jSlider_paperZoom == null ) {
-			jSlider_paperZoom = new JSlider(100,300,100);
+			jSlider_paperZoom = new JSlider(50,300,100);
 			jSlider_paperZoom.setToolTipText(TIPS_PAPERZOOM);
 
 			Dimension d = jSlider_paperZoom.getPreferredSize();
-			d.width = 32;
+			d.width = 45;
 			jSlider_paperZoom.setPreferredSize(d);
 			jSlider_paperZoom.setMaximumSize(d);
 			jSlider_paperZoom.setMinimumSize(d);

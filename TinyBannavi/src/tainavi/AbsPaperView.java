@@ -315,6 +315,39 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	}
 	
 	/**
+	 * ツールバーから過去ログへのジャンプ
+	 */
+	public boolean jumpToPassed(String passed) {
+		
+		// ページャーは効くよ
+		if ( env.isPagerEnabled() ) {
+			setPagerEnabled(true);
+		}
+		
+		// タイマーは止める
+		stopTimer();
+		
+		GregorianCalendar c = CommonUtils.getCalendar(passed);
+		String adate = CommonUtils.getDate(c);
+		
+		// 指定日付に移動して放送局の位置を確認する
+		TVProgramIterator pli = redrawByDateWithCenter(null,adate);
+		if ( pli == null ) {
+			// どちらにもない
+			MWin.appendError(ERRID+"ジャンプ先の日付がみつかりません: "+adate);
+			ringBeep();
+			return false;
+		}
+		
+		// 新聞形式に移動
+		if ( ! isTabSelected(MWinTab.PAPER) ) {
+			setSelectedTab(MWinTab.PAPER);
+		}
+		
+		return true;
+	}
+	
+	/**
 	 * リスト形式・本体予約一覧からの目的の番組へジャンプ
 	 */
 	public boolean jumpToBangumi(String center, String startdt) {
@@ -329,9 +362,12 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 
 		// 日付群
 		GregorianCalendar c = CommonUtils.getCalendar(startdt);
+		int hour = c.get(Calendar.HOUR_OF_DAY);
+		int min  = c.get(Calendar.MINUTE);
+		
 		String adate = CommonUtils.getDate(c);
-		String atime = CommonUtils.getTime(c);
 		String adate529 = CommonUtils.getDate529(c,true);
+		
 		
 		// 指定日付に移動して放送局の位置を確認する
 		TVProgramIterator pli = redrawByDateWithCenter(center,adate529);
@@ -346,7 +382,11 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		if ( ! isTabSelected(MWinTab.PAPER) ) {
 			setSelectedTab(MWinTab.PAPER);
 		}
-			
+		
+		/*
+		 * マウスカーソル移動
+		 */
+		
 		// 横の列
 		int crindex = pli.getIndex(center);
 		if ( crindex == -1 ) {
@@ -365,24 +405,17 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		}
 		
 		// 縦の列
-		int h = 0;
-		int m = 0;
 		int y = 0;
-		Matcher ma = Pattern.compile("^(\\d\\d):(\\d\\d)$").matcher(atime);
-		if (ma.find()) {
-			h = Integer.valueOf(ma.group(1));
-			m = Integer.valueOf(ma.group(2));
-		}
 		if (adate529.equals(adate)) {
-			if (h < TIMEBAR_START) {
-				h = TIMEBAR_START;
-				m = 0;
+			if (hour < TIMEBAR_START) {
+				hour = TIMEBAR_START;
+				min = 0;
 			}
 		}
 		else {
-			h += 24;
+			hour += 24;
 		}
-		y = Math.round((float)((h-TIMEBAR_START)*60+m)*bounds.getPaperHeightMultiplier()*paperHeightZoom);
+		y = Math.round((float)((hour-TIMEBAR_START)*60+min)*bounds.getPaperHeightMultiplier()*paperHeightZoom);
 		
 		// 新聞面を移動する
 		{

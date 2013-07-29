@@ -1,9 +1,9 @@
 package tainavi;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -11,11 +11,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import javax.swing.AbstractAction;
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.border.LineBorder;
 
 import tainavi.TitleEditorPanel.TimeVal;
 import tainavi.HDDRecorder.RecType;
@@ -101,8 +100,9 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 	private JPanel jContentPane_rsv = null;
 
 	private TitleEditorPanel jPane_title = null;				// 番組設定
-	private RecSettingEditorPanel jPane_recsetting = null;	// 録画設定
+	private RecSettingEditorPanel jPane_recsetting = null;		// 録画設定
 	private LikeReserveEditorPanel  jPane_likersv = null;		// 類似予約
+	private OverlapReserveViewPanel jPane_overlap = null;
 	
 	
 	/*
@@ -458,9 +458,21 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 	/**
 	 * 番組情報から予約情報を生成する
 	 */
-	private ReserveList getReserveList(HDDRecorder recorder, String enc) {
+	private ReserveList getReserveList(HDDRecorder recorder, ProgDetailList tvd, TimeVal tVal, String enc) {
 		
 		ReserveList r = new ReserveList();
+		
+		// 開始・終了時刻
+		if ( tvd != null ) {
+			r.setTitle(tvd.title);
+			r.setCh_name(tvd.center);
+			GregorianCalendar ca = CommonUtils.getCalendar(tVal!=null ? tVal.startDateTime : tvd.startDateTime);
+			GregorianCalendar cz = CommonUtils.getCalendar(tVal!=null ? tVal.endDateTime : tvd.endDateTime);
+			r.setAhh(String.format("%02d",ca.get(Calendar.HOUR_OF_DAY)));
+			r.setAmm(String.format("%02d",ca.get(Calendar.MINUTE)));
+			r.setZhh(String.format("%02d",cz.get(Calendar.HOUR_OF_DAY)));
+			r.setZmm(String.format("%02d",cz.get(Calendar.MINUTE)));
+		}
 		
 		// チューナー
 		r.setTuner(enc);
@@ -679,19 +691,27 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 	 * これはグラフで描画するようになるまでの仮置き
 	 * @param urabanlist
 	 */
-	private void showUrabanList(ArrayList<ReserveList> urabanlist) {
+	private void showUrabanList(ReserveList myrsv, ArrayList<ReserveList> urabanlist) {
+		
+		jPane_overlap.putOverlap(myrsv, urabanlist);
+		
+		if ( ! debug ) {
+			return;
+		}
+		
 		if ( urabanlist == null ) {
 			return;
 		}
 		String MID = MSGID+"[裏番組チェック] ";
+		System.out.println(MID+"----------");
 		if ( urabanlist.size() > 0 ) {
 			for ( ReserveList ura : urabanlist ) {
-				MWin.appendMessage(String.format("%s裏番組あり: %s:%s-%s:%s, %-10s, %-12s, %s", MID, ura.getAhh(), ura.getAmm(), ura.getZhh(), ura.getZmm(), ura.getTuner(), ura.getCh_name(), ura.getTitle()));
+				System.out.println(String.format("%s裏番組あり: %s:%s-%s:%s, %-10s, %-12s, %s", MID, ura.getAhh(), ura.getAmm(), ura.getZhh(), ura.getZmm(), ura.getTuner(), ura.getCh_name(), ura.getTitle()));
 			}
 		}
 		else {
 			// 裏番組がない場合に分かりにくかったので追加
-			MWin.appendMessage(MID+"裏番組はありません");
+			System.out.println(MID+"裏番組はありません");
 		}
 	}
 	
@@ -742,10 +762,15 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 			jContentPane_rsv = new JPanel();
 			
 			jContentPane_rsv.setLayout(new BorderLayout());
+
+			JPanel panel = new JPanel();
+			panel.setLayout(new BorderLayout());
+			jContentPane_rsv.add(panel,BorderLayout.CENTER);
+			jContentPane_rsv.add(getJPane_overlap(),BorderLayout.EAST);
 			
-			jContentPane_rsv.add(getJPane_title(),BorderLayout.NORTH);
-			jContentPane_rsv.add(getJPane_recsetting(),BorderLayout.CENTER);
-			jContentPane_rsv.add(getJPane_likersv(),BorderLayout.SOUTH);
+			panel.add(getJPane_title(),BorderLayout.NORTH);
+			panel.add(getJPane_recsetting(),BorderLayout.CENTER);
+			panel.add(getJPane_likersv(),BorderLayout.SOUTH);
 		}
 		return jContentPane_rsv;
 	}
@@ -786,6 +811,16 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 		return jPane_likersv;
 	}
 	
+	/**
+	 * 重複予約のエリア
+	 */
+	private JScrollPane getJPane_overlap() {
+		if ( jPane_overlap == null ) {
+			jPane_overlap = new OverlapReserveViewPanel();
+			jPane_overlap.setBorder(new LineBorder(Color.BLACK));
+		}
+		return jPane_overlap;
+	}
 	
 	/*******************************************************************************
 	 * ハンドラ―メソッドの実装
@@ -1217,9 +1252,10 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 		
 		// 選択
 		String enc = myrec.getEmptyEncorder(tvd.center, tVal.startDateTime, tVal.endDateTime, null, null);
-		ReserveList myrsv = getReserveList(myrec, enc);
+		ReserveList myrsv = getReserveList(myrec, tvd, tVal, enc);
 		jPane_recsetting.setSelectedValues(tvd, myrsv);
-		showUrabanList(myrec.getUrabanList());
+		
+		showUrabanList(myrsv, myrec.getUrabanList());
 		
 		return true;
 	}
@@ -1411,11 +1447,12 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 			
 			// 録画設定の選択
 			setSelectedRecorder(myrec);
+			jPane_recsetting.setFlexItems(myrec, tvd.center);
 			
 			String enc = myrec.getEmptyEncorder(tvd.center, tVal.startDateTime, tVal.endDateTime, null, vrate);
-			ReserveList myrsv = getReserveList(myrec, enc);
+			ReserveList myrsv = getReserveList(myrec, tvd, tVal, enc);
 			jPane_recsetting.setSelectedValues(tvd, myrsv);
-			showUrabanList(myrec.getUrabanList());
+			showUrabanList(myrsv, myrec.getUrabanList());
 						
 			if ( myavs != null ) {
 				// ジャンル別AV設定から追加で選択する
@@ -1455,7 +1492,16 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 			// 録画設定の選択
 			myrec.getEmptyEncorder(tvd.center, myrsv.getStartDateTime(), myrsv.getEndDateTime(), myrsv, null);
 			setSelectedRecorder(myrec);
-			showUrabanList(myrec.getUrabanList());
+			jPane_recsetting.setFlexItems(myrec, tvd.center);
+			
+			{
+				TimeVal tVal = getTimeValue(tvd);
+				jPane_title.setTimeValue(tVal);
+				jPane_title.setDateItems(tvd, tVal);
+				
+				ReserveList modrsv = getReserveList(myrec, tvd, tVal, myrsv.getTuner());
+				showUrabanList(modrsv, myrec.getUrabanList());
+			}
 			
 			jPane_recsetting.setSelectedValues(myrsv);
 		}

@@ -545,9 +545,9 @@ public abstract class AbsRecorderSettingView extends JScrollPane {
 				jCBP_calendar.setSelected(rec.getUseCalendar());
 				
 				// 主にDIGA用
-				jCBX_tunernum.setText("-");
+				jCBX_tunernum.setLabelText("-");
 				if ( rl.get(0).getTunerNum() > 0 ) {
-					jCBX_tunernum.setText("最大同時録画数の手動設定");
+					jCBX_tunernum.setLabelText("最大同時録画数の手動設定");
 					jCBX_tunernum.setEnabled(true);
 					jCBX_tunernum.setSelectedItem(String.valueOf(rl.get(0).getTunerNum()));
 				}

@@ -218,6 +218,25 @@ public class CommonUtils {
 	}
 	
 	/**
+	 *  1440分中の何分目か返す
+	 */
+	public static int getMinOfDate(String ahh, String amm) {
+		try {
+			return getMinOfDate(Integer.valueOf(ahh),Integer.valueOf(amm));
+		}
+		catch (NumberFormatException e) {
+			return -1;
+		}
+	}
+	
+	/**
+	 *  1440分中の何分目か返す
+	 */
+	public static int getMinOfDate(int ahh, int amm) {
+		return ahh*60+amm;
+	}
+	
+	/**
 	 * @see #getCritDateTime(int)
 	 */
 	public static String getCritDateTime() {
@@ -879,6 +898,27 @@ public class CommonUtils {
 		return dst;
 	}
 	
+	public static String enEscape(String src) {
+		StringBuilder sb = new StringBuilder();
+		for ( int index=0; index<src.length(); index++ ) {
+			char c = src.charAt(index);
+			if ( c == '<' ) {
+				sb.append("&lt;");
+			}
+			else if ( c == '>' ) {
+				sb.append("&gt;");
+			}
+			else if ( c == '&' ) {
+				sb.append("&amp;");
+			}
+			else {
+				sb.append(c);
+			}
+		}
+		return sb.toString();
+	}
+	
+	
 	/**
 	 *  Unicodeエスケープをデコードします。
 	 */
@@ -953,6 +993,22 @@ public class CommonUtils {
 		return sb.toString();
 	}
 
+	
+	public static String getVerticalSplittedHTML(String text) {
+		if ( text == null ) {
+			return null;
+		}
+		
+		String html = "<HTML>";
+		for ( String s : text.split("") ) {
+			html += s+"<BR>";
+		}
+		html += "</HTML>";
+		
+		return html;
+	}
+	
+	
 	/*******************************************************************************
 	 * オブジェクト操作関連
 	 ******************************************************************************/

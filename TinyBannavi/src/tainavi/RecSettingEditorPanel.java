@@ -423,7 +423,7 @@ public class RecSettingEditorPanel extends JPanel {
 	}
 
 	private void setLabel(JComboBoxPanel combo, String overrideLabel, String defaultLabel) {
-		combo.setText((overrideLabel!=null)?overrideLabel:defaultLabel);
+		combo.setLabelText((overrideLabel!=null)?overrideLabel:defaultLabel);
 	}
 	
 	/*******************************************************************************
@@ -559,11 +559,12 @@ public class RecSettingEditorPanel extends JPanel {
 	
 	/**
 	 * レコーダのアイテム選択（中から呼んじゃだめだよ）
-	 * <P>これを呼び出した場合、レコーダ選択イベントは起きないので選択結果は呼び出し元で保存しておく必要がある
-	 * <P>これは他のコンポーネントがトリガーとなって起きるイベントから呼び出されるのでリスナーは動かしておかないといけない 
 	 */
 	public String setSelectedRecorderValue(String myself) {
-		return setSelectedValue(jCBXPanel_recorder, myself);
+		setEnabledListenerAll(false);
+		String s = setSelectedValue(jCBXPanel_recorder, myself);
+		setEnabledListenerAll(true);
+		return s;
 	}
 	
 	/**
@@ -760,7 +761,6 @@ public class RecSettingEditorPanel extends JPanel {
 				return;
 			}
 
-
 			String pgtype = (String) jCBXPanel_audiorate.getSelectedItem();
 			if ( pgtype == HDDRecorder.ITEM_REC_TYPE_PROG ) {
 				// "ﾌﾟﾗｸﾞﾗﾑ予約"なら触る必要なし
@@ -810,26 +810,21 @@ public class RecSettingEditorPanel extends JPanel {
 		}
 	};
 	private void checkMarginTop(boolean check) {
-		Color c = Color.BLACK;
-		try {
-			if ( check && Integer.valueOf((String) jCBXPanel_msChapter.getSelectedItem()) <= 0) {
-				c = Color.RED;
-			}
-		}
-		catch (NumberFormatException ev) {
-		}
-		jCBXPanel_msChapter.setLabelForeground(c);	// 開始マージン０は危ないよね
+		_checkMargin(jCBXPanel_msChapter,check);	// 開始マージン０は危ないよね
 	}
 	private void checkMarginBottom(boolean check) {
+		_checkMargin(jCBXPanel_mvChapter,check);	// 終了マージン０は危ないよね
+	}
+	private void _checkMargin(JComboBoxPanel comp, boolean check) {
 		Color c = Color.BLACK;
 		try {
-			if ( check && Integer.valueOf((String) jCBXPanel_msChapter.getSelectedItem()) <= 0) {
+			if ( check && comp.getLabelText().startsWith("録画") && Integer.valueOf((String) comp.getSelectedItem()) <= 0) {
 				c = Color.RED;
 			}
 		}
 		catch (NumberFormatException ev) {
 		}
-		jCBXPanel_mvChapter.setLabelForeground(c);	// 終了マージン０は危ないよね
+		comp.setLabelForeground(c);
 	}
 	
 	/**
@@ -874,29 +869,6 @@ public class RecSettingEditorPanel extends JPanel {
 	 * イベントトリガーでアイテムを操作する際に、さらにイベントをキックされてはたまらないのでリスナーを付けたり外したりする
 	 */
 	private void setEnabledListenerAll(boolean enabled) {
-
-		// あとで削除
-		if ( debug ) {
-			if ( enabled ) {
-				Object o = null;
-				for ( ItemListener il : jCBXPanel_recorder.getJComboBox().getItemListeners() ) {
-					if ( il == il_recorderChanged ) {
-						System.out.println(DBGID+"****** リスナーの重複登録 ******");
-						//CommonUtils.printStackTrace();
-						o = il;
-						break;
-					}
-				}
-				if ( o == null ) {
-					System.out.println("+++ リスナーの登録 +++");
-					//CommonUtils.printStackTrace();
-				}
-			}
-			else {
-				System.out.println("... リスナーの削除 ...");
-			}
-		}
-		
 		setEnabledItemListener(jCBXPanel_recorder, il_recorderChanged, enabled);
 		setEnabledItemListener(jCBXPanel_encoder, il_encoderChanged, enabled);
 		setEnabledItemListener(jCBXPanel_videorate, il_vrateChanged, enabled);

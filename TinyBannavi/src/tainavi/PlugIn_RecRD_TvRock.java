@@ -1252,10 +1252,20 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 				GregorianCalendar cfz = CommonUtils.getCalendar(f.getDate()+" "+f.getAhh()+":"+f.getAmm());
 				cfz.add(Calendar.MINUTE, f.getLength());
 				Long dz = CommonUtils.getCompareDateTime(cea, cfz);
-				if ( (dz<=0L && dz>-86400000L*7L) &&
+				if (
+						(dz<=0L && dz>-86400000L*7L) &&
 						(f.getTitle().equals(e.getTitle()) || (e.getDetail()!=null && f.getTitle().equals(e.getDetail()))) ) {
-					f.setDetail(f.getDetail()+e.getResult()+"\n");
-					cea = null;
+					// 一週間以内に、タイトルが同じor変更前のタイトルと一致したものに追加しよう
+					for ( String msg : f.getDetail().split("\n") ) {
+						if ( msg.equals(e.getResult()) ) {
+							// 重複メッセージは要らね
+							cea = null;
+						}
+					}
+					if ( cea != null ) {
+						f.setDetail(f.getDetail()+e.getResult()+"\n");
+						cea = null;
+					}
 					break;
 				}
 			}

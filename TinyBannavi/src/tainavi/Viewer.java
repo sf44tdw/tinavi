@@ -1301,7 +1301,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		@Override
 		protected boolean jumpToPassed(String passed) {
 			timer_now.pause();
-			boolean b = paper.jumpToBangumi(null,passed);
+			boolean b = paper.jumpToPassed(passed);
 			timer_now.start();
 			return b;
 		}
@@ -3669,6 +3669,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		// ほにゃらら
 		toolBar.setDebug(env.getDebug());
 		autores.setDebug(env.getDebug());
+		rdialog.setDebug(env.getDebug());
 
 		// PassedProgramListの設定変更
 		tvprograms.getPassed().setPassedDir(env.getPassedDir());
@@ -4540,6 +4541,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			// 設定
 			toolBar.setDebug(env.getDebug());
 			autores.setDebug(env.getDebug());
+			rdialog.setDebug(env.getDebug());
 	
 			// ページャーの設定
 			toolBar.setPagerItems();

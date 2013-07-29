@@ -123,8 +123,12 @@ public class JComboBoxPanel extends JPanel implements ItemSelectable,WideCompone
 		this.jlabel.setToolTipText(s);
 	}
 	
-	public void setText(String s) {
+	public void setLabelText(String s) {
 		this.jlabel.setText(s);
+	}
+	
+	public String getLabelText() {
+		return this.jlabel.getText();
 	}
 	
 	public ComboBoxModel getModel() {
