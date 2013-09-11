@@ -1486,7 +1486,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			synchronized ( rowData ) {
 				// 終了した予約を整理する
 				for (HDDRecorder recorder : recorders) {
-					recorder.refreshReserves();
+					recorder.removePassedReserves();
 				}
 				
 				// 他のコンポーネントと連動
@@ -2089,7 +2089,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		
 		traceNode.removeAllChildren();
 		for ( TraceKey key : trKeys.getTraceKeys() ) {
-			traceNode.add(new VWListedTreeNode(key._getLabel(), mpList.isTrKeyUsed(key._getLabel())));
+			traceNode.add(new VWListedTreeNode(key));
 		}
 		
 		jTree_tree.setSelectionPath(tp);
@@ -2107,7 +2107,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		
 		keywordNode.removeAllChildren();
 		for ( SearchKey key : srKeys.getSearchKeys() ) {
-			keywordNode.add(new VWListedTreeNode(key.getLabel(), mpList.isSrKeyUsed(key.getLabel())));
+			keywordNode.add(new VWListedTreeNode(key));
 		}
 		
 		jTree_tree.setSelectionPath(tp);

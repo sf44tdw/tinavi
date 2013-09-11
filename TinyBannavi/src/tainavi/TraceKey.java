@@ -2,7 +2,7 @@ package tainavi;
 
 import java.util.ArrayList;
 
-public class TraceKey {
+public class TraceKey implements SearchItem {
 	
 	public static final int defaultFazzyThreshold = 35;
 	public static final int noFazzyThreshold = 0;
@@ -16,6 +16,8 @@ public class TraceKey {
 	private ArrayList<String> SearchStrKeys = null;
 	private boolean disableRepeat = false;
 	private boolean showLatestOnly = false;
+
+	private ArrayList<ProgDetailList> _matched = null;
 	
 	public void setTitle(String s) { title = s; }
 	public String getTitle() { return title; }
@@ -37,4 +39,18 @@ public class TraceKey {
 	public String _getTitlePop() { return titlePop; }
 	public void setSearchStrKeys(ArrayList<String> sa) { SearchStrKeys = sa; }
 	public ArrayList<String> _getSearchStrKeys() { return SearchStrKeys; }
+
+	// interface
+	
+	@Override
+	public String toString() { return label; }
+	
+	@Override
+	public void clearMatchedList() { _matched = new ArrayList<ProgDetailList>(); }
+	@Override
+	public void addMatchedList(ProgDetailList pdl) { _matched.add(pdl); }
+	@Override
+	public ArrayList<ProgDetailList> getMatchedList() { return _matched; }
+	@Override
+	public boolean isMatched() { return _matched.size() != 0; }
 }

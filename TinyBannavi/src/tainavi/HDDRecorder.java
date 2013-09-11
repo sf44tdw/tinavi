@@ -174,9 +174,9 @@ public interface HDDRecorder {
 	
 	/**
 	 * 過去日の情報を削除したり、繰り返し予約の次回実行予定日を設定したりします。
-	 * @see HDDRecorderUtils#refreshReserves()
+	 * @see HDDRecorderUtils#removePassedReserves()
 	 */
-	public void refreshReserves();
+	public void removePassedReserves();
 	
 	
 	

@@ -999,13 +999,19 @@ public class CommonUtils {
 			return null;
 		}
 		
-		String html = "<HTML>";
-		for ( String s : text.split("") ) {
-			html += s+"<BR>";
+		StringBuilder sb = new StringBuilder();
+		sb.append("<HTML>");
+		for ( int i=0; i<text.length(); i++ ) {
+			sb.append(text.charAt(i));
+			sb.append("<BR>");
 		}
-		html += "</HTML>";
+		int index = sb.lastIndexOf("<BR");
+		if ( index > 0 ) {
+			sb.delete(index,index+5);
+		}
+		sb.append("</HTML>");
 		
-		return html;
+		return sb.toString();
 	}
 	
 	

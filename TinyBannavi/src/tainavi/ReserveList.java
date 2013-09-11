@@ -1,6 +1,10 @@
 package tainavi;
 
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
+
+import com.sun.xml.internal.ws.api.pipe.NextAction;
 
 /**
  * <P>個々の予約の情報を保持します。
@@ -79,8 +83,32 @@ public class ReserveList implements Cloneable {
 		}
 	}
 	
-	
-	
+
+
+	/**
+	 * 繰り返し予約で、すでに終了日時を過ぎている場合は、開始日時／終了日時／次回実行予定日を更新する
+	 */
+	private void refreshNextDateTime() {
+		if (rec_pattern_id == HDDRecorder.RPTPTN_ID_BYDATE)
+			return;
+		
+		if (endDateTime.compareTo(CommonUtils.getDateTime(0)) >= 0)
+			return;
+			
+		ArrayList<String> starts = new ArrayList<String>();
+		ArrayList<String> ends = new ArrayList<String>();
+		CommonUtils.getStartEndList(starts, ends, this);
+		if (starts.size() > 0) {
+			GregorianCalendar c = CommonUtils.getCalendar(starts.get(0));
+			if (c != null) {
+				startDateTime = starts.get(0);
+				endDateTime = ends.get(0);
+				rec_nextdate = CommonUtils.getDate(c);
+				return;
+			}
+		}
+	}
+
 	/*
 	 * ほげほげ
 	 */
@@ -103,8 +131,6 @@ public class ReserveList implements Cloneable {
 	public void setRec_pattern(String s) { rec_pattern=s;}
 	public int getRec_pattern_id() {return rec_pattern_id;}
 	public void setRec_pattern_id(int i) { rec_pattern_id=i;}
-	public String getRec_nextdate() {return rec_nextdate;}
-	public void setRec_nextdate(String s) { rec_nextdate=s;}
 	public String getAhh() {return ahh;}
 	public void setAhh(String s) { ahh=s;}
 	public String getAmm() {return amm;}
@@ -163,10 +189,22 @@ public class ReserveList implements Cloneable {
 	public String getRec_autodel() { return rec_autodel; }
 	public void setRec_autodel(String s) { rec_autodel = s; }
 	
-	public String getStartDateTime() {return startDateTime;}
-	public void setStartDateTime(String s) { startDateTime=s;}
-	public String getEndDateTime() {return endDateTime;}
-	public void setEndDateTime(String s) { endDateTime=s;}
+	public String getStartDateTime() {
+		refreshNextDateTime();
+		return startDateTime;
+	}
+	public void setStartDateTime(String s) { startDateTime = s;}
+	public String getEndDateTime() {
+		refreshNextDateTime();
+		return endDateTime;
+	}
+	public void setEndDateTime(String s) { endDateTime = s;}
+
+	public String getRec_nextdate()  {
+		refreshNextDateTime();
+		return rec_nextdate;
+	}
+	public void setRec_nextdate(String s) { rec_nextdate = s;}
 	
 	public boolean getExec() {return exec;}
 	public void setExec(boolean b) { exec=b;}

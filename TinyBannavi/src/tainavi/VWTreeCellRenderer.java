@@ -11,6 +11,7 @@ public class VWTreeCellRenderer extends DefaultTreeCellRenderer {
 
 	private static final long serialVersionUID = 1L;
 
+	private VWListedTreeNode tnode = null;
 	@Override
 	public Component getTreeCellRendererComponent(JTree tree, Object value,
 			boolean selected, boolean expanded, boolean leaf, int row,
@@ -18,15 +19,16 @@ public class VWTreeCellRenderer extends DefaultTreeCellRenderer {
 		
 		Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 		// 'instanceof'は使っていいものやらわるいものやら
-		if ( value instanceof VWListedTreeNode ) {
-			if ( leaf && ((VWListedTreeNode)value).isUnUsed() ) {
-				c.setForeground(Color.RED);
-			}
-		}
-		else {
-			//System.err.println("[error] VWListedTreeNode じゃないよ. "+((DefaultMutableTreeNode)value).toString());
-		}
+		tnode = value instanceof VWListedTreeNode ? (VWListedTreeNode) value : null;
 		return c;
+	}
+	
+	@Override
+	public Color getForeground() {
+		if ( tnode != null && tnode.isUnUsed() ) {
+			return Color.RED;
+		}
+		return super.getForeground();
 	}
 
 }

@@ -1428,6 +1428,7 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 		ProgDetailList tvd = vals.hide_tvd;
 		LikeReserveList likersvlist = vals.hide_likersvlist;
 		AVs myavs = vals.hide_avs;
+		TimeVal tVal = getTimeValue(tvd);
 		
 		// 初期化
 		setTitleItems(myrec, tvd, likersvlist, false);
@@ -1438,7 +1439,6 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 			// 番組情報の選択
 			jPane_title.setSelectedValues(tvd);
 	
-			TimeVal tVal = getTimeValue(tvd);
 			jPane_title.setTimeValue(tVal);
 			jPane_title.setDateItems(tvd, tVal);
 			
@@ -1479,29 +1479,26 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 		myrecs.add(myrec);
 		
 		ProgDetailList tvd = vals.hide_tvd;
+		TimeVal tVal = getTimeValue(tvd);
 		
 		// 初期化
 		setTitleItems(myrec, tvd, likersvlist, true);
 		setRecSettingItems(myrecs, myrec, tvd);
-		
+		jPane_title.setDateItems(tvd, tVal);
+		//jPane_recsetting.setFlexItems(myrec, tvd.center);
+
 		//　選択
 		{
 			// 番組情報の選択
 			jPane_title.setSelectedValues(myrsv);
+			jPane_title.setTimeValue(tVal);
 			
 			// 録画設定の選択
-			myrec.getEmptyEncorder(tvd.center, myrsv.getStartDateTime(), myrsv.getEndDateTime(), myrsv, null);
+			myrec.getEmptyEncorder(tvd.center, myrsv.getStartDateTime(), myrsv.getEndDateTime(), myrsv, null);	// 裏番組チェックのみ
 			setSelectedRecorder(myrec);
-			jPane_recsetting.setFlexItems(myrec, tvd.center);
 			
-			{
-				TimeVal tVal = getTimeValue(tvd);
-				jPane_title.setTimeValue(tVal);
-				jPane_title.setDateItems(tvd, tVal);
-				
-				ReserveList modrsv = getReserveList(myrec, tvd, tVal, myrsv.getTuner());
-				showUrabanList(modrsv, myrec.getUrabanList());
-			}
+			ReserveList modrsv = getReserveList(myrec, tvd, tVal, myrsv.getTuner());
+			showUrabanList(modrsv, myrec.getUrabanList());
 			
 			jPane_recsetting.setSelectedValues(myrsv);
 		}
@@ -1518,6 +1515,10 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 	 * 直し残し
 	 ******************************************************************************/
 	
+	/**
+	 * レコーダの選択をしなおしたらコンボボックスアイテムの入れ替えも実行すること
+	 * @see RecSettingEditorPanel#setFlexItems(HDDRecorder, String)
+	 */
 	private HDDRecorder setSelectedRecorder(HDDRecorder myrec) {
 		if ( jPane_recsetting.setSelectedRecorderValue(myrec.Myself()) != null ) {
 			vals.selected_recorder = myrec;

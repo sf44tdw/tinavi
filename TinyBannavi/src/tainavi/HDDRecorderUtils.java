@@ -863,7 +863,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 		//
 		RESERVES = r;
 		//
-		refreshReserves();
+		removePassedReserves();
 	}
 	public void setReserves(ArrayList<ReserveList> r) {
 		// ライン入力のチャンネル名を保持する
@@ -951,9 +951,9 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 		RESERVES = r;
 		
 		//
-		refreshReserves();
+		removePassedReserves();
 	}
-	public void refreshReserves() {
+	public void removePassedReserves() {
 		//
 		String curDateTime = CommonUtils.getCritDateTime();
 		//
@@ -965,11 +965,6 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 					// 当日以前のエントリを削除
 					RESERVES.remove(r);
 				}
-			}
-			else {
-				// 繰り返し予約
-				String nextDate = CommonUtils.getNextDate(r);
-				r.setRec_nextdate(nextDate);
 			}
 		}
 	}

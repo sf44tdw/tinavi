@@ -414,7 +414,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 			}
 			
 			// 終了した番組があれば整理
-			recorder.refreshReserves();
+			recorder.removePassedReserves();
 			
 			// 並べ替えるために新しいリストを作成する
 			for ( ReserveList ro : recorder.getReserves() ) {
@@ -671,7 +671,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 			synchronized ( rowViewTemp ) {
 				// 終了した予約を整理する
 				for (HDDRecorder recorder : recorders) {
-					recorder.refreshReserves();
+					recorder.removePassedReserves();
 				}
 				
 				// 予約一覧を再構築する

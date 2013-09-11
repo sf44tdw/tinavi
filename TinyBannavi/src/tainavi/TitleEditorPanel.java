@@ -326,7 +326,7 @@ public class TitleEditorPanel extends JPanel {
 		
 		// 日付
 		{
-			int index = 0;
+			int index = 1;
 			if ( r.getRec_pattern_id() == HDDRecorder.RPTPTN_ID_BYDATE ) {
 				index = 0;
 			}
@@ -338,9 +338,6 @@ public class TitleEditorPanel extends JPanel {
 			}
 			else if ( r.getRec_pattern_id() == HDDRecorder.RPTPTN_ID_MON2SAT ) {
 				index = 4;
-			}
-			else {
-				index = 1;
 			}
 			jComboBox_date.setSelectedIndex(index);
 		}

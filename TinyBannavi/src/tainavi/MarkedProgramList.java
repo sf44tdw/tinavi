@@ -54,15 +54,11 @@ public class MarkedProgramList {
 	
 	
 	//
-	private HashMap<String,String> mpTrKeyLabels = new HashMap<String, String>();	// 番組追跡ヒット情報
-	private HashMap<String,String> mpSrKeyLabels = new HashMap<String, String>();	// キーワード検索ヒット情報
-	public boolean isTrKeyUsed(String label) { return (mpTrKeyLabels.get(label) != null); } 
-	public boolean isSrKeyUsed(String label) { return (mpSrKeyLabels.get(label) != null); } 
-	
 	
 	public void build(ArrayList<TVProgram> progs, ArrayList<TraceKey> trKeys, ArrayList<SearchKey> srKeys) {
 		// フラグを落とす
 		clearMarkedFlag(progs);
+		
 		// 番組追跡
     	for (TraceKey trace : trKeys) {
     		buildByKeyword(progs, trace, null);
@@ -73,29 +69,6 @@ public class MarkedProgramList {
     	}
 		// 新着チェック
 		chkNewArrival();
-		
-		// 検索条件のラベルを収集する
-		mpTrKeyLabels.clear();
-		mpSrKeyLabels.clear();
-		for ( int n=0; n<this.size(); n++ ) {
-			// Web番組表・しょぼかる分岐点
-			if (this.getProg(n).type != ProgType.PROG) {
-				continue;
-			}
-			
-			// 番組追跡
-			if (this.getTKey(n) != null) {
-				for ( TraceKey tk : this.getTKey(n) ) {
-					mpTrKeyLabels.put(tk._getLabel(), "BINGO!");
-				}
-			}
-			// キーワード検索
-			if (this.getSKey(n) != null) {
-				for ( SearchKey sk : this.getSKey(n) ) {
-					mpSrKeyLabels.put(sk.getLabel(), "BINGO!");
-				}
-			}
-		}
 	}
 	
 	/**
@@ -123,7 +96,11 @@ public class MarkedProgramList {
 		}
 	}
 	
-	private void buildByKeyword(ArrayList<TVProgram> tvprograms, TraceKey trace, SearchKey keyword) {
+	private void buildByKeyword(ArrayList<TVProgram> tvprograms, TraceKey tKey, SearchKey sKye) {
+		// 検索条件のマッチカウントのクリア
+		SearchItem item = tKey != null ? tKey : sKye;
+		item.clearMatchedList();
+
 		//
 		for (int siteid=0; siteid<tvprograms.size(); siteid++) {
 			// ほげほげ
@@ -141,12 +118,12 @@ public class MarkedProgramList {
     				continue;
     			}
 				
-				if (trace != null && ! trace.getCenter().equals(tvpl.Center) ) {
+				if (tKey != null && ! tKey.getCenter().equals(tvpl.Center) ) {
 					continue;
 				}
 				
-				if ( trace != null && trace.getShowLatestOnly() ) {
-					System.out.println(MSGID+"[リピート放送判定] リピート放送を排除する検索キー： *"+tvp.getType()+"* "+trace._getLabel());
+				if ( tKey != null && tKey.getShowLatestOnly() ) {
+					System.out.println(MSGID+"[リピート放送判定] リピート放送を排除する検索キー： *"+tvp.getType()+"* "+tKey._getLabel());
 				}
 				
 				// 一時保存用
@@ -169,35 +146,35 @@ public class MarkedProgramList {
     					//マッチング
 						int fazScore = 0;
 						boolean isFind = false;
-						if (trace != null) {
-							if (trace.getDisableRepeat() == true && tvd.isOptionEnabled(ProgOption.REPEAT)) {
+						if (tKey != null) {
+							if (tKey.getDisableRepeat() == true && tvd.isOptionEnabled(ProgOption.REPEAT)) {
 								// 再放送を除く
 								continue;
 							}
 							
 							if (this.disableFazzySearch == true) {
 								// 完全一致
-								if (trace._getTitlePop().equals(tvd.titlePop)) {
+								if (tKey._getTitlePop().equals(tvd.titlePop)) {
 									isFind = true;
 								}
 							}
 							else {
 								//あいまい検索・正引き
-								fazScore = TraceProgram.sumScore(tvd.SearchStrKeys,trace._getTitlePop());
-								if (fazScore >= trace.getFazzyThreshold()) {
+								fazScore = TraceProgram.sumScore(tvd.SearchStrKeys,tKey._getTitlePop());
+								if (fazScore >= tKey.getFazzyThreshold()) {
 									isFind = true;
 								}
 								else if ( ! this.disableFazzySearchReverse) {
 									// 逆引き
-									fazScore = TraceProgram.sumScore(trace._getSearchStrKeys(),tvd.titlePop);
-									if (fazScore >= trace.getFazzyThreshold()) {
+									fazScore = TraceProgram.sumScore(tKey._getSearchStrKeys(),tvd.titlePop);
+									if (fazScore >= tKey.getFazzyThreshold()) {
 										isFind = true;
 									}
 								}
 							}
 						}
-						else if (keyword != null) {
-    						isFind = SearchProgram.isMatchKeyword(keyword, ((keyword.getCaseSensitive()==false)?(centerPop):(tvpl.Center)), tvd);
+						else if (sKye != null) {
+    						isFind = SearchProgram.isMatchKeyword(sKye, ((sKye.getCaseSensitive()==false)?(centerPop):(tvpl.Center)), tvd);
     						if ( isFind ) {
     							matchedString = SearchProgram.getMatchedString();
     						}
@@ -205,27 +182,27 @@ public class MarkedProgramList {
 						
 						if (isFind) {
 							tvd.marked = true;
-							mBuf.add(tvd, trace, fazScore, keyword, matchedString);
+							mBuf.add(tvd, tKey, fazScore, sKye, matchedString);
 						}
 					}
 				}
 				for ( MatchedBufferData d : mBuf.getData() ) {
 					if ( d.prog.marked ) {
-						if ( trace != null && trace.getShowLatestOnly() ) {
+						if ( tKey != null && tKey.getShowLatestOnly() ) {
 							System.out.println(MSGID+"[リピート放送判定] [結果] リピート放送ではないと判断されました： "+d.prog.startDateTime+" 「"+d.prog.title+"("+d.bareTitle+")」 ("+d.storyNo+")");
 							d.prog.nonrepeated = true;
 						}
-						if ( ! (keyword != null && ! keyword.getShowInStandby()) ) {
+						if ( ! (sKye != null && ! sKye.getShowInStandby()) ) {
 							d.prog.showinstandby = true;
 						}
 						this.add(d.prog, d.tKey, d.tScore, d.sKey, d.sStr);
 					}
 					else {
-						if ( trace != null && trace.getShowLatestOnly() ) {
+						if ( tKey != null && tKey.getShowLatestOnly() ) {
 							if ( ! showOnlyNonrepeated ) {
 								// 復活戦
 								d.prog.marked = true;
-								if ( keyword != null && keyword.getShowInStandby() ) {
+								if ( sKye != null && sKye.getShowInStandby() ) {
 									d.prog.showinstandby = true;
 								}
 								this.add(d.prog, d.tKey, d.tScore, d.sKey, d.sStr);
@@ -371,6 +348,12 @@ public class MarkedProgramList {
 		
 	private void add(ProgDetailList prog, TraceKey tKey, int tScore, SearchKey sKey, String sStr) {
 		
+		// 検索条件のマッチカントをカウントアップ
+		SearchItem item = sKey != null ? sKey : tKey; 
+		if (item != null && prog.type == ProgType.PROG) {
+			item.addMatchedList(prog);
+		}
+
 		// 既存に
 		
 		for (int n=0; n<this.programs.size(); n++) {

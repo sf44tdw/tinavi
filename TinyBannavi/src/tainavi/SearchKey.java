@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 
-public class SearchKey {
+public class SearchKey implements SearchItem {
+	
 	private String label;
 	
 	// 0:"次のすべての条件に一致"
@@ -109,10 +110,13 @@ public class SearchKey {
 	ArrayList<String> alContain = new ArrayList<String>();
 	ArrayList<Integer> alLength = new ArrayList<Integer>();
 
+	// 検索結果のカウント
+	private ArrayList<ProgDetailList> _matched = null;
+
 	//
+	
 	public void setLabel(String s) { label = s; }
 	public String getLabel() { return label; }
-	
 	public void setCondition(String s) { condition = s; }
 	public String getCondition() { return condition; }
 	
@@ -134,4 +138,18 @@ public class SearchKey {
 
 	public void setShowInStandby(boolean b) { showInStandby = b; }
 	public boolean getShowInStandby() { return showInStandby; }
+
+	// interface
+	
+	@Override
+	public String toString() { return label; }
+	
+	@Override
+	public void clearMatchedList() { _matched = new ArrayList<ProgDetailList>(); }
+	@Override
+	public void addMatchedList(ProgDetailList pdl) { _matched.add(pdl); }
+	@Override
+	public ArrayList<ProgDetailList> getMatchedList() { return _matched; }
+	@Override
+	public boolean isMatched() { return _matched.size() != 0; }
 }

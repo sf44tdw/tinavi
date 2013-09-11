@@ -108,7 +108,7 @@ public class HDDRecorderList extends ArrayList<HDDRecorder> {
 		for ( HDDRecorder recorder : this ) {
 			
 			// 終了した予約を整理する
-			recorder.refreshReserves();
+			recorder.removePassedReserves();
 			
 			for ( ReserveList r : recorder.getReserves() ) {
 				

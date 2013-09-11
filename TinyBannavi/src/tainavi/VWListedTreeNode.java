@@ -6,18 +6,15 @@ public class VWListedTreeNode extends DefaultMutableTreeNode {
 
 	private static final long serialVersionUID = 1L;
 
-	private boolean used = true;
+	private SearchItem item = null;
 	
-	public final boolean isUsed() { return used; }
-	public final boolean isUnUsed() { return ! used; }
+	public final boolean isUsed() { return ! isUnUsed(); }
+	public final boolean isUnUsed() { return item != null ? ! item.isMatched() : false; }
 	
 	public VWListedTreeNode(Object userObject) {
 		super(userObject);
-		this.used = true;
-	}
-	
-	public VWListedTreeNode(Object userObject, boolean used) {
-		super(userObject);
-		this.used = used;
+		if (userObject instanceof SearchItem) {
+			item = (SearchItem) userObject;
+		}
 	}
 }

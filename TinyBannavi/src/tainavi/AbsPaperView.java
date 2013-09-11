@@ -1820,7 +1820,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 			
 			// 終了した予約を整理する
 			for ( HDDRecorder recorder : recorders ) {
-				recorder.refreshReserves();
+				recorder.removePassedReserves();
 			}
 			
 			// 他のコンポーネントと連動
