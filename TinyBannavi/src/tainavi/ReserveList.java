@@ -90,11 +90,14 @@ public class ReserveList implements Cloneable {
 	 */
 	private void refreshNextDateTime() {
 		if (rec_pattern_id == HDDRecorder.RPTPTN_ID_BYDATE)
-			return;
+			return;		// 単日予約は関係がない
 		
 		if (endDateTime.compareTo(CommonUtils.getDateTime(0)) >= 0)
-			return;
+			return;		// 終了済みだからリフレッシュしたい
 			
+		if ( ! (ahh.matches("^\\d+$") && zhh.matches("^\\d+$")))
+			return;		// しかし時刻の情報がなかった
+
 		ArrayList<String> starts = new ArrayList<String>();
 		ArrayList<String> ends = new ArrayList<String>();
 		CommonUtils.getStartEndList(starts, ends, this);

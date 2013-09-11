@@ -882,7 +882,7 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 		// 年をまたいで追跡されると追いかけられないのである
 		
 		r.setRec_pattern(CommonUtils.getDate(c));
-		r.setRec_pattern_id(11);
+		r.setRec_pattern_id(HDDRecorder.RPTPTN_ID_BYDATE);
 	}
 	
 	// 時間追従なし
@@ -914,12 +914,12 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			if (mb.group(1).equals("0")) {
 				// 当日限り
 				r.setRec_pattern(CommonUtils.getDate(c));
-				r.setRec_pattern_id(11);
+				r.setRec_pattern_id(HDDRecorder.RPTPTN_ID_BYDATE);
 			}
 			else if (mb.group(1).equals("1")) {
 				// 毎日
-				r.setRec_pattern(RPTPTN[10]);
-				r.setRec_pattern_id(10);
+				r.setRec_pattern(RPTPTN[HDDRecorder.RPTPTN_ID_EVERYDAY]);
+				r.setRec_pattern_id(HDDRecorder.RPTPTN_ID_EVERYDAY);
 			}
 			else if (mb.group(1).equals("2")) {
 				// 毎週
@@ -951,19 +951,19 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 				switch (fw) {
 				case 126:	//   2+4+8+16+32+64
 				case -125:	// 1+  4+8+16+32+64
-					r.setRec_pattern(RPTPTN[9]);
-					r.setRec_pattern_id(9);
+					r.setRec_pattern(RPTPTN[HDDRecorder.RPTPTN_ID_MON2SAT]);
+					r.setRec_pattern_id(HDDRecorder.RPTPTN_ID_MON2SAT);
 					break;
 				case 30:	// 2+4+8+16
 				case -60:	//   4+8+16+32
-					r.setRec_pattern(RPTPTN[7]);
-					r.setRec_pattern_id(7);
+					r.setRec_pattern(RPTPTN[HDDRecorder.RPTPTN_ID_MON2THU]);
+					r.setRec_pattern_id(HDDRecorder.RPTPTN_ID_MON2THU);
 					break;
 				case 62:	// 2+4+8+16+32
 				case -124:	//   4+8+16+32+64
 				default:
-					r.setRec_pattern(RPTPTN[8]);
-					r.setRec_pattern_id(8);
+					r.setRec_pattern(RPTPTN[HDDRecorder.RPTPTN_ID_MON2FRI]);
+					r.setRec_pattern_id(HDDRecorder.RPTPTN_ID_MON2FRI);
 					break;
 				}
 			}

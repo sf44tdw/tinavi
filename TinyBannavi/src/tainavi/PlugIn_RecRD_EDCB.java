@@ -848,7 +848,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 			r.setCh_name(cc.getCH_CODE2WEB(r.getChannel()));
 			
 			r.setRec_pattern(CommonUtils.getDate(cal));
-			r.setRec_pattern_id(11);
+			r.setRec_pattern_id(HDDRecorder.RPTPTN_ID_BYDATE);
 			cal.set(Calendar.HOUR_OF_DAY, hh);
 			cal.set(Calendar.MINUTE, mm);
 			r.setAhh(String.format("%02d", cal.get(Calendar.HOUR_OF_DAY)));
@@ -1153,7 +1153,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 				if ( mb.find() ) {
 					GregorianCalendar cal = CommonUtils.getCalendar(mb.group(1));
 					r.setRec_pattern(CommonUtils.getDate(cal));
-					r.setRec_pattern_id(11);
+					r.setRec_pattern_id(HDDRecorder.RPTPTN_ID_BYDATE);
 					
 					r.setStartDateTime(CommonUtils.getDateTime(cal));
 					r.setRec_nextdate(r.getStartDateTime());

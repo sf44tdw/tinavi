@@ -1433,6 +1433,7 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 		// 初期化
 		setTitleItems(myrec, tvd, likersvlist, false);
 		setRecSettingItems(recorders, myrec, tvd);
+		jPane_title.setDateItems(tvd, tVal);
 
 		// 選択
 		{
@@ -1440,7 +1441,6 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 			jPane_title.setSelectedValues(tvd);
 	
 			jPane_title.setTimeValue(tVal);
-			jPane_title.setDateItems(tvd, tVal);
 			
 			// RDだと画質でエンコーダの種類が絞られちまうンですよ
 			String vrate = myavs != null ? myavs.getVideorate() : null;

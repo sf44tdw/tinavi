@@ -5,22 +5,22 @@ import java.util.ArrayList;
 public interface SearchItem {
 
 	/**
-	 * 検索アイテムのラベル
+	 * 検索条件のラベル
 	 */
 	public String toString();
 	
 	/**
-	 * 検索マッチ数のクリア
+	 * 検索条件にマッチした番組情報のリストのクリア
 	 */
 	public void clearMatchedList();
 
 	/**
-	 * 検索マッチ数のカウントアップ
+	 * 検索条件にマッチした番組情報の追加
 	 */
 	public void addMatchedList(ProgDetailList pdl);
 
 	/**
-	 * 検索マッチ数の取得
+	 * 検索条件にマッチした番組情報のリストの取得
 	 */
 	public ArrayList<ProgDetailList> getMatchedList();
 
