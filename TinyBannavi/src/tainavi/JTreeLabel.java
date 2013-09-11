@@ -65,7 +65,7 @@ public class JTreeLabel extends JLabel {
 					return nd;
 				}
 			}
-			return null;
+			return Nodes.NONE;	// nullを返すとswitch()がぬるぽるよ！
 		}
 
 	};
