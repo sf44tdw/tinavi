@@ -27,7 +27,6 @@ public class DebugPrintStream extends PrintStream {
 				logname = logfile;
 			}
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		*/
@@ -46,7 +45,6 @@ public class DebugPrintStream extends PrintStream {
 				fw.close();
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			cw.println(e.toString());
 		}
 		
@@ -62,7 +60,6 @@ public class DebugPrintStream extends PrintStream {
 				fw.close();
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			cw.println(e.toString());
 		}
 		
@@ -78,7 +75,6 @@ public class DebugPrintStream extends PrintStream {
 				fw.close();
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			cw.println(e.toString());
 		}
 

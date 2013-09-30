@@ -123,7 +123,6 @@ public class PlugIn_RecRD_iEPG2 extends PlugIn_RecRD_iEPG implements HDDRecorder
 			}
 		}
 		catch ( Exception e ) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

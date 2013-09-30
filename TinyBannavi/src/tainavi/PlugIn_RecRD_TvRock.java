@@ -1745,7 +1745,6 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			sb.append("i="+delid+"&");
 			sb.append("submit="+URLEncoder.encode("　予約を削除　",thisEncoding));	// EOL
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String pstr = sb.toString();
@@ -1776,7 +1775,6 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			sb.append("i="+delid+"&");
 			sb.append("submit="+URLEncoder.encode("はい",thisEncoding)+"&");
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String pstr = sb.toString();
@@ -1930,7 +1928,6 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			}
 			sb.append("submit="+URLEncoder.encode(cmd,thisEncoding));	// EOL
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

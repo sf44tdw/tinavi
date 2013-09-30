@@ -127,13 +127,10 @@ public class PlugIn_RecRD_iEPG extends HDDRecorderUtils implements HDDRecorder,C
 			bw.write("program-title: "+r.getTitle()+"\r\n");
 			
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		finally {

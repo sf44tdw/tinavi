@@ -666,7 +666,6 @@ public class PlugIn_RecRD_XS41 extends HDDRecorderUtils implements HDDRecorder,C
 		try {
 			newdat.put("title_name", URLEncoder.encode(r.getTitle(),thisEncoding));
 		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -674,7 +673,6 @@ public class PlugIn_RecRD_XS41 extends HDDRecorderUtils implements HDDRecorder,C
 		try {
 			newdat.put("detail", URLEncoder.encode(r.getDetail().replaceAll("\n", Matcher.quoteReplacement("\r\n")),thisEncoding));
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

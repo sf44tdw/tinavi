@@ -113,10 +113,8 @@ public class PlugIn_RecRD_MAIL_Z9500 extends HDDRecorderUtils implements HDDReco
 				}
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		finally {
@@ -170,7 +168,6 @@ public class PlugIn_RecRD_MAIL_Z9500 extends HDDRecorderUtils implements HDDReco
 		try {
 			message = new String(msg.getBytes("MS932"),"Shift_JIS");
 		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		

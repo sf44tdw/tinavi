@@ -34,7 +34,7 @@ public interface TVProgram {
 		THEATER		("劇場/公演",		"9"),
 		HOBBY		("趣味/教育",		"A"),
 		WELFARE		("福祉",				"B"),
-		//KIDS		("キッズ",			"XXX"),	// もとからなかったらしい
+		//KIDS		("キッズ",			"ZZZ"),	// もとからなかったらしい
 		//EXTENTION	("拡張",			"E"),	// 非対応とする
 		NOGENRE		("その他",			"F");
 		

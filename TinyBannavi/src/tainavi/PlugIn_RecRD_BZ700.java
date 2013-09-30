@@ -1211,7 +1211,6 @@ public class PlugIn_RecRD_BZ700 extends HDDRecorderUtils implements HDDRecorder,
 				try {
 					newdat.put("title_name", URLEncoder.encode(CommonUtils.substringrb(r.getTitle(),86),thisEncoding));
 				} catch (UnsupportedEncodingException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 		
@@ -1219,7 +1218,6 @@ public class PlugIn_RecRD_BZ700 extends HDDRecorderUtils implements HDDRecorder,
 				try {
 					newdat.put("detail", URLEncoder.encode(CommonUtils.substringrb(r.getDetail().replaceAll("\n", Matcher.quoteReplacement("\r\n")),75*5), thisEncoding));
 				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1228,7 +1226,6 @@ public class PlugIn_RecRD_BZ700 extends HDDRecorderUtils implements HDDRecorder,
 			try {
 				newdat.put("folder", URLEncoder.encode(text2value(folder, r.getRec_folder()),thisEncoding));
 			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -1317,7 +1314,6 @@ public class PlugIn_RecRD_BZ700 extends HDDRecorderUtils implements HDDRecorder,
 				try {
 					newdat.put("date", URLEncoder.encode(r.getRec_pattern(),thisEncoding));
 				} catch (UnsupportedEncodingException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}

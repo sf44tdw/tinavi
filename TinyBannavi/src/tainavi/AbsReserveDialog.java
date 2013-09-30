@@ -973,8 +973,9 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 		jPane_title.getSelectedValues(newRsv);				// タイトル
 		jPane_recsetting.getSelectedValues(newRsv);			// 録画設定
 		
+		// XXX old.valueはload()で取得した値の場合定数とは異なる文字列になって、 == で比較できなくなるな多分
 		if ( (newRsv.getRec_audio() == HDDRecorder.ITEM_REC_TYPE_EPG || newRsv.getRec_audio() == HDDRecorder.ITEM_REC_TYPE_PROG) &&
-				(newRsv.getRec_audio() != oldRsv.getRec_audio()) ) {
+				! newRsv.getRec_audio().equals(oldRsv.getRec_audio()) ) {
 			ringBeep();
 			JOptionPane.showConfirmDialog(this, String.format("%s予約を%s予約には変更できません。",oldRsv.getRec_audio(),newRsv.getRec_audio()), "警告", JOptionPane.CLOSED_OPTION);
 			return;

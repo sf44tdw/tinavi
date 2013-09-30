@@ -5,13 +5,14 @@ import java.util.regex.Pattern;
 
 
 public class VersionInfo {
-	private static final String Version = "タイニー番組ナビゲータ　3.22.2β";
+	private static final String Version = "タイニー番組ナビゲータ　3.22.3β";
 	
 	private static final String OSname = System.getProperty("os.name");
 	private static final String OSvers = System.getProperty("os.version");
 	//private static final String OSarch = System.getProperty("sun.arch.data.model", "?");
 	private static final String VMvers = System.getProperty("java.version");
-	private static final String VMarch = System.getProperty("os.arch");			// なんと！OSarchでなくJREarchが返る！
+	// XXX なんと！System.getProperty("os.arch")ではOS.archでなくJRE.archが返る！
+	private static final String VMarch = System.getProperty("os.arch");
 	private static final String VMvend = System.getProperty("java.vendor");
 	
 	

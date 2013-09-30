@@ -41,10 +41,8 @@ public class LogViewer extends JDialog {
 			jtext.setText(sb.toString());
 			jtext.setCaretPosition(jtext.getText().length());
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
