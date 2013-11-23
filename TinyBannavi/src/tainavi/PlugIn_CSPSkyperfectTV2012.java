@@ -1,8 +1,9 @@
 package tainavi;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -50,20 +51,17 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 	 * 定数
 	 ******************************************************************************/
 	
-	private static final String XTYPE_BASIC = "basic";
-	private static final String XTYPE_PREMIUM = "premium";
+	private static final String XTYPE_BASIC = "e2";
+	private static final String XTYPE_PREMIUM = "HD";
 	
 	private static final String CHNM_PREFIX_BS = "BS";
 	private static final String CHNM_PREFIX_CS = "CS";
 	private static final String CHNM_PREFIX_PR = "Ch.";
 	
-	private static final String CHID_PREFIX_CS = "e2";
-	private static final String CHID_PREFIX_HD = "HD";
-	private static final String CHID_PREFIX_SD = "SD";
-
-	private static final String CHCD_PREFIX_BS = "bs";
-	private static final String CHCD_PREFIX_CS = "cs";
-
+	private static final String CHID_PREFIX_BS = "BS";
+	private static final String CHID_PREFIX_CS = "CS";
+	private static final String CHID_PREFIX_PR = "HD";
+	
 	private final String MSGID = "["+getTVProgramId()+"] ";
 	private final String ERRID = "[ERROR]"+MSGID;
 	private final String DBGID = "[DEBUG]"+MSGID;
@@ -199,9 +197,10 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 						(f.exists() == true && isCacheOld(progCacheFile) == true) ||
 						(f.exists() == false && isCacheOld(null) == true)) {
 					//
-					String url = null;
+					String xtype = (pl.CenterId.startsWith(CHID_PREFIX_BS) || pl.CenterId.startsWith(CHID_PREFIX_CS)) ? XTYPE_BASIC : XTYPE_PREMIUM;
+					String chid = xtype != XTYPE_PREMIUM ? pl.CenterId : pl.CenterId.replaceFirst("^"+CHID_PREFIX_PR, "");
 					String dt = CommonUtils.getDateYMD(cal);
-					url = "http://bangumi.skyperfectv.co.jp/api/version:3/search/date:"+dt.substring(2)+"/channel:"+pl.CenterId+"/?api_key=336eec3423";
+					String url = "http://bangumi.skyperfectv.co.jp/"+xtype+"/channel:"+chid+"/date:"+dt.substring(2)+"/";
 					/*
 					if ( pl.ChId.length() == 0 ) {
 						url = "http://bangumi.skyperfectv.co.jp/api/version:3/search/date:"+dt.substring(2)+"/channel:"+pl.CenterId+"/?api_key=336eec3423";
@@ -347,92 +346,102 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 		
 		ProgDateList pcl = pl.pdate.get(dtidx);
 		
-		Matcher ma = Pattern.compile("\\{(.+?)\\}[,\\]]",Pattern.DOTALL).matcher(response.replaceFirst("^.+?:\\[", ""));
-		while ( ma.find() ) {
+		String[][] keys = {
+				{ "class", "pg-title" },
+				{ "class", "start-time" },
+				{ "class", "end-time" },
+				{ "class", "pg-genre" },
+				{ "class", "pg-explanation" },
+				{ "id", "actor-name" },
+		};
+		
+		Matcher ma = Pattern.compile("<tbody\\s+id=\"event-\\d+\"[^>]*?>(.+?)</tbody>",Pattern.DOTALL).matcher(response);
+		for ( int cnt = 0; ma.find(); cnt++ ) {
 			ProgDetailList pdl = new ProgDetailList();
 			String subtitle = "";
 			String person = "";
-			Matcher mb = Pattern.compile("\"(.+?)\":(\\[(.*?)\\]|\"?(.*?)\"?)[,}]").matcher(ma.group(1));
-			while ( mb.find() ) {
-				if ( mb.group(1).equals("start") && mb.group(2) != null ) {
-					GregorianCalendar c = new GregorianCalendar();
-					c.setTimeInMillis(Long.valueOf(mb.group(2).replaceFirst("\\.\\d+$", ""))*1000L);
-					pdl.accurateDate = CommonUtils.getDate(c);
-					pdl.startDateTime = CommonUtils.getDateTime(c); 
-					pdl.start = CommonUtils.getTime(c).replaceFirst("^.+ ", "");
-				}
-				else if ( mb.group(1).equals("end") && mb.group(2) != null ) {
-					GregorianCalendar c = new GregorianCalendar();
-					c.setTimeInMillis(Long.valueOf(mb.group(2).replaceFirst("\\.\\d+$", ""))*1000L);
-					pdl.endDateTime = CommonUtils.getDateTime(c); 
-					pdl.end = CommonUtils.getTime(c).replaceFirst("^.+ ", "");
-				}
-				else if ( mb.group(1).equals("title") && mb.group(4) != null  ) {
-					pdl.title = mb.group(4).replace("\\\"", "\"");
-				}
-				else if ( mb.group(1).equals("episode_title") && mb.group(4) != null  ) {
-					subtitle = mb.group(4);
-				}
-				else if ( mb.group(1).equals("explanation") && mb.group(4) != null ) {
-					pdl.detail = mb.group(4).replace("\\\"", "\"").replace("\\n", "\n");
-				}
-				else if ( mb.group(1).equals("person") && mb.group(3) != null ) {
-					String[] d = mb.group(3).split(",");
-					for ( String s : d ) {
-						Matcher mc = Pattern.compile("\"(.+?)\"").matcher(s);
+				
+			for ( String[] k : keys ) {
+				Matcher mb = Pattern.compile("<span\\s+"+k[0]+"=\""+k[1]+"\"[^>]*?>\\s*(.+?)\\s*</span>",Pattern.DOTALL).matcher(ma.group(1));
+				while ( mb.find() ) {
+					if ( mb.group(1) == null ) {
+						continue;
+					}
+					
+					if ( k[1].equals("pg-title") ) {
+						pdl.title = CommonUtils.unEscape(mb.group(1)).trim();
+					}
+					else if ( k[1].equals("start-time") ) {
+						pdl.start = mb.group(1);
+					}
+					else if ( k[1].equals("end-time") ) {
+						pdl.end = mb.group(1);
+						
+						GregorianCalendar c = CommonUtils.getCalendar(pcl.Date);
+						
+						if ( cnt == 0 && pdl.start.compareTo(pdl.end) > 0 ) {
+							c.add(Calendar.DATE, -1);
+						}
+						pdl.accurateDate = CommonUtils.getDate(c);
+						pdl.startDateTime = CommonUtils.getDate(c,false)+" "+pdl.start;
+						
+						if ( pdl.start.compareTo(pdl.end) > 0 ) {
+							c.add(Calendar.DATE, 1);
+						}
+						pdl.endDateTime = CommonUtils.getDate(c,false)+" "+pdl.end;
+	
+						pdl.length = CommonUtils.getRecMinVal(pdl.start, pdl.end);
+					}
+					else if ( k[1].equals("pg-genre") ) {
+						Matcher mc = Pattern.compile("/large_genre:(.+?)/medium_genre:(.+?)/",Pattern.DOTALL).matcher(mb.group(1));
 						if ( mc.find() ) {
-							person += "、"+mc.group(1);
+							try {
+								String grstr = URLDecoder.decode(mc.group(1),"utf8").replaceAll("／", "/");
+								ProgGenre gr = ProgGenre.get(grstr);
+								if ( gr == null ) {
+									gr = genremap.get(grstr);
+									if (gr == null) {
+										// 未定義のジャンルです！
+										gr = ProgGenre.NOGENRE;
+										gf.put(grstr,null);
+									}
+								}
+								if ( pdl.genre == null || (pdl.genre == ProgGenre.NOGENRE && gr != ProgGenre.NOGENRE) ) {
+									pdl.genre = gr;
+								}
+								
+								String sgstr = URLDecoder.decode(mc.group(2),"utf8").replaceAll("ィー", "ィ");
+								ProgSubgenre sg = ProgSubgenre.get(gr, sgstr);
+								if ( sg == null ) {
+									// 未定義のサブジャンルです！
+									ArrayList<ProgSubgenre> vals = ProgSubgenre.values(gr);
+									sg = vals.get(vals.size()-1);
+								}
+								pdl.subgenre = sg;
+							} catch (UnsupportedEncodingException e) {
+								e.printStackTrace();
+								pdl.genre = ProgGenre.NOGENRE;
+								pdl.subgenre = ProgSubgenre.NOGENRE_ETC;
+							}
+						}
+						else {
+							pdl.genre = ProgGenre.NOGENRE;
+							pdl.subgenre = ProgSubgenre.NOGENRE_ETC;
 						}
 					}
-					if ( person.length() > 0 ) {
-						person = person.substring(1);
+					else if ( k[1].equals("pg-explanation") ) {
+						pdl.detail += CommonUtils.decBr(CommonUtils.unEscape(mb.group(1))).trim()+"\n";
 					}
-				}
-				else if ( mb.group(1).equals("duration") ) {
-					//pdl.length = Integer.valueOf(mb.group(4))/60;	// 使えないっぽい
-				}
-				else if ( mb.group(1).equals("genres") && mb.group(3) != null ) {
-					Matcher mc = Pattern.compile("\\[\"(.*?)\",\"(.*?)\"[,\\]]", Pattern.DOTALL).matcher(mb.group(3));
-					if ( mc.find() ) {
-						
-						String grstr = mc.group(1).replaceAll("／", "/");
-						ProgGenre gr = ProgGenre.get(grstr);
-						if ( gr == null ) {
-							// 未定義のジャンルです！
-							gr = ProgGenre.NOGENRE;
-							gf.put(mc.group(1),null);
-						}
-						if ( pdl.genre == null || (pdl.genre == ProgGenre.NOGENRE && gr != ProgGenre.NOGENRE) ) {
-							pdl.genre = gr;
-						}
-						
-						String sgstr = mc.group(2).replaceAll("ィー", "ィ");
-						ProgSubgenre sg = ProgSubgenre.get(gr, sgstr);
-						if ( sg == null ) {
-							// 未定義のサブジャンルです！
-							ArrayList<ProgSubgenre> vals = ProgSubgenre.values(gr);
-							sg = vals.get(vals.size()-1);
-						}
-						pdl.subgenre = sg;
-					}
-					else {
-						pdl.genre = ProgGenre.NOGENRE;
-						pdl.subgenre = ProgSubgenre.NOGENRE_ETC;
-					}
-				}
-				else if ( mb.group(1).equals("no_scramble") && mb.group(4) != null ) {
-					pdl.noscrumble = (mb.group(4).equals("ノンスクランブル"))?(ProgScrumble.NOSCRUMBLE):(ProgScrumble.SCRUMBLED);
-				}
-				else if ( mb.group(1).equals("caption_dubbing") && mb.group(4) != null ) {
-					if ( mb.group(4).contains("字幕") ) {
-						pdl.option.add(ProgOption.SUBTITLE);
+					else if ( k[1].equals("actor-name") ) {
+						person += "、"+CommonUtils.unEscape(mb.group(1)).trim();
 					}
 				}
 			}
 			
-			// 算出してみる
-			pdl.length = CommonUtils.getRecMinVal(pdl.start, pdl.end);
-			//(int)(CommonUtils.getDiffDateTime(pdl.startDateTime, pdl.endDateTime)/60000L);
+			// 出演者
+			if ( person.length() > 0 ) {
+				person = person.substring(1);
+			}
 			
 			// くっつけてみる
 			pdl.detail =
@@ -441,6 +450,37 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 					+((person.length()>0)?(DETAIL_SEP+person):(""));
 			pdl.detail = pdl.detail.replaceFirst("[\r\n]+$", "");
 
+			Matcher mb = Pattern.compile("<img\\s+src=\"/i/icon_(.+?)\\.gif",Pattern.DOTALL).matcher(ma.group(1));
+			while ( mb.find() ) {
+				if ( mb.group(1).equals("5.1") ) {
+					pdl.addOption(ProgOption.SURROUND);
+				}
+				else if ( mb.group(1).equals("jimaku") ) {
+					pdl.addOption(ProgOption.SUBTITLE);
+				}
+				else if ( mb.group(1).equals("2kakoku") ) {
+					pdl.addOption(ProgOption.BILINGUAL);
+				}
+				else if ( mb.group(1).equals("fukikae") ) {
+					pdl.addOption(ProgOption.STANDIN);
+				}
+				else if ( mb.group(1).equals("tajuu") ) {
+					pdl.addOption(ProgOption.MULTIVOICE);
+				}
+				else if ( mb.group(1).equals("r15") || mb.group(1).equals("r18") || mb.group(1).equals("adult") ) {
+					pdl.addOption(ProgOption.RATING);
+				}
+				else if ( mb.group(1).equals("ppv") ) {
+					pdl.addOption(ProgOption.PV);
+				}
+				else if ( mb.group(1).equals("nama") ) {
+					pdl.addOption(ProgOption.LIVE);
+				}
+				else {
+					nf.put(mb.group(1), null);
+				}
+			}
+			
 			// タイトルから各種フラグを分離する
 			doSplitFlags(pdl, nf);
 			
@@ -575,6 +615,31 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 			ArrayList<Center> tmp = (ArrayList<Center>)CommonUtils.readXML(centerListFile);
 			if ( tmp != null ) {
 				crlist = tmp;
+
+				String[][] prs = {
+						{CHNM_PREFIX_BS, CHID_PREFIX_BS},
+						{CHNM_PREFIX_CS, CHID_PREFIX_CS},
+						{CHNM_PREFIX_PR, CHID_PREFIX_PR},
+				};
+				
+				// 2013.11 新旧変換
+				for ( Center cr : crlist ) {
+					for ( String[] a : prs ) {
+						if ( cr.getCenterOrig().startsWith(a[0]) ) {
+							if ( ! cr.getLink().startsWith(a[1]) ) {
+								Matcher ma = Pattern.compile("^.*?(\\d+)",Pattern.DOTALL).matcher(cr.getCenterOrig());
+								if ( ma.find() ) {
+									String chid = a[1]+ma.group(1);
+									System.err.println(DBGID+"converted: "+cr.getCenterOrig()+", "+cr.getLink()+" -> "+chid);
+									cr.setLink(chid);
+								}
+							}
+							
+							break;
+						}
+					}
+				}
+				
 				// 放送局名変換
 				attachChFilters();
 				System.out.println("放送局リストを読み込みました: "+centerListFile);
@@ -613,7 +678,7 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 		
 		ArrayList<Center> crl = new ArrayList<Center>();
 		
-		String url = String.format("http://www.skyperfectv.co.jp/channel/%s/list.html",xtype);
+		String url = String.format("http://bangumi.skyperfectv.co.jp/index/channel/%s/",xtype);
 		if (getDebug()) System.err.println(DBGID+"get page: "+url);
 		String response = webToBuffer(url,thisEncoding,true);
 		if ( response == null ) {
@@ -621,70 +686,33 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 			return null;
 		}
 		
-		Matcher ma = Pattern.compile("<tr class=\"[^\"]*?ch-(.)d\">(.+?)</tr>",Pattern.DOTALL).matcher(response);
+		Matcher ma = Pattern.compile("<td class=\"channel-icon\">\\s*<a href=\".*?/channel:(.+?)/\".*?>\\s*<img src=\".*?\" alt=\"(.+?)\"",Pattern.DOTALL).matcher(response);
 		while ( ma.find() ) {
-			Matcher mb = Pattern.compile("<div class=\"channel ch-channel\">.+?<a href=\"/channel/"+xtype+"/(bs|cs)?(\\d+)\\.html\">[ 　\\t]*(.+?)[ 　\\t]*</a>",Pattern.DOTALL).matcher(ma.group(2));
-			if ( mb.find() ) {
-				String chid_prefix = null;
-				String chnm_prefix = null;
-				if ( xtype.equals(XTYPE_BASIC) && CHCD_PREFIX_CS.equals(mb.group(1)) ) {
-					chid_prefix = CHID_PREFIX_CS;
-					chnm_prefix = CHNM_PREFIX_CS;
-				}
-				else {
-					if ( xtype.equals(XTYPE_BASIC) ) {
-						chid_prefix = CHID_PREFIX_CS;
-					}
-					else {
-						if ( ma.group(1).equals("h") ) {
-							chid_prefix = CHID_PREFIX_HD;
-						}
-						else {
-							chid_prefix = CHID_PREFIX_SD;
-						}
-					}
-					if ( CHCD_PREFIX_BS.equals(mb.group(1)) ) {
-						chnm_prefix = CHNM_PREFIX_BS;
-					}
-					else {
-						chnm_prefix = CHNM_PREFIX_PR;
-					}
-				}
+			String chid = (xtype.equals(XTYPE_PREMIUM) ? CHID_PREFIX_PR : "") + ma.group(1);
+			String chnm = CommonUtils.toHANALNUM(CommonUtils.unEscape(ma.group(2))).replaceFirst("[ 　\\t]+▲$", "");
 			
-				if ( chid_prefix != null ) {
-					Center cr = new Center();
-					cr.setAreaCode(areacode);
-					cr.setType("");
-					cr.setEnabled(true);
-					String name = CommonUtils.toHANALNUM(CommonUtils.unEscape(chnm_prefix+mb.group(2)+" "+mb.group(3)));
-					String chid = null;
-					if ( xtype.equals(XTYPE_BASIC) && name.contains("スター・チャンネル") ) {
-						// e2のスター・チャンネルは専用の番組表が用意されていないみたい
-						chid = String.format("%s%03d",CHID_PREFIX_HD,Integer.valueOf(mb.group(2))+425);
-					}
-					else {
-						chid = chid_prefix+mb.group(2);
-					}
-					if ( ! name.endsWith("▲") && chid.startsWith("SD") ) {
-						// スカパーのサイトにバグがあった！
-						chid = chid.replaceFirst("^SD", "HD");
-						if (getDebug()) System.err.println("+コード修正： "+name+" (SD->"+chid+")");
-					}
-					cr.setCenterOrig(name.replaceFirst("[ 　\\t]+▲$", ""));
-					cr.setLink(chid);
-					
-					int idx = 0;
-					for ( Center ct : crl ) {
-						if ( ct.getCenterOrig().compareTo(cr.getCenterOrig()) > 0 ) {
-							break;
-						}
-						idx++;
-					}
-					crl.add(idx, cr);
-					
-					if (getDebug()) System.err.println(DBGID+"center: "+cr.getCenterOrig()+", "+cr.getLink());
-				}
+			// 統一性がない
+			if ( xtype.equals(XTYPE_PREMIUM) && ! chnm.startsWith(CHNM_PREFIX_PR) ) {
+				chnm = CHNM_PREFIX_PR+chnm;
 			}
+			
+			Center cr = new Center();
+			cr.setAreaCode(areacode);
+			cr.setType("");
+			cr.setEnabled(true);
+			cr.setCenterOrig(chnm);
+			cr.setLink(chid);
+			
+			int idx = 0;
+			for ( Center ct : crl ) {
+				if ( ct.getCenterOrig().compareTo(cr.getCenterOrig()) > 0 ) {
+					break;
+				}
+				idx++;
+			}
+			crl.add(idx, cr);
+			
+			if (getDebug()) System.err.println(DBGID+"center: "+cr.getCenterOrig()+", "+cr.getLink());
 		}
 		
 		return crl;

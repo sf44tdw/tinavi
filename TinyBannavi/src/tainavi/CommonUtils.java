@@ -918,6 +918,10 @@ public class CommonUtils {
 		return sb.toString();
 	}
 	
+	public static String decBr(String src) {
+		String dst = src.replaceAll("<[bB][rR]\\s*/?>", "\n");
+		return dst;
+	}
 	
 	/**
 	 *  Unicodeエスケープをデコードします。
