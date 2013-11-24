@@ -616,6 +616,9 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 			if ( tmp != null ) {
 				crlist = tmp;
 
+				// 放送局名変換
+				attachChFilters();
+				
 				String[][] prs = {
 						{CHNM_PREFIX_BS, CHID_PREFIX_BS},
 						{CHNM_PREFIX_CS, CHID_PREFIX_CS},
@@ -640,8 +643,6 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 					}
 				}
 				
-				// 放送局名変換
-				attachChFilters();
 				System.out.println("放送局リストを読み込みました: "+centerListFile);
 				return;
 			}
