@@ -1081,7 +1081,7 @@ abstract class AbsReserveDialog extends JEscCancelDialog implements HDDRecorderL
 			}
 		}.execute();
 		
-		CommonSwingUtils.setLocationCenter(AbsReserveDialog.this, (Component) StWin);
+		CommonSwingUtils.setLocationCenter(AbsReserveDialog.this.isVisible() ? AbsReserveDialog.this : parent, (Component) StWin);
 		StWin.setVisible(true);
 		
 		return tvd.progid;

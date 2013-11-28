@@ -19,8 +19,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -43,7 +41,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.DefaultTreeModel;
 
-import tainavi.TVProgram.ProgSubtype;
 import tainavi.TVProgram.ProgType;
 import tainavi.TVProgramIterator.IterationType;
 import tainavi.VWMainWindow.MWinTab;
