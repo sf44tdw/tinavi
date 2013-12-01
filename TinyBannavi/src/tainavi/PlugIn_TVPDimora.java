@@ -411,17 +411,6 @@ public class PlugIn_TVPDimora extends TVProgramUtils implements TVProgram,Clonea
 		}
 	}
 	
-	private void addEnmptyInfo(ProgDateList pcl, String sdat, String edat) {
-		ProgDetailList pdl = new ProgDetailList();
-		pdl.title = pdl.splitted_title = "番組情報がありません";
-		pdl.detail = "";
-		pdl.length = (int)(CommonUtils.getDiffDateTime(sdat, edat)/60000L);
-		pdl.genre = ProgGenre.NOGENRE;
-		pdl.start = "";
-		pcl.pdetail.add(pdl);
-		pcl.row += pdl.length;
-	}
-	
 	
 	/*******************************************************************************
 	 * 地域情報を取得する

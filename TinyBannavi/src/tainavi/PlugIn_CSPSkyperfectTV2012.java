@@ -270,73 +270,104 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 	
 	//
 	private void refreshList(ArrayList<ProgDateList> pcenter) {
-		// 前日分の情報は前日のリストに入れ替える
+		// 日付を直すよ
 		for ( int i=0; i<pcenter.size(); i++ ) {
 			ProgDateList pl = pcenter.get(i);
-			ArrayList<ProgDetailList> pre = new ArrayList<ProgDetailList>();
-			ArrayList<ProgDetailList> cur = new ArrayList<ProgDetailList>();
-			for ( ProgDetailList pdl : pl.pdetail ) {
-				if ( pl.Date.compareTo(pdl.accurateDate) >= 0 && CommonUtils.isLateNight(pdl.start.substring(0, 2)) ) {
-					// 前日分とする
-					pre.add(pdl);
+			GregorianCalendar ca = CommonUtils.getCalendar(pl.Date);
+			for ( int j=pl.pdetail.size()-1,k=0; j>=0; j--,k++ ) {
+				ProgDetailList pdl = pl.pdetail.get(j);
+				GregorianCalendar cz = (GregorianCalendar) ca.clone();
+				if ( k == 0 ) {
+					if ( CommonUtils.isLateNight(pdl.start.substring(0,2)) ) {
+						// 最後尾の開始日は翌日だった
+						ca.add(Calendar.DATE, 1);
+						cz = (GregorianCalendar) ca.clone();
+					}
+					else if ( pdl.start.compareTo(pdl.end) > 0 ) {
+						// 翌日にまたがる
+						cz.add(Calendar.DATE, 1);
+					}
 				}
 				else {
-					// 当日分とする
-					cur.add(pdl);
+					if ( pdl.start.compareTo(pdl.end) > 0 ) {
+						// 前日からまたがる
+						ca.add(Calendar.DATE, -1);
+					}
 				}
+				pdl.accurateDate = CommonUtils.getDate(ca);
+				pdl.startDateTime = CommonUtils.getDate(ca,false)+" "+pdl.start;
+				pdl.endDateTime = CommonUtils.getDate(cz,false)+" "+pdl.end;
 			}
-			if ( i > 0 ) {
-				// 前日のリストに混ぜる
-				for ( ProgDetailList pdl : pre ) {
-					pcenter.get(i-1).pdetail.add(pdl);
-				}
-			}
-			String tbstart = CommonUtils.getTime(getTimeBarStart(),0);
-			if ( pre.size() > 0 && pre.get(pre.size()-1).end.compareTo(tbstart) > 0 ) {
-				if (getDebug()) System.err.println(DBGID+"overlap "+pre.get(pre.size()-1).end+" "+pre.get(pre.size()-1).title);
-				// 日またがり（２９時またがり）のものを当日のリストにもコピーする
-				ProgDetailList pdl = pre.get(pre.size()-1).clone();
-				pdl.length = (int)(CommonUtils.getDiffDateTime(pdl.accurateDate+" "+tbstart, pdl.accurateDate+" "+pdl.end)/60000L);
-				cur.add(0,pdl);
-			}
-			pl.pdetail = cur;
 		}
-		// 隙間を埋める
-		for ( ProgDateList pl : pcenter ) {
-			ArrayList<ProgDetailList> cur = new ArrayList<ProgDetailList>();
-			String preend = pl.Date.substring(0,10)+" "+CommonUtils.getTime(getTimeBarStart(),0);	// 最初の"前番組のおしり"は05:00
-			for ( int i=0; i<pl.pdetail.size(); i++ ) {
-				ProgDetailList pdl = pl.pdetail.get(i);
-				if ( preend.compareTo(pdl.startDateTime) < 0 ) {
-					// 前の番組との間に隙間があれば埋める
-					ProgDetailList npdl = new ProgDetailList();
-					npdl.title = npdl.splitted_title = "番組情報がありません";
-					npdl.length = (int)(CommonUtils.getDiffDateTime(preend, pdl.startDateTime)/60000L);
-					cur.add(npdl);
+
+		// 隙間を埋めつつ一個にまとめる
+		ProgDateList all = new ProgDateList();
+		all.pdetail = new ArrayList<ProgDetailList>();
+		for ( ProgDateList pcl : pcenter ) {
+			for ( ProgDetailList pdl : pcl.pdetail ) {
+				if ( all.row == 0 ) {
+					String prevend = CommonUtils.getDateTime(CommonUtils.getCalendar(pcenter.get(0).Date+" 05:00"));
+					if ( prevend.compareTo(pdl.startDateTime) < 0 ) {
+						// 最前列の情報がとれなかった
+						addEnmptyInfo(all, prevend, pdl.startDateTime);
+					}
 				}
-				cur.add(pdl);
-				preend = pdl.endDateTime;
+				else {
+					ProgDetailList prevpdl = all.pdetail.get(all.pdetail.size()-1);
+					if ( prevpdl.startDateTime.equals(pdl.startDateTime) ) {
+						// 重複は破棄
+						continue;
+					}
+					else if ( prevpdl.endDateTime.compareTo(pdl.startDateTime) < 0 ) {
+						// 隙間を埋める
+						addEnmptyInfo(all, prevpdl.endDateTime, pdl.startDateTime);
+					}
+				}
+				all.pdetail.add(pdl);
+				all.row += pdl.length;
 			}
-			pl.pdetail = cur;
+			// 元のリストはリセット
+			pcl.pdetail = new ArrayList<ProgDetailList>();
+			pcl.row = 0;
+		}
+		
+		// 各日に振り分ける
+		for ( ProgDetailList pdl : all.pdetail ) {
+			int cnt = 0;
+			for ( ProgDateList pcl : pcenter ) {
+				GregorianCalendar cz = CommonUtils.getCalendar(pcl.Date+" 05:00");
+				String da = CommonUtils.getDateTime(cz);
+				cz.add(Calendar.DATE, 1);
+				String dz = CommonUtils.getDateTime(cz);
+				if ( CommonUtils.isOverlap(pdl.startDateTime, pdl.endDateTime, da, dz, true) ) {
+					if ( cnt++ == 0 ) {
+						pcl.pdetail.add(pdl);
+					}
+					else {
+						pcl.pdetail.add(pdl.clone());
+					}
+				}
+			}
 		}
 		
 		// 24時以降の情報は日付＋１したとこから取得しているので、最終日の次のリストは削除
 		pcenter.remove(pcenter.size()-1);
 		
 		// 総時間数等を整理する
-		for ( ProgDateList pl : pcenter ) {
+		for ( ProgDateList pcl : pcenter ) {
 			// １日の合計分数を足し合わせる
-			pl.row = 0;
-			for ( ProgDetailList pdl : pl.pdetail ) {
-				pl.row += pdl.length;
+			for ( ProgDetailList pdl : pcl.pdetail ) {
+				String da = (pcl.row == 0) ? pcl.Date+" 05:00" : pdl.startDateTime;
+				pdl.length = (int)(CommonUtils.getCompareDateTime(pdl.endDateTime, da)/60000L);
+				pcl.row += pdl.length;
 			}
 			// おしりがとどかない場合（デメリット：これをやると、サイト側のエラーで欠けてるのか、そもそも休止なのかの区別がつかなくなる）
-			if ( pl.row < 24*60 ) {
-				ProgDetailList npdl = new ProgDetailList();
-				npdl.title = npdl.splitted_title = "番組情報がありません";
-				npdl.length = 24*60 - pl.row;
-				pl.pdetail.add(npdl);
-				pl.row += npdl.length;
+			if ( pcl.row < 24*60 ) {
+				GregorianCalendar ca = CommonUtils.getCalendar(pcl.Date+" 05:00");
+				GregorianCalendar cz = (GregorianCalendar) ca.clone();
+				ca.add(Calendar.MINUTE, pcl.row);
+				cz.add(Calendar.MINUTE, 24*60);
+				addEnmptyInfo(pcl, CommonUtils.getDateTime(ca), CommonUtils.getDateTime(cz));
 			}
 		}
 	}
@@ -376,7 +407,7 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 					}
 					else if ( k[1].equals("end-time") ) {
 						pdl.end = mb.group(1);
-						
+/*						
 						GregorianCalendar c = CommonUtils.getCalendar(pcl.Date);
 						
 						if ( cnt == 0 && pdl.start.compareTo(pdl.end) > 0 ) {
@@ -389,7 +420,7 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 							c.add(Calendar.DATE, 1);
 						}
 						pdl.endDateTime = CommonUtils.getDate(c,false)+" "+pdl.end;
-	
+*/
 						pdl.length = CommonUtils.getRecMinVal(pdl.start, pdl.end);
 					}
 					else if ( k[1].equals("pg-genre") ) {
