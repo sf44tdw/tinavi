@@ -2281,7 +2281,9 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	 */
 	public void refocus() {
 		if (vrowInFocus >= 0) {
-			jTable_listed.getSelectionModel().addSelectionInterval(vrowInFocus, vrowInFocus);
+			if (vrowInFocus < jTable_listed.getRowCount()) {
+				jTable_listed.getSelectionModel().addSelectionInterval(vrowInFocus, vrowInFocus);
+			}
 			vrowInFocus = -1;
 		}
 	}

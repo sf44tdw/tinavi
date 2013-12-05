@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 
 public class VersionInfo {
-	private static final String Version = "タイニー番組ナビゲータ　3.22.7β";
+	private static final String Version = "タイニー番組ナビゲータ　3.22.8β";
 	
 	private static final String OSname = System.getProperty("os.name");
 	private static final String OSvers = System.getProperty("os.version");
