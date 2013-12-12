@@ -350,7 +350,19 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 		// エンコーダの一覧を作成する
 		ArrayList<String> encs = getFilteredEncoders(webChName);
 		
-		// 予約リストをなめて予約済みエンコーダーをさがつつ、裏番組リストも作る
+		// 旧RDデジ系かどうか確認する（R1/R2以外のRDかどうか調べる）
+		if ( isRD() ) {
+			String vv = null;
+			for ( String enc : encs ) {
+				if ( ! enc.matches("^R\\d$") ) {
+					vv = vardiaVrate;
+					break;
+				}
+			}
+			vardiaVrate = vv;
+		}
+		
+		// 予約リストをなめて予約済みエンコーダーを探しつつ、裏番組リストも作る
 		urabanlist = new ArrayList<ReserveList>();
 		String rsvedTuner = null;
 		for ( ReserveList r : getReserves() ) {
