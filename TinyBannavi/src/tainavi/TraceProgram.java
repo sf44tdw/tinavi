@@ -49,8 +49,6 @@ public class TraceProgram {
         	
         	tr.setTitlePop(replacePop(tr.getTitle()));
         	
-        	tr.setSearchStrKeys(splitKeys(tr._getTitlePop()));
-        	
         	tr.setLabel(getNewLabel(tr.getTitle(), tr.getCenter()));
 		}
 	}
@@ -104,55 +102,44 @@ public class TraceProgram {
 		return(sb.toString());
 	}
 
-	// あいまい検索用キー文字列群の生成
-	public static ArrayList<String> splitKeys(String s)
+	// 最少比較単位は２文字（バイグラム）
+	private static final int COMPCHARLEN = 2;
+
+	/**
+	 * 2つの文字を比較してスコアを計算する(special thanks to ◆kzz0PzTAMM)
+	 * @param searchkey 番組追跡の検索キー
+	 * @param target タイトル（中の文字がsearchkeyに何個含まれているかを確認する）
+	 * @return
+	 */
+	public static int sumScore(String searchkey, String target)
 	{
-		ArrayList<String> SearchStrKeys = new ArrayList<String>();
-	    
-	    int countStr=s.length();
-	    if (countStr == 1) {
-	    	SearchStrKeys.add(s);
-	    }
-	    else {
-		    for (int i=1; i<countStr; i++) {
-		    	SearchStrKeys.add(s.substring(i-1, i+1));
-		    }
-	    }
-	    
-	    return(SearchStrKeys);
-	}
 	
-	// 2つの文字を比較してスコアを計算する(special thanks to ◆kzz0PzTAMM)
-	public static int sumScore(String SearchStr1, String SearchStr2)
-	{
 	    // 検索ワードが空なら検索終了
-		if (SearchStr1.equals("") || SearchStr2.equals("")) {
+		if (searchkey == null || target == null || "".equals(searchkey) || "".equals(target)) {
 			return 0;
+		}
+
+		int searchCountMax = searchkey.length();
+		if ( searchCountMax > COMPCHARLEN ) {
+			// 検索キーが最少比較単位より長い
+			searchCountMax = searchCountMax - COMPCHARLEN + 1;
+			int score = 0;
+			int searchCount = 0;
+			for ( ; searchCount < searchCountMax; searchCount++ ) {
+				if ( target.indexOf(searchkey.substring(searchCount,searchCount+COMPCHARLEN)) != -1 ) {
+					score++;
+				}
+			}
+			return Math.round(score * 100 / searchCount);
+		}
+		else {
+			if ( target.indexOf(searchkey) != -1 ) {
+				System.err.println("xxxx "+target+", "+searchkey);
+				return 100;
+			}
 		}
 		
-	    // 検索ワードを基準に検索する
-	    return sumScore(splitKeys(SearchStr1), SearchStr2);
-	}
-	public static int sumScore(ArrayList<String> SearchStr1Keys, String SearchStr2)
-	{
-	
-	    // 検索ワードが空なら検索終了
-		if (SearchStr1Keys.size() == 0 || "".equals(SearchStr2)) {
-			return 0;
-		}
-
-	    // 検索ワードを基準に検索する
-	    int searchCount=0;
-	    int score=0;
-	    for (String key : SearchStr1Keys) {
-	    	if (SearchStr2.indexOf(key) >= 0) {
-	    		score++;
-	    	}
-	    	searchCount++;
-	    }
-
-	    score=Math.round(score*100/searchCount);
-	    return(score);
+		return 0;
     }
 	
 	

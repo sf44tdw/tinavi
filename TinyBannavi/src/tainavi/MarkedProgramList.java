@@ -160,13 +160,14 @@ public class MarkedProgramList {
 							}
 							else {
 								//あいまい検索・正引き
-								fazScore = TraceProgram.sumScore(tvd.SearchStrKeys,tKey._getTitlePop());
+								String target = ProgDetailList.tracenOnlyTitle ?  tvd.splitted_titlePop : tvd.titlePop;
+								fazScore = TraceProgram.sumScore(target, tKey._getTitlePop());
 								if (fazScore >= tKey.getFazzyThreshold()) {
 									isFind = true;
 								}
 								else if ( ! this.disableFazzySearchReverse) {
 									// 逆引き
-									fazScore = TraceProgram.sumScore(tKey._getSearchStrKeys(),tvd.titlePop);
+									fazScore = TraceProgram.sumScore(tKey._getTitlePop(), target);
 									if (fazScore >= tKey.getFazzyThreshold()) {
 										isFind = true;
 									}

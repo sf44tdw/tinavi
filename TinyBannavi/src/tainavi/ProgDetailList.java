@@ -91,7 +91,7 @@ public class ProgDetailList implements Cloneable {
 	// 検索高速化用のデータ
 	
 	/**
-	 * キーワード検索で使うよ
+	 * キーワード検索・番組追跡で使うよ
 	 */
 	String titlePop = "";
 	
@@ -103,7 +103,7 @@ public class ProgDetailList implements Cloneable {
 	/**
 	 * 番組追跡で使うよ
 	 */
-	ArrayList<String> SearchStrKeys = null;
+	static boolean tracenOnlyTitle = false;
 	
 	/*******************************************************************************
 	 * NGワード処理
@@ -135,7 +135,6 @@ public class ProgDetailList implements Cloneable {
 
 		titlePop = "";
 		detailPop = "";
-		SearchStrKeys = new ArrayList<String>();
 	}
 	
 	/*******************************************************************************
@@ -535,7 +534,6 @@ public class ProgDetailList implements Cloneable {
 			case TITLE:
 				this.title = body;
 				this.titlePop = TraceProgram.replacePop(this.title);
-				this.SearchStrKeys = TraceProgram.splitKeys(this.titlePop);
 				break;
 			case DETAIL:
 				this.detail = body;

@@ -318,7 +318,6 @@ public class VWTraceKeyDialog extends JEscCancelDialog {
 		xKey.setCenter(jTextField_channel.getText());
 		xKey.setTitle(jTextField_title.getText().trim());
 		xKey.setTitlePop(TraceProgram.replacePop(xKey.getTitle()));
-		xKey.setSearchStrKeys(TraceProgram.splitKeys(xKey._getTitlePop()));
 		xKey.setFazzyThreshold(jSlider_fazzyThreshold.getValue());
 		xKey.setOkiniiri((String) jComboBox_okiniiri.getSelectedItem());
 		xKey.setDisableRepeat(jCheckBox_disableRepeat.isSelected());

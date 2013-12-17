@@ -509,7 +509,8 @@ public class TVProgramUtils implements Cloneable {
 		pdl.titlePop = TraceProgram.replacePop(key_title);
 		pdl.detailPop = TraceProgram.replacePop(key_detail);
 		
-		pdl.SearchStrKeys = TraceProgram.splitKeys(pdl.titlePop);
+		// 分離しない場合でも、番組追跡はサブタイトル抜きでの検索ができるようにしたい
+		pdl.splitted_titlePop = TraceProgram.replacePop(pdl.splitted_title);
 	}
 	
 	/**
@@ -850,7 +851,6 @@ public class TVProgramUtils implements Cloneable {
 						pd2.link = pd1.link;
 						pd2.titlePop = pd1.titlePop;
 						pd2.detailPop = pd1.detailPop;
-						pd2.SearchStrKeys = pd1.SearchStrKeys;
 						pd2.nosyobo = pd1.nosyobo;
 						pd2.extension = pd1.extension;
 						pd2.flag = pd1.flag;

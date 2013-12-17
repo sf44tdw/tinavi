@@ -395,6 +395,11 @@ public abstract class AbsSettingView extends JScrollPane {
 			CommonSwingUtils.putComponentOn(jPanel_setting, getNoticeMsg("　閾値を大きくすると判定が厳しくなります。キーワードが短いためにヒットしまくりで検索ノイズが多くなった場合に、値を大きくしてみてください。"), DESCRIPTION_WIDTH, PARTS_HEIGHT, SEP_WIDTH*2, y);
 			
 			y+=(PARTS_HEIGHT+SEP_HEIGHT);
+			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_traceOnlyTitle = new JCheckBoxPanel("タイトル中に含まれるサブタイトルは番組追跡の対象にしない",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
+			jCBP_traceOnlyTitle.setSelected(env.getTraceOnlyTitle());
+			jCBP_traceOnlyTitle.addItemListener(IL_RELOAD_PROG_NEEDED);
+		
+			y+=(PARTS_HEIGHT+SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_syoboFilterByCenters = new JCheckBoxPanel("しょぼかるの検索結果も有効な放送局のみに絞る",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			jCBP_syoboFilterByCenters.setSelected(env.getSyoboFilterByCenters());
 			// RELOADリスナー不要
@@ -739,24 +744,11 @@ public abstract class AbsSettingView extends JScrollPane {
 			jCBP_autoEventIdComplete.setSelected(env.getAutoEventIdComplete());
 			// RELOADリスナー不要
 
-			{
-				y+=(PARTS_HEIGHT+SEP_HEIGHT);
-				CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_splitEpno = new JCheckBoxPanel("タイトルに話数が含まれる場合に以降を分離する",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
-				jCBP_splitEpno.setSelected( ! env.getSplitEpno());
-				jCBP_splitEpno.addItemListener(IL_RELOAD_PROG_NEEDED);
+			y+=(PARTS_HEIGHT+SEP_HEIGHT);
+			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_splitEpno = new JCheckBoxPanel("タイトルに話数が含まれる場合に以降を分離する",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
+			jCBP_splitEpno.setSelected( ! env.getSplitEpno());
+			jCBP_splitEpno.addItemListener(IL_RELOAD_PROG_NEEDED);
 				
-				y+=(PARTS_HEIGHT+SEP_HEIGHT);
-				CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_traceOnlyTitle = new JCheckBoxPanel("┗　サブタイトルを番組追跡の対象から除外する",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
-				jCBP_traceOnlyTitle.setSelected(env.getTraceOnlyTitle());
-				jCBP_traceOnlyTitle.addItemListener(IL_RELOAD_PROG_NEEDED);
-				
-				// 連動設定
-
-				jCBP_splitEpno.addItemListener(al_splitepno);
-
-				jCBP_splitEpno.setSelected( ! jCBP_splitEpno.isSelected());
-			}
-			
 			y+=(PARTS_HEIGHT+SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_fixTitle = new JCheckBoxPanel("タイトル先頭の「アニメ 」を削除(NHKのみ)",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			jCBP_fixTitle.setSelected(env.getFixTitle());

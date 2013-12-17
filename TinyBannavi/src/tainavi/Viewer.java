@@ -3393,6 +3393,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 	
 	// 番組タイトルを整形する
 	private void fixTitle() {
+		// 番組追跡からサブタイトルを除外するかどうかのフラグ
+		ProgDetailList.tracenOnlyTitle = env.getFixTitle() && env.getTraceOnlyTitle();
 		//
 		if ( ! env.getFixTitle()) {
 			return;
@@ -3417,7 +3419,6 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 								// NHK系で先頭が「アニメ　」ではじまるものから「アニメ　」を削除する
 								tvd.title = tvd.title.replaceFirst("^アニメ[ 　・]+","");
 								tvd.titlePop = TraceProgram.replacePop(tvd.title);
-								tvd.SearchStrKeys = TraceProgram.splitKeys(tvd.titlePop);
 							}
 							if ( tvd.title.contains("コメンタリ") || tvd.detail.contains("コメンタリ") ) {
 								// "コメンタリ"の記述のあるものは「副音声」扱いにする（副音声でなくても）
@@ -3442,11 +3443,6 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 						else if ( tvd.isEqualsGenre(ProgGenre.MOVIE, ProgSubgenre.MOVIE_ANIME) && tvd.subgenre != ProgSubgenre.MOVIE_ANIME ) {
 							// ジャンル＝映画でサブジャンルが複数ありアニメが優先されてないものはアニメを優先する
 							tvd.subgenre = ProgSubgenre.MOVIE_ANIME;
-						}
-						
-						// サブタイトルを番組追跡の対象から外す
-						if ( env.getTraceOnlyTitle() && tvd.title != tvd.splitted_title ) {
-							tvd.SearchStrKeys = TraceProgram.splitKeys(TraceProgram.replacePop(tvd.splitted_title));	// 番組追跡の検索用インデックスは、サブタイトルを削除したもので置き換える
 						}
 					}
 				}

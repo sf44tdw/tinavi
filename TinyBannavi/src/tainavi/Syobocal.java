@@ -368,7 +368,6 @@ public class Syobocal extends TVProgramUtils implements TVProgram,Cloneable {
 				
 				// 詳細を登録する
 				pDetail.titlePop = TraceProgram.replacePop(pDetail.title);
-				pDetail.SearchStrKeys = TraceProgram.splitKeys(pDetail.titlePop);
 				pDetail.detailPop = TraceProgram.replacePop(pDetail.detail);
 				pDetail.length = Integer.valueOf(CommonUtils.getRecMin(pDetail.start.substring(0,2),pDetail.start.substring(3,5),pDetail.end.substring(0,2),pDetail.end.substring(3,5)));
 			}

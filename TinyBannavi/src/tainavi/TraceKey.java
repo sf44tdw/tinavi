@@ -13,7 +13,6 @@ public class TraceKey implements SearchItem {
 	private String center = null;
 	private int fazzyThreshold = 0;
 	private String okiniiri = null;
-	private ArrayList<String> SearchStrKeys = null;
 	private boolean disableRepeat = false;
 	private boolean showLatestOnly = false;
 
@@ -37,8 +36,6 @@ public class TraceKey implements SearchItem {
 	public String _getLabel() { return label; }
 	public void setTitlePop(String s) { titlePop = s; }
 	public String _getTitlePop() { return titlePop; }
-	public void setSearchStrKeys(ArrayList<String> sa) { SearchStrKeys = sa; }
-	public ArrayList<String> _getSearchStrKeys() { return SearchStrKeys; }
 
 	// interface
 	

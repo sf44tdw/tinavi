@@ -333,7 +333,7 @@ public class Viewer extends JFrame {
 			if ( r.getRecorderIPAddr().equals("") ) {
 				continue;
 			}
-	    	if ( r.getRecorderId().contains("RD-") || r.getRecorderId().contains("DBR-Z") ) {
+	    	if ( ! r.getRecorderId().contains("RD-") && ! r.getRecorderId().contains("DBR-Z") ) {
 	    		continue;
 	    	}
 	    	

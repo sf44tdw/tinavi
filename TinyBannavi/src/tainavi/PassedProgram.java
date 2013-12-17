@@ -354,7 +354,6 @@ public class PassedProgram extends TVProgramUtils implements TVProgram,Cloneable
 				// 検索用インデックスを生成
 				data.titlePop = TraceProgram.replacePop(data.title);
 				data.detailPop = TraceProgram.replacePop(data.detail);
-				data.SearchStrKeys = TraceProgram.splitKeys(data.titlePop);
 				
 				// 終了時刻・実日付を生成
 				String[] Ahm = data.start.split(":",2);
