@@ -187,56 +187,69 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 			getDate(pl);
 
 			//
-			for ( int i=0; i<pl.pdate.size(); i++ ) {
+			for ( int dtidx=0; dtidx<pl.pdate.size(); dtidx++ ) {
 				//
-				GregorianCalendar cal = CommonUtils.getCalendar(pl.pdate.get(i).Date);
-				final String progCacheFile = String.format("%s%sSKP2012_%s_%d.txt", getProgDir(), File.separator, pl.CenterId, cal.get(Calendar.DAY_OF_MONTH));
-				//
-				File f = new File(progCacheFile);
-				if (force == true ||
-						(f.exists() == true && isCacheOld(progCacheFile) == true) ||
-						(f.exists() == false && isCacheOld(null) == true)) {
-					//
-					String xtype = (pl.CenterId.startsWith(CHID_PREFIX_BS) || pl.CenterId.startsWith(CHID_PREFIX_CS)) ? XTYPE_BASIC : XTYPE_PREMIUM;
-					String chid = xtype != XTYPE_PREMIUM ? pl.CenterId : pl.CenterId.replaceFirst("^"+CHID_PREFIX_PR, "");
-					String dt = CommonUtils.getDateYMD(cal);
-					String url = "http://bangumi.skyperfectv.co.jp/"+xtype+"/channel:"+chid+"/date:"+dt.substring(2)+"/";
-					/*
-					if ( pl.ChId.length() == 0 ) {
-						url = "http://bangumi.skyperfectv.co.jp/api/version:3/search/date:"+dt.substring(2)+"/channel:"+pl.CenterId+"/?api_key=336eec3423";
-					}
-					else {
-						url = "http://www.skyperfectv.co.jp/xml/"+dt+"_"+pl.ChId.substring(2)+".xml";
-					}
-					*/
-					webToFile(url, progCacheFile, thisEncoding);
-					
-					reportProgress(getTVProgramId()+"(オンライン)を取得しました: ("+(counter+i)+"/"+counterMax+") "+pl.Center+"["+cal.get(Calendar.DAY_OF_MONTH)+"日]    "+url);
-				}
-				else if (CommonUtils.isFileAvailable(f,10)) {
-					reportProgress(getTVProgramId()+"(キャッシュ)を取得しました: ("+(counter+i)+"/"+counterMax+") "+pl.Center+"["+cal.get(Calendar.DAY_OF_MONTH)+"日]    "+progCacheFile);
-				}
-				else {
-					reportProgress(getTVProgramId()+"(キャッシュ)がみつかりません: ("+(counter+i)+"/"+counterMax+") "+pl.Center+"["+cal.get(Calendar.DAY_OF_MONTH)+"日]    "+progCacheFile);
-					continue;
-				}
-	
-				String response = CommonUtils.read4file(progCacheFile, true);
+				GregorianCalendar cal = CommonUtils.getCalendar(pl.pdate.get(dtidx).Date);
 				
-				// 番組リストの追加
-				try {
-					getPrograms(pl, i, response);
-					/*
-					if ( pl.ChId.length() == 0 ) {
-						getPrograms(pl, i, response);
+				boolean isNextpageExist = true;
+				for ( int pgidx=1; isNextpageExist; pgidx++ ) {
+					
+					final String progCacheFile = 
+							pgidx == 1 ? String.format("%s%sSKP2012_%s_%d.txt", getProgDir(), File.separator, pl.CenterId, cal.get(Calendar.DAY_OF_MONTH)) :
+								         String.format("%s%sSKP2012_%s_%d_%d.txt", getProgDir(), File.separator, pl.CenterId, cal.get(Calendar.DAY_OF_MONTH),pgidx);
+					//
+					File f = new File(progCacheFile);
+					if (force == true ||
+							(f.exists() == true && isCacheOld(progCacheFile) == true) ||
+							(f.exists() == false && isCacheOld(null) == true)) {
+						//
+						String xtype = (pl.CenterId.startsWith(CHID_PREFIX_BS) || pl.CenterId.startsWith(CHID_PREFIX_CS)) ? XTYPE_BASIC : XTYPE_PREMIUM;
+						String chid = xtype != XTYPE_PREMIUM ? pl.CenterId : pl.CenterId.replaceFirst("^"+CHID_PREFIX_PR, "");
+						String dt = CommonUtils.getDateYMD(cal);
+						String url = "http://bangumi.skyperfectv.co.jp/"+xtype+"/channel:"+chid+"/date:"+dt.substring(2)+"/";
+						if ( pgidx > 1 ) {
+							url += "?p="+pgidx;
+						}
+						/*
+						if ( pl.ChId.length() == 0 ) {
+							url = "http://bangumi.skyperfectv.co.jp/api/version:3/search/date:"+dt.substring(2)+"/channel:"+pl.CenterId+"/?api_key=336eec3423";
+						}
+						else {
+							url = "http://www.skyperfectv.co.jp/xml/"+dt+"_"+pl.ChId.substring(2)+".xml";
+						}
+						*/
+						webToFile(url, progCacheFile, thisEncoding);
+						
+						printProgress("(オンライン)を取得しました", counter+dtidx, pgidx, counterMax, pl.Center, cal.get(Calendar.DAY_OF_MONTH), url);
+					}
+					else if (CommonUtils.isFileAvailable(f,10)) {
+						printProgress("(キャッシュ)を取得しました", counter+dtidx, pgidx, counterMax, pl.Center, cal.get(Calendar.DAY_OF_MONTH), progCacheFile);
 					}
 					else {
-						getPrograms_basic(pl, i, response);
+						printProgress("(キャッシュ)がみつかりません", counter+dtidx, pgidx, counterMax, pl.Center, cal.get(Calendar.DAY_OF_MONTH), progCacheFile);
+						break;
 					}
-					*/
-				}
-				catch ( Exception e ) {
-					e.printStackTrace();
+		
+					String response = CommonUtils.read4file(progCacheFile, true);
+					if ( response == null || ! response.matches("^.*<a href=\"\\?p=\\d+[^>]+?>次.*$") ) {
+						isNextpageExist = false;
+					}
+					
+					// 番組リストの追加
+					try {
+						getPrograms(pl, dtidx, response);
+						/*
+						if ( pl.ChId.length() == 0 ) {
+							getPrograms(pl, i, response);
+						}
+						else {
+							getPrograms_basic(pl, i, response);
+						}
+						*/
+					}
+					catch ( Exception e ) {
+						e.printStackTrace();
+					}
 				}
 			}
 			
@@ -249,6 +262,9 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 		}
 	}
 	
+	private void printProgress(String msg, int count, int pgidx, int countMax, String center, int date, String uri) {
+		reportProgress(String.format("%s %s: (%d/%d) page=%d %s[%d日]    %s", getTVProgramId(), msg, count, countMax, pgidx, center, date, uri));
+	}
 	//
 	private void getDate(ProgList pl) {
 		// 日付の処理
