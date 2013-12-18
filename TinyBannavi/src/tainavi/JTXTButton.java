@@ -4,17 +4,20 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
-import java.awt.font.LineBreakMeasurer;
+import java.awt.font.GlyphMetrics;
+import java.awt.font.GlyphVector;
 import java.awt.font.TextAttribute;
-import java.awt.font.TextLayout;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.text.AttributedCharacterIterator;
-import java.text.AttributedString;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -32,8 +35,8 @@ public class JTXTButton extends JLabel {
 	 *  フォントスタイル
 	 */
 	public static enum FontStyle {
-		BOLD	("太字"),
-		ITALIC	("斜体"),
+		BOLD		("太字"),
+		ITALIC		("斜体"),
 		UNDERLINE	("下線");
 		
 		private String name;
@@ -85,23 +88,26 @@ public class JTXTButton extends JLabel {
 	private static boolean splitEpno = false;
 	private static boolean showDetail = true;
 	private static float detailTab = 2.0F;
-	private static int detailRows = 3;
 	
 	private static Font defaultFont = new JLabel().getFont();
+	
 	private static Font titleFont = defaultFont;
 	private static int titleFontSize = defaultFont.getSize();
 	private static Color titleFontColor = Color.BLUE;
 	private static int titleFontStyle = Font.BOLD;
-	private static boolean titleFontUL = true;
+	
 	private static Font detailFont = defaultFont;
 	private static int detailFontSize = defaultFont.getSize();
 	private static Color detailFontColor = Color.DARK_GRAY;
 	private static int detailFontStyle = defaultFont.getStyle();
-	private static boolean detailFontUL = false;
-	private static Object aahint = RenderingHints.VALUE_TEXT_ANTIALIAS_ON;
+	
+	private static Font startFont = defaultFont;
+	
+	private static FontRenderContext frc = new FontRenderContext(null, RenderingHints.VALUE_TEXT_ANTIALIAS_ON, RenderingHints.VALUE_FRACTIONALMETRICS_DEFAULT);
 
 	private static int columnWidth = 0;
 	private static float heightMultiplier = 0;
+	
 	
 	/*******************************************************************************
 	 * コンストラクタ
@@ -189,9 +195,6 @@ public class JTXTButton extends JLabel {
 	public static void setDetailTab(float n) {
 		detailTab = n;
 	}
-	public static void setDetailRows(int n) {
-		detailRows = n;
-	}
 	
 	// フォントスタイル
 	public static void setTitleFont(String fn) {
@@ -216,6 +219,7 @@ public class JTXTButton extends JLabel {
 			Font f = new Font(fn,detailFontStyle,detailFontSize);
 			if ( f != null ) {
 				detailFont = f;
+				startFont = f.deriveFont(Font.BOLD);
 				return;
 			}
 		}
@@ -224,6 +228,7 @@ public class JTXTButton extends JLabel {
 	public static void setDetailFontSize(int n) {
 		detailFontSize = n;
 		detailFont = detailFont.deriveFont((float)detailFontSize);
+		startFont = startFont.deriveFont((float)detailFontSize);
 	}
 	public static void setDetailFontColor(Color c) {
 		detailFontColor = c;
@@ -231,40 +236,37 @@ public class JTXTButton extends JLabel {
 	
 	// フォントスタイルの変更
 	public static void setTitleFontStyle(ArrayList<FontStyle> fsa) {
-		setTmpFontStyle(fsa);
-		titleFontStyle = tmpFontStyle;
-		titleFontUL = tmpFontUL;
-		titleFont = titleFont.deriveFont((titleFont.getStyle() & ~(Font.BOLD|Font.ITALIC)) | titleFontStyle);
+		titleFont = setFontStyle(titleFont, (float)titleFontSize, fsa);
 	}
 	public static void setDetailFontStyle(ArrayList<FontStyle> fsa) {
-		setTmpFontStyle(fsa);
-		detailFontStyle = tmpFontStyle;
-		detailFontUL = tmpFontUL;
-		detailFont = detailFont.deriveFont((detailFont.getStyle() & ~(Font.BOLD|Font.ITALIC)) | detailFontStyle);
+		detailFont = setFontStyle(detailFont, (float)detailFontSize, fsa);
 	}
-	private static void setTmpFontStyle(ArrayList<FontStyle> fsa) {
-		tmpFontStyle = 0;
-		tmpFontUL = false;
+	
+	private static Font setFontStyle(Font f, float size, ArrayList<FontStyle> fsa) {
+		Map<TextAttribute, Object>  attributes = new HashMap<TextAttribute, Object>();
+		attributes.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_REGULAR);
+		attributes.put(TextAttribute.POSTURE, TextAttribute.POSTURE_REGULAR);
+		attributes.remove(TextAttribute.UNDERLINE);
 		for ( FontStyle fs : fsa ) {
 			switch (fs) {
 			case BOLD:
-				tmpFontStyle |= Font.BOLD;
+				attributes.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
 				break;
 			case ITALIC:
-				tmpFontStyle |= Font.ITALIC;
+				attributes.put(TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE);
 				break;
 			case UNDERLINE:
-				tmpFontUL = true;
+				attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);//LOW_ONE_PIXEL);
 				break;
 			}
 		}
+		attributes.put(TextAttribute.SIZE, size);
+		return f.deriveFont(attributes);
 	}
-	private static int tmpFontStyle;
-	private static boolean tmpFontUL;
 	
 	// フォントエイリアスの変更
 	public static void setAAHint(Object o) {
-		aahint = o;
+		frc = new FontRenderContext(null, o, RenderingHints.VALUE_FRACTIONALMETRICS_DEFAULT);
 	}
 	
 	
@@ -289,12 +291,10 @@ public class JTXTButton extends JLabel {
 
 			float draww = (float)imgw-DRAWTAB*2.0F;
 			float drawh = (float)imgh;
-			float detailw = draww-detailTab;
 
 			image = new BufferedImage(imgw, imgh, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2 = (Graphics2D)image.createGraphics();
 			
-			g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,aahint);	// アンチエイリアスの設定
 			g2.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_SPEED);
 			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 			
@@ -302,31 +302,41 @@ public class JTXTButton extends JLabel {
 			
 			// 開始時刻と延長警告の描画
 			if (showStart && tvd.start != null && tvd.start.length() > 0) {
-				//
-				Font fs = detailFont;
-				String sStr = tvd.start+" "+tvd.extension_mark;
-				//
-				Font f = fs.deriveFont(fs.getStyle() | Font.BOLD);
-				AttributedString as = new AttributedString(sStr);
-				as.addAttribute(TextAttribute.FONT, f);
-				as.addAttribute(TextAttribute.FOREGROUND, Color.BLACK, 0, 5);
-				if (sStr.length() > 6) {
-					as.addAttribute(TextAttribute.FOREGROUND, Color.RED, 6, sStr.length());
+				FontMetrics fm = g2.getFontMetrics(startFont);
+				float hi = Float.valueOf(fm.getHeight());
+				float as = Float.valueOf(fm.getAscent());
+				
+				float startx = Float.valueOf(DRAWTAB);
+				float startw = draww;
+				float xposstartx = 0.0F;
+				
+				baseline = as;	// 初期垂直位置 
+				
+				{
+					WrappedGlyphVector wgv = getWrappedGlyphVector(tvd.start, startw, xposstartx, startFont, as, frc);
+					GlyphVector gv = wgv.getGv();
+					g2.setPaint(Color.BLACK);
+					g2.drawGlyphVector(gv, startx, baseline);
+					
+					xposstartx = wgv.getLastX();	// 後続有り
+					baseline += wgv.getLastY();
 				}
-				AttributedCharacterIterator ac = as.getIterator();
-				FontRenderContext fc = g2.getFontRenderContext();
-				LineBreakMeasurer m = new LineBreakMeasurer(ac,fc);
-				while ( m.getPosition() < sStr.length() ) {
-					TextLayout tl = m.nextLayout(draww);
-					baseline += tl.getAscent();
-					tl.draw(g2, DRAWTAB, baseline);
-					baseline += tl.getDescent() + tl.getLeading();
+				
+				{
+					WrappedGlyphVector wgv = getWrappedGlyphVector(" "+tvd.extension_mark, startw, xposstartx, startFont, as, frc);
+					GlyphVector gv = wgv.getGv();
+					g2.setPaint(Color.RED);
+					g2.drawGlyphVector(gv, startx, baseline);
+					
+					baseline += wgv.getLastY();
 				}
+				
+				baseline += hi;
 			}
 			
 			// タイトルの描画
 			String title = ( splitEpno ) ? tvd.splitted_title : tvd.title;
-			if (title.length() > 0) {
+			if ( title.length() > 0 ) {
 				//
 				String aMark;
 				if (showStart && tvd.start.length() > 0) {
@@ -340,28 +350,40 @@ public class JTXTButton extends JLabel {
 						aMark = tvd.prefix_mark + tvd.newlast_mark;
 					}
 				}
-				String tStr = aMark+title+tvd.postfix_mark;
-				//
-				AttributedString as = new AttributedString(tStr);
-				as.addAttribute(TextAttribute.FONT, titleFont);
+				
+				FontMetrics fm = g2.getFontMetrics(titleFont);
+				float hi = Float.valueOf(fm.getHeight());
+				float as = Float.valueOf(fm.getAscent());
+				
+				float titlex = Float.valueOf(DRAWTAB);
+				float titlew = draww;
+				float xpos = 0.0F;
+				
+				if ( baseline == 0.0F ) {
+					baseline = as;	// 初期垂直位置
+				}
+				
+				if ( aMark.length() > 0 ) {
+					WrappedGlyphVector wgv = getWrappedGlyphVector(aMark, titlew, xpos, titleFont, as, frc);
+					GlyphVector gv = wgv.getGv();
+					g2.setPaint(Color.RED);
+					g2.drawGlyphVector(gv, titlex, baseline);
+					
+					xpos = wgv.getLastX();	// 後続有り
+					baseline += wgv.getLastY();
+				}
+				
 				{
-					if (titleFontUL) {
-						as.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL, aMark.length(), aMark.length()+title.length());
-					}
-					as.addAttribute(TextAttribute.FOREGROUND, titleFontColor, aMark.length(), tStr.length());
-					if (aMark.length() > 0) {
-						as.addAttribute(TextAttribute.FOREGROUND, Color.RED, 0, aMark.length());
-					}
+					WrappedGlyphVector wgv = getWrappedGlyphVector(title+tvd.postfix_mark, titlew, xpos, titleFont, as, frc);
+					GlyphVector gv = wgv.getGv();
+					g2.setPaint(titleFontColor);
+					
+					drawString(g2, wgv, titlex, baseline);
+
+					baseline += wgv.getLastY();
 				}
-				AttributedCharacterIterator ac = as.getIterator();
-				FontRenderContext fc = g2.getFontRenderContext();
-				LineBreakMeasurer m = new LineBreakMeasurer(ac,fc);
-				while (m.getPosition() < tStr.length()) {
-					TextLayout tl = m.nextLayout(draww);
-					baseline += tl.getAscent();
-					tl.draw(g2, DRAWTAB, baseline);
-					baseline += tl.getDescent() + tl.getLeading();
-				}
+				
+				baseline += hi;
 			}
 			
 			// 番組詳細の描画
@@ -373,27 +395,109 @@ public class JTXTButton extends JLabel {
 				else {
 					detail = tvd.detail;
 				}
-				if ( detail.length() > 0 ) {
-					AttributedString as = new AttributedString(detail);
-					as.addAttribute(TextAttribute.FONT, detailFont);
-					if (detailFontUL) {
-						as.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
-					}
-					as.addAttribute(TextAttribute.FOREGROUND, detailFontColor);
-					AttributedCharacterIterator ac = as.getIterator();
-					FontRenderContext fc = g2.getFontRenderContext();
-					LineBreakMeasurer m = new LineBreakMeasurer(ac,fc);
-					for ( int row=0; m.getPosition()<detail.length() && baseline<=drawh && (detailRows>0 && row<detailRows); row++ ) {
-						TextLayout tl = m.nextLayout(detailw);
-						baseline += tl.getAscent();
-						tl.draw(g2, (DRAWTAB+detailTab), baseline);
-						baseline += tl.getDescent() + tl.getLeading();
-					}
+				
+				FontMetrics fm = g2.getFontMetrics(detailFont);
+				float as = Float.valueOf(fm.getAscent());
+				float detailx = Float.valueOf(DRAWTAB+detailTab);
+				float detailw = draww-detailTab;
+				
+				if ( baseline == 0.0F ) {
+					baseline = as;	// 初期垂直位置
 				}
+				
+				WrappedGlyphVector wgv = getWrappedGlyphVector(detail, detailw, 0.0f, detailFont, as, frc);
+				g2.setPaint(detailFontColor);
+				
+				drawString(g2, wgv, detailx, baseline);
 			}
 		}
 		
 		// 反映
 		g.drawImage(image, 0, 0, this);
 	}
+	
+	/**
+	 * 
+	 */
+	private void drawString(Graphics2D g2, WrappedGlyphVector wgv, float x, float y) {
+		g2.drawGlyphVector(wgv.getGv(), x, y);
+		
+		if ( wgv.getGv().getFont().getAttributes().get(TextAttribute.UNDERLINE) != null ) {
+			for ( Rectangle r : wgv.getLinePositions() ) {
+				g2.drawLine((int)x+r.x, (int)y+r.y+1, (int)x+r.x+r.width-1, (int)y+r.y+1);
+			}
+		}
+	}
+	
+	/**
+	 * 参考：てんぷらメモ／JTableのセル幅で文字列を折り返し  ( http://terai.xrea.jp/Swing/TableCellRenderer.html )
+	 * @param str			描画する文字列
+	 * @param width			描画領域の幅
+	 * @param height		描画領域の高さ 
+	 * @param xstart		１行目の描画開始位置
+	 * @param lineCountMax	最大描画行数
+	 * @param font			描画フォント
+	 * @param lineHeight	１行あたりの高さ
+	 * @param frc			FontRenderContext
+	 * @return
+	 */
+    private WrappedGlyphVector getWrappedGlyphVector(String str, float width, float xstart, Font font, float lineHeight, FontRenderContext frc) {
+        Point2D gmPos    = new Point2D.Double(0.0d, 0.0d);
+        GlyphVector gv   = font.createGlyphVector(frc, str);
+        WrappedGlyphVector wgv = new WrappedGlyphVector(gv);
+        float xpos       = xstart;
+        float ypos       = 0.0F;
+        float advance    = 0.0F;
+        GlyphMetrics gm;
+        for( int i=0; i <= gv.getNumGlyphs(); i++ ) {
+        	if ( i == gv.getNumGlyphs() ) {
+        		int x = (int) ((ypos == 0.0F) ? xstart : 0.0F);
+        		int y = (int) ypos;
+        		int w = (int) (xpos - x);
+        		wgv.addLinePosition(new Rectangle(x, y, w, 1));
+        		break;
+        	}
+            gm = gv.getGlyphMetrics(i);
+            advance = gm.getAdvance();
+            if( xpos < width && width <= xpos+advance ) {
+        		int x = (int) ((ypos == 0.0F) ? xstart : 0.0F);
+        		int y = (int) ypos;
+        		int w = (int) (xpos - x);
+        		wgv.addLinePosition(new Rectangle(x, y, w, 1));
+                ypos += lineHeight;
+                xpos = 0.0f;
+            }
+            gmPos.setLocation(xpos, ypos);
+            gv.setGlyphPosition(i, gmPos);
+            xpos = xpos + advance;
+            
+            wgv.setLastX(xpos);
+            wgv.setLastY(ypos);
+        }
+        return wgv;
+    }
+    
+    private class WrappedGlyphVector {
+    	
+    	public WrappedGlyphVector(GlyphVector gv) {
+    		super();
+    		this.gv = gv;
+    	}
+    	
+    	private GlyphVector gv;
+    	
+    	public GlyphVector getGv() { return gv; }
+    	
+    	private float lastx;
+    	private float lasty;
+    	
+    	public void setLastX(float x) { lastx = x; }
+    	public float getLastX() { return lastx; }
+    	public void setLastY(float y) { lasty = y; }
+    	public float getLastY() { return lasty; }
+    	
+    	private ArrayList<Rectangle> linePositions = new ArrayList<Rectangle>();
+    	public ArrayList<Rectangle> getLinePositions() { return linePositions; }
+    	public void addLinePosition(Rectangle r) { linePositions.add(r); }
+    }
 }

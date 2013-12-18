@@ -107,8 +107,8 @@ public class TraceProgram {
 
 	/**
 	 * 2つの文字を比較してスコアを計算する(special thanks to ◆kzz0PzTAMM)
-	 * @param searchkey 番組追跡の検索キー
-	 * @param target タイトル（中の文字がsearchkeyに何個含まれているかを確認する）
+	 * @param searchkey 番組追跡の検索キーワード（「検索キーワード」の成分が「番組表のタイトルにどれくらい含まれているかを判定する」）
+	 * @param target 番組表のタイトル
 	 * @return
 	 */
 	public static int sumScore(String searchkey, String target)
@@ -134,7 +134,6 @@ public class TraceProgram {
 		}
 		else {
 			if ( target.indexOf(searchkey) != -1 ) {
-				System.err.println("xxxx "+target+", "+searchkey);
 				return 100;
 			}
 		}

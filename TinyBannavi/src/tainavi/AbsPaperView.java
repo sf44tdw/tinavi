@@ -2512,7 +2512,6 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		JTXTButton.setSplitEpno(ec.getSplitEpno());
 		JTXTButton.setShowDetail(ec.getShowDetail());
 		JTXTButton.setDetailTab(ec.getDetailTab());
-		JTXTButton.setDetailRows(ec.getDetailRows());
 		
 		JTXTButton.setTitleFont(ec.getTitleFont());
 		JTXTButton.setTitleFontStyle(ec.getTitleFontStyle());

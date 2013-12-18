@@ -139,7 +139,6 @@ abstract class AbsPaperColorsDialog extends JEscCancelDialog {
 	private JCCLabel jLabel_titleFontColor = null;
 	private JScrollPane jScrollPane_titleFontStyle = null;
 	private JCheckBoxPanel jCBP_showDetail = null;
-	private JSliderPanel jSP_detailRows = null;
 	private JComboBoxPanel jCBX_detailFont = null;
 	private JSliderPanel jSP_detailFontSize = null;
 	private JCCLabel jLabel_detailFontColor = null;
@@ -286,7 +285,6 @@ abstract class AbsPaperColorsDialog extends JEscCancelDialog {
 		to.setTitleFontColor(jLabel_titleFontColor.getChoosed());
 		to.setTitleFontStyle(getFontStyles((JNETable) jScrollPane_titleFontStyle.getViewport().getView()));
 		to.setShowDetail(jCBP_showDetail.isSelected());
-		to.setDetailRows(jSP_detailRows.getValue());
 		to.setDetailFont((String) jCBX_detailFont.getSelectedItem());
 		to.setDetailFontSize(jSP_detailFontSize.getValue());
 		to.setDetailFontColor(jLabel_detailFontColor.getChoosed());
@@ -586,9 +584,6 @@ abstract class AbsPaperColorsDialog extends JEscCancelDialog {
 			CommonSwingUtils.putComponentOn(jPanel_fonts, jCBP_showDetail = new JCheckBoxPanel("表示する",LABEL_WIDTH), TITLE_WIDTH+ITEM_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			
 			y += (PARTS_HEIGHT+SEP_HEIGHT_NARROW);
-			CommonSwingUtils.putComponentOn(jPanel_fonts, jSP_detailRows = new JSliderPanel("最大行数",LABEL_WIDTH,1,50,ITEM_WIDTH), TITLE_WIDTH+ITEM_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
-
-			y += (PARTS_HEIGHT+SEP_HEIGHT_NARROW);
 			CommonSwingUtils.putComponentOn(jPanel_fonts, jCBX_detailFont = new JComboBoxPanel("フォント",LABEL_WIDTH,ITEM_WIDTH,true), LABEL_WIDTH+ITEM_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			
 			y += (PARTS_HEIGHT+SEP_HEIGHT_NARROW);
@@ -628,7 +623,6 @@ abstract class AbsPaperColorsDialog extends JEscCancelDialog {
 		setFontStyles((JNETable) jScrollPane_titleFontStyle.getViewport().getView(), origenv.getTitleFontStyle());
 		//
 		jCBP_showDetail.setSelected(origenv.getShowDetail());
-		jSP_detailRows.setValue(origenv.getDetailRows());
 		if ( ! origenv.getDetailFont().equals("") ) {
 			jCBX_detailFont.setSelectedItem(origenv.getDetailFont());
 		}
