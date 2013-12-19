@@ -731,7 +731,6 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	 * 現在時刻追従スクロールを停止する
 	 */
 	private boolean stopTimer() {
-		prevDT4Now = null;
 		jLabel_timeline.setVisible(false);
 		return (timer_now_enabled = false);
 	}
@@ -1686,16 +1685,25 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 			int minpos_new = (c.get(Calendar.HOUR_OF_DAY)-TIMEBAR_START+correct)*60+c.get(Calendar.MINUTE);
 			int timeline_vpos = jLabel_timeline.setMinpos(0, minpos_new, bounds.getPaperHeightMultiplier()*paperHeightZoom);
 			
-			// ビューポートの位置（05:30まではスクロールしないよ）
-			if ( env.getTimerbarScrollEnable() && minpos_new >= 30 ) {
-				if ( reset ) {
-					// 初回描画
-					Rectangle ra = vport.getViewRect();
+			// ビューポートの位置
+			if ( reset ) {
+				// 初回描画
+				Rectangle ra = vport.getViewRect();
+				if ( minpos_new >= 30 ) {
+					// 05:30以降
 					ra.y =  Math.round(timeline_vpos - (float)bounds.getTimelinePosition() * bounds.getPaperHeightMultiplier() * paperHeightZoom);
 					vport.setViewPosition(new Point(ra.x, ra.y));
 				}
 				else {
-					// 自動更新
+					// 05:30より前
+					if ( ra.y >= 30 ) {
+						vport.setViewPosition(new Point(ra.x, 0));
+					}
+				}
+			}
+			else {
+				if ( env.getTimerbarScrollEnable() && minpos_new >= 30 ) {
+					// 自動更新（05:30まではスクロールしないよ）
 					vp.y += (timeline_vpos - tp.y);
 					vport.setViewPosition(vp);
 				}
@@ -1783,11 +1791,14 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 			// 日付が変わったらツリーを書き換える
 			redrawTreeByDate();
 			redrawTreeByPassed();
+			
+			// 前回実行日
 			prevDT4Tree = curDT;
 		}
 		
 		if ( timer_now_enabled ) {
 
+			MWin.appendMessage(prevDT4Now+", "+curDT);
 			if (prevDT4Now != null && ! prevDT4Now.equals(curDT)) {
 				// 日付切り替え
 				StdAppendError(MSGID+"日付が変わったので番組表を切り替えます("+CommonUtils.getDateTime(0)+")");
