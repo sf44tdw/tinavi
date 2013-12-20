@@ -78,7 +78,7 @@ import tainavi.VWUpdate.UpdateResult;
 /**
  * メインな感じ
  */
-public class Viewer extends JFrame implements ChangeListener,TickTimerListener,HDDRecorderListener {
+public class Viewer extends JFrame implements ChangeListener,TickTimerListener,HDDRecorderListener,CancelListener {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -1489,6 +1489,23 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 	@Override
 	public void stateChanged(HDDRecorderChangeEvent e) {
 		// 未実装
+	}
+	
+	/**
+	 * 
+	 */
+	@Override
+	public void cancelRised(CancelEvent e) {
+		if ( mainWindow.isTabSelected(MWinTab.RSVED) ) {
+			if ( e.getCause() == CancelEvent.Cause.TOOLBAR_SEARCH ) {
+				reserved.redrawListByKeywordFilter(null,null);
+			}
+		}
+		else if ( mainWindow.isTabSelected(MWinTab.RECED) ) {
+			if ( e.getCause() == CancelEvent.Cause.TOOLBAR_SEARCH ) {
+				recorded.redrawListByKeywordFilter(null,null);
+			}
+		}
 	}
 	
 	/**
@@ -5032,6 +5049,9 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		toolBar.addHDDRecorderSelectionListener(paper);		// 新聞形式
 		toolBar.addHDDRecorderSelectionListener(autores);	// 自動予約一覧
 		toolBar.addHDDRecorderSelectionListener(rdialog);	// 予約ダイアログ
+
+		// [ツールバー/キーワード入力] キャンセル動作
+		toolBar.addKeywordCancelListener(this);
 		
 		// [タイマー] タイトルバー更新／リスト形式の現在時刻ノード／新聞形式の現在時刻ノード
 		timer_now.addTickTimerRiseListener(this);

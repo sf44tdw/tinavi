@@ -197,6 +197,20 @@ public abstract class AbsRecordedListView extends JPanel {
 			return rowView.size();
 		}
 
+		private boolean filtered = false;
+		
+		public boolean getFiltered() { return filtered; }
+		
+		@Deprecated
+		public void fireTableDataChanged() {
+			throw new NullPointerException();
+		}
+		
+		public void fireTableDataChanged(boolean filtered) {
+			super.fireTableDataChanged();
+			this.filtered = filtered;
+		}
+		
 		public ReservedTableModel(String[] colname, int i) {
 			super(colname,i);
 		}
@@ -211,7 +225,7 @@ public abstract class AbsRecordedListView extends JPanel {
 	private JNETable jTable_reced = null;
 	private JTable jTable_rowheader = null;
 
-	private DefaultTableModel tableModel_reced = null;
+	private ReservedTableModel tableModel_reced = null;
 	
 	private DefaultTableModel rowheaderModel_reced = null;
 
@@ -319,7 +333,7 @@ public abstract class AbsRecordedListView extends JPanel {
 			rowView.add(a);
 		}
 
-		tableModel_reced.fireTableDataChanged();
+		tableModel_reced.fireTableDataChanged(false);
 		((DefaultTableModel)jTable_rowheader.getModel()).fireTableDataChanged();
 		
 		jta_detail.setText(null);
@@ -333,10 +347,11 @@ public abstract class AbsRecordedListView extends JPanel {
 	 */
 	public void redrawListByKeywordFilter(SearchKey keyword, String target) {
 		
-		rowView.clear();
-		
 		// 情報を一行ずつチェックする
 		if ( keyword != null ) {
+			
+			rowView.clear();
+			
 			for ( RecordedItem a : rowData ) {
 				
 				ProgDetailList tvd = new ProgDetailList();
@@ -350,16 +365,28 @@ public abstract class AbsRecordedListView extends JPanel {
 					rowView.add(a);
 				}
 			}
+			
+			// fire!
+			tableModel_reced.fireTableDataChanged(true);
+			rowheaderModel_reced.fireTableDataChanged();
 		}
 		else {
+			if ( ! tableModel_reced.getFiltered() ) {
+				System.out.println("xxx");
+				return;
+			}
+			System.out.println("yyy");
+			
+			rowView.clear();
+			
 			for ( RecordedItem a : rowData ) {
 				rowView.add(a);
 			}
+			
+			// fire!
+			tableModel_reced.fireTableDataChanged(false);
+			rowheaderModel_reced.fireTableDataChanged();
 		}
-		
-		// fire!
-		tableModel_reced.fireTableDataChanged();
-		rowheaderModel_reced.fireTableDataChanged();
 	}
 	
 	/**

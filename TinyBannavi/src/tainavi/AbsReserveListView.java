@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,9 +18,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import javax.swing.AbstractCellEditor;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -33,7 +30,6 @@ import javax.swing.event.RowSorterEvent.Type;
 import javax.swing.event.RowSorterListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -314,6 +310,19 @@ public abstract class AbsReserveListView extends JScrollPane {
 			this.rDat = rowdata;
 		}
 		
+		private boolean filtered = false;
+		
+		public boolean getFiltered() { return filtered; }
+		
+		@Deprecated
+		public void fireTableDataChanged() {
+			throw new NullPointerException();
+		}
+		
+		public void fireTableDataChanged(boolean filtered) {
+			super.fireTableDataChanged();
+			this.filtered = filtered;
+		}
 	}
 	
 	//private final ReservedItem sa = new ReservedItem();
@@ -321,7 +330,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 	private JNETableReserved jTable_rsved = null;
 	private JTable jTable_rowheader = null;
 
-	private DefaultTableModel tableModel_rsved = null;
+	private ReservedTableModel tableModel_rsved = null;
 	
 	private DefaultTableModel rowheaderModel_rsved = null;
 	
@@ -466,7 +475,7 @@ public abstract class AbsReserveListView extends JScrollPane {
 			rowViewTemp.add(a);
 		}
 		
-		tableModel_rsved.fireTableDataChanged();
+		tableModel_rsved.fireTableDataChanged(false);
 		((DefaultTableModel)jTable_rowheader.getModel()).fireTableDataChanged();
 		
 		setOverlapMark();
@@ -479,10 +488,11 @@ public abstract class AbsReserveListView extends JScrollPane {
 	 */
 	public void redrawListByKeywordFilter(SearchKey keyword, String target) {
 		
-		rowViewTemp.clear();
-		
 		// 情報を一行ずつチェックする
 		if ( keyword != null ) {
+			
+			rowViewTemp.clear();
+			
 			for ( ReservedItem a : rowData ) {
 				
 				ProgDetailList tvd = new ProgDetailList();
@@ -496,16 +506,26 @@ public abstract class AbsReserveListView extends JScrollPane {
 					rowViewTemp.add(a);
 				}
 			}
+			
+			// fire!
+			tableModel_rsved.fireTableDataChanged(true);
+			rowheaderModel_rsved.fireTableDataChanged();
 		}
 		else {
+			if ( ! tableModel_rsved.getFiltered() ) {
+				return;
+			}
+			
+			rowViewTemp.clear();
+			
 			for ( ReservedItem a : rowData ) {
 				rowViewTemp.add(a);
 			}
+			
+			// fire!
+			tableModel_rsved.fireTableDataChanged(false);
+			rowheaderModel_rsved.fireTableDataChanged();
 		}
-		
-		// fire!
-		tableModel_rsved.fireTableDataChanged();
-		rowheaderModel_rsved.fireTableDataChanged();
 	}
 	
 	/**

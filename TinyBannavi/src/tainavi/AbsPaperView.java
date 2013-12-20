@@ -1798,7 +1798,6 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		
 		if ( timer_now_enabled ) {
 
-			MWin.appendMessage(prevDT4Now+", "+curDT);
 			if (prevDT4Now != null && ! prevDT4Now.equals(curDT)) {
 				// 日付切り替え
 				StdAppendError(MSGID+"日付が変わったので番組表を切り替えます("+CommonUtils.getDateTime(0)+")");

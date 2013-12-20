@@ -775,6 +775,17 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	public void removeHDDRecorderChangeListener(HDDRecorderListener l) {
 		lsnrs_infochg.remove(l);
 	}
+	
+	/**
+	 * 
+	 */
+	public void addKeywordCancelListener(CancelListener l) {
+		jTextField_keyword.addCancelListener(l);
+	}
+
+	public void removeKeywordCancelChangeListener(CancelListener l) {
+		jTextField_keyword.removeCancelListener(l);
+	}
 
 	
 	/*******************************************************************************
@@ -1137,7 +1148,7 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	 ******************************************************************************/
 
 	// キーワード検索ボックス
-	private JTextField getJTextField_keyword() {
+	private JTextFieldWithPopup getJTextField_keyword() {
 		if (jTextField_keyword == null) {
 			jTextField_keyword = new JTextFieldWithPopup(16);
 			Dimension d = jTextField_keyword.getPreferredSize();
