@@ -5,15 +5,15 @@ import java.util.ArrayList;
 import tainavi.ProgDateList;
 
 public class ProgList {
-	String Area;
-	String SubArea;
-	String Type;
-	String Center;
-	String CenterId;
-	String ChId;
-	Color BgColor;
-	boolean enabled;
-	ArrayList<ProgDateList> pdate;
+	public String Area;
+	public String SubArea;
+	public String Type;
+	public String Center;
+	public String CenterId;
+	public String ChId;
+	public Color BgColor;
+	public boolean enabled;
+	public ArrayList<ProgDateList> pdate;
 	
 	public ProgList() {
 		Area = "";

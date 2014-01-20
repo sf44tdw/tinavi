@@ -4045,7 +4045,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		
 		//
 		ArrayList<String> recIda = new ArrayList<String>();
-		for ( File f : new File(CommonUtils.joinPath(new String[]{"bin","tainavi"})).listFiles() ) {
+		for ( File f : new File(CommonUtils.joinPath(new String[]{"bin","tainavi","pluginrec"})).listFiles() ) {
 			Matcher ma = Pattern.compile("^(PlugIn_Rec[^$]+)[^$]*\\.class$").matcher(f.getName());
 			if ( ma.find() ) {
 				if ( ! isMailPluginEnabled && f.getName().toLowerCase().contains("mail") ) {
@@ -4066,7 +4066,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		// servicesに追記
 		StringBuilder sb = new StringBuilder();
 		for ( String recId : recIdd ) {
-			sb.append("tainavi.");
+			sb.append("tainavi.pluginrec.");
 			sb.append(recId);
 			sb.append("\n");
 		}
@@ -4216,7 +4216,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		 */
 
 		ArrayList<String> prgIda = new ArrayList<String>();
-		for ( File f : new File(CommonUtils.joinPath("bin","tainavi")).listFiles() ) {
+		for ( File f : new File(CommonUtils.joinPath("bin","tainavi","plugintv")).listFiles() ) {
 			Matcher ma = Pattern.compile("^(PlugIn_(TV|CS|RAD)P[^$]+)\\.class$").matcher(f.getName());
 			if (ma.find()) {
 				prgIda.add(ma.group(1));
@@ -4228,7 +4228,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		// servicesに追記
 		StringBuilder sb = new StringBuilder();
 		for ( String prgId : prgIdd ) {
-			sb.append("tainavi.");
+			sb.append("tainavi.plugintv.");
 			sb.append(prgId);
 			sb.append("\n");
 		}

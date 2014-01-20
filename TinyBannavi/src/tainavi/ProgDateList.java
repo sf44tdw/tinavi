@@ -3,9 +3,9 @@ package tainavi;
 import java.util.ArrayList;
 
 public class ProgDateList {
-	String Date;
-	int row;
-	ArrayList<ProgDetailList> pdetail;
+	public String Date;
+	public int row;
+	public ArrayList<ProgDetailList> pdetail;
 	
 	public ProgDateList() {
 		Date = "";

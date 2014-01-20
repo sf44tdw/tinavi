@@ -24,29 +24,29 @@ public class ProgDetailList implements Cloneable {
 	 *  ファイルに保存されるもの
 	 */
 	
-	String title = "";				// 分離前タイトル
-	String detail = "";				// 修正前タイトル
+	public String title = "";				// 分離前タイトル
+	public String detail = "";				// 修正前タイトル
 	protected String addedDetail = "";
 	
-	String startDateTime = "";
-	String endDateTime = "";
-	int length = 0;					// 放送時間（05:00を基準とした表示上の長さ）
+	public String startDateTime = "";
+	public String endDateTime = "";
+	public int length = 0;					// 放送時間（05:00を基準とした表示上の長さ）
 	
-	String link = "";
+	public String link = "";
 	
 	// ジャンル
-	ProgGenre genre = ProgGenre.NOGENRE;
-	ProgSubgenre subgenre = ProgSubgenre.NOGENRE_ETC;
+	public ProgGenre genre = ProgGenre.NOGENRE;
+	public ProgSubgenre subgenre = ProgSubgenre.NOGENRE_ETC;
 	
 	// フラグ・オプション関連
-	boolean extension = false;						// 延長注意
-	ProgFlags flag = ProgFlags.NOFLAG;				// 新番組・最終回
-	ProgScrumble noscrumble = ProgScrumble.NONE;	// 有料放送だけ別枠になってしまった！
+	public boolean extension = false;						// 延長注意
+	public ProgFlags flag = ProgFlags.NOFLAG;				// 新番組・最終回
+	public ProgScrumble noscrumble = ProgScrumble.NONE;	// 有料放送だけ別枠になってしまった！
 	protected ArrayList<ProgOption> option = new ArrayList<ProgOption>();
 	
 	// 複数ジャンル対応
-	ArrayList<ProgGenre> genrelist = null;
-	ArrayList<ProgSubgenre> subgenrelist = null;
+	public ArrayList<ProgGenre> genrelist = null;
+	public ArrayList<ProgSubgenre> subgenrelist = null;
 
 	/*
 	 *  ファイルには保存されないもの
@@ -58,52 +58,52 @@ public class ProgDetailList implements Cloneable {
 	 * <P>（startDateTimeの日付と同じ、ただし曜日文字がつく）
 	 */
 	
-	String accurateDate = "";
-	String start = "";				// hh:mm
-	String end = "";				// hh:mm
-	int recmin = 0;					// 番組長（実際の長さ）
+	public String accurateDate = "";
+	public String start = "";				// hh:mm
+	public String end = "";				// hh:mm
+	public int recmin = 0;					// 番組長（実際の長さ）
 	
-	String progid = "";				// 番組ID
+	public String progid = "";				// 番組ID
 	
-	boolean nosyobo = false;		// しょぼのぼっち判定
-	boolean marked = false;			// 検索に引っかかったマーク 
-	boolean newarrival = false;		// 新着だなぁ
-	boolean modified = false;		// 詳細が更新された
-	boolean nonrepeated = false;	// リピート放送の初回かな？
-	boolean showinstandby = false;	// 予約待機への表示を行うか？
+	public boolean nosyobo = false;		// しょぼのぼっち判定
+	public boolean marked = false;			// 検索に引っかかったマーク 
+	public boolean newarrival = false;		// 新着だなぁ
+	public boolean modified = false;		// 詳細が更新された
+	public boolean nonrepeated = false;	// リピート放送の初回かな？
+	public boolean showinstandby = false;	// 予約待機への表示を行うか？
 
-	ProgType type = null;			// Web番組表か、しょぼかるか、過去ログか
-	ProgSubtype subtype = null;		// サブタイプ
-	String center = "";				// 放送局名
-	String extension_mark = "";		// ★延長注意★
-	String prefix_mark = "";		// (移)とか
-	String newlast_mark = "";		// [新]とか
-	String postfix_mark = "";		// [再]とか
-	boolean dontoverlapdown = false;// 終了時間を短縮してはだめ
+	public ProgType type = null;			// Web番組表か、しょぼかるか、過去ログか
+	public ProgSubtype subtype = null;		// サブタイプ
+	public String center = "";				// 放送局名
+	public String extension_mark = "";		// ★延長注意★
+	public String prefix_mark = "";		// (移)とか
+	public String newlast_mark = "";		// [新]とか
+	public String postfix_mark = "";		// [再]とか
+	public boolean dontoverlapdown = false;// 終了時間を短縮してはだめ
 
-	String splitted_title = "";		// 分離済みタイトル→これはtitleへのポインタ
-	String splitted_titlePop = "";	// 分離済みタイトルPOP→これはtitlePopへのポインタ
-	String splitted_detail = "";	// 分離済み番組詳細→detailはこれへのポインタにするよ
+	public String splitted_title = "";		// 分離済みタイトル→これはtitleへのポインタ
+	public String splitted_titlePop = "";	// 分離済みタイトルPOP→これはtitlePopへのポインタ
+	public String splitted_detail = "";	// 分離済み番組詳細→detailはこれへのポインタにするよ
 	
-	SearchKey dynKey = null;			// 動的検索用
-	String dynMatched = null;			// 動的検索用
+	public SearchKey dynKey = null;			// 動的検索用
+	public String dynMatched = null;			// 動的検索用
 
 	// 検索高速化用のデータ
 	
 	/**
 	 * キーワード検索・番組追跡で使うよ
 	 */
-	String titlePop = "";
+	public String titlePop = "";
 	
 	/**
 	 * キーワード検索で使うよ
 	 */
-	String detailPop = "";
+	public String detailPop = "";
 	
 	/**
 	 * 番組追跡で使うよ
 	 */
-	static boolean tracenOnlyTitle = false;
+	public static boolean tracenOnlyTitle = false;
 	
 	/*******************************************************************************
 	 * NGワード処理
