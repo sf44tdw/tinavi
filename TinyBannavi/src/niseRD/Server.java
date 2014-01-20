@@ -159,8 +159,9 @@ public class Server extends Thread {
 					ma = Pattern.compile("/([^/]+\\.(cgi|htm|css|png))").matcher(location);
 					if (ma.find()) {
 						file = ma.group(1);
-						if ( ma.group(1).equals("dvdr_ctrl.cgi") || /*ma.group(1).equals("reserve_list.cgi") ||*/ ma.group(1).equals("dispframe.cgi") ) {
+						if ( ma.group(1).equals("dvdr_ctrl.cgi") || ma.group(1).equals("reserve_list.cgi") || ma.group(1).equals("dispframe.cgi") ) {
 							String ps = new String(c);
+							ps = ps.replaceAll("(cCMD_[A-Z]+\\.[xy]=)\\d+", "$1");
 							filename = folder+File.separator+ma.group(1)+"."+ps;
 							if ( ps.contains("cCMD_") ) {
 								int a = ps.indexOf("cCMD_");

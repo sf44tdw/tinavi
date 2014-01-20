@@ -103,10 +103,10 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 	private static final String MISS_HDR = "★★DIGAが追跡に失敗★★　";
 	private static final String MISS_TITLE = "★★番組詳細を取得しなおしてください★★";
 
-	private static final int RETCODE_SUCCESS = 0;
-//	private static final int RETCODE_BUSY = -1;
-//	private static final int RETCODE_REDO = -2;
-	private static final int RETCODE_FATAL = -99;
+	protected static final int RETCODE_SUCCESS = 0;
+//	protected static final int RETCODE_BUSY = -1;
+//	protectede static final int RETCODE_REDO = -2;
+	protected static final int RETCODE_FATAL = -99;
 	
 	private static final int DIGAEVID_NONE = 0;
 	private static final int DIGAEVID_CANNOTFOLLOW = 0xFFFE;
@@ -1286,188 +1286,208 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 		return n;
 	}
 	
-	private int _getDigaReserveList(ArrayList<ReserveList> newReserveList, String response) {
-		
+	/**
+	 * 予約全エントリを通しての処理
+	 */
+	protected int _getDigaReserveList(ArrayList<ReserveList> newReserveList, String response) {
 		// 予約詳細を作る
 		Matcher ma = Pattern.compile("<tr class=\".*?\">(.+?)</tr>",Pattern.DOTALL).matcher(response);
 		while ( ma.find() ) {
-			
-			ReserveList reqr = new ReserveList();
-			
-			// 予約内容の部分を切り出す
-			String id = null;
-			String date = null;
-			int wday = 0;
-			String channel = null;
-			String ch_name = null;
-			String ahh = null;
-			String amm = null;
-			String zhh = null;
-			String zmm = null;
-			String rec_min = null;
-			String rec_mode = null;
-			
-			boolean pursues = false;
-			boolean exec = true;
-			boolean tunershort = false;
-			String rec_type = ITEM_REC_TYPE_PROG;
-			
-			boolean repeat_everyday = false;
-			boolean repeat_mon2fri = false;
-			boolean repeat_mon2sat = false;
-			boolean repeat_wday = false;
-			boolean repeat_none = false;
+			_getDigaReserveProg(newReserveList, ma.group(1));
+		}
+		return(RETCODE_SUCCESS);
+	}
+	
+	/**
+	 * 予約１エントリずつの処理
+	 */
+	protected int _getDigaReserveProg(ArrayList<ReserveList> newReserveList, String progdata) {
+		
+		ReserveList reqr = new ReserveList();
+		
+		// 予約内容の部分を切り出す
+		String id = null;
+		String date = null;
+		int wday = 0;
+		String channel = null;
+		String ch_name = null;
+		String ahh = null;
+		String amm = null;
+		String zhh = null;
+		String zmm = null;
+		String rec_min = null;
+		String rec_mode = null;
+		
+		boolean pursues = false;
+		boolean exec = true;
+		boolean tunershort = false;
+		String rec_type = ITEM_REC_TYPE_PROG;
+		
+		boolean repeat_everyday = false;
+		boolean repeat_mon2fri = false;
+		boolean repeat_mon2sat = false;
+		boolean repeat_wday = false;
+		boolean repeat_none = false;
 
-			Matcher mb = Pattern.compile("<td(.*?)</td>",Pattern.DOTALL).matcher(ma.group(1));
-			Matcher mc = null;
-			for ( int i=0; mb.find(); i++ ) {
-				switch (i) {
-				case 0:		// 予約ID
-					mc = Pattern.compile("\\?ANC_RSVLSTNO=(\\d+)&",Pattern.DOTALL).matcher(mb.group(1));
-					if ( mc.find() ) {
-						id = mc.group(1);
+		Matcher mb = Pattern.compile("<td(.*?)</td>",Pattern.DOTALL).matcher(progdata);
+		Matcher mc = null;
+		for ( int i=0; mb.find(); i++ ) {
+			switch (i) {
+			case 0:		// 予約ID
+				mc = Pattern.compile("\\?ANC_RSVLSTNO=(\\d+)&",Pattern.DOTALL).matcher(mb.group(1));
+				if ( mc.find() ) {
+					id = mc.group(1);
+				}
+				break;
+			case 2:		// 日付
+				mc = Pattern.compile(">\\s*(\\d+)/(\\d+)\\((.)\\)",Pattern.DOTALL).matcher(mb.group(1));
+				if ( mc.find() ) {
+					wday = CommonUtils.getWday(mc.group(3));
+					date = CommonUtils.getDateByMD(Integer.valueOf(mc.group(1)), Integer.valueOf(mc.group(2)), wday, true);
+				}
+				break;
+			case 3:		// CH
+				mc = Pattern.compile(">\\s*(.+?)\\s*$",Pattern.DOTALL).matcher(mb.group(1));
+				if ( mc.find() ) {
+					String recChName = CommonUtils.unEscape(mc.group(1)).trim();
+					channel = cc.getCH_REC2CODE(recChName);
+					if ( channel != null ) {
+						ch_name = cc.getCH_CODE2WEB(channel);
 					}
-					break;
-				case 2:		// 日付
-					mc = Pattern.compile(">\\s*(\\d+)/(\\d+)\\((.)\\)",Pattern.DOTALL).matcher(mb.group(1));
-					if ( mc.find() ) {
-						wday = CommonUtils.getWday(mc.group(3));
-						date = CommonUtils.getDateByMD(Integer.valueOf(mc.group(1)), Integer.valueOf(mc.group(2)), wday, true);
+					else {
+						ch_name = recChName;
 					}
-					break;
-				case 3:		// CH
+				}
+				break;
+			case 4:		// 時刻
+				mc = Pattern.compile(">\\s*(\\d+):(\\d+)～((\\d+):(\\d+)|未定)",Pattern.DOTALL).matcher(mb.group(1));
+				if ( mc.find() ) {
+					if ( mc.group(4) == null ) {
+						// 終了時刻＝'未定(fefe)'の場合はcopyattributes()で過去情報から補完するか、または２時間後に仮置き
+						System.out.println(DBGID+"終了時刻がみつかりません");
+						String[] db = _hhmm2hhmm_min(mc.group(1)+":"+mc.group(2),"00:00");
+						ahh = db[0];
+						amm = db[1];
+					}
+					else {
+						String[] db = _hhmm2hhmm_min(mc.group(1)+":"+mc.group(2),mc.group(4)+":"+mc.group(5));
+						ahh = db[0];
+						amm = db[1];
+						zhh = db[2];
+						zmm = db[3];
+						rec_min = db[4];
+					}
+				}
+				break;
+			case 5:		// 録画モード
+				mc = Pattern.compile(">\\s*([^<]+?)\\s*<",Pattern.DOTALL).matcher(mb.group(1));
+				if ( mc.find() ) {
+					rec_mode = CommonUtils.unEscape(mc.group(1)).trim().replaceFirst("\\(HDD\\)", "");
+				}
+				else {
+					// BWT650
 					mc = Pattern.compile(">\\s*(.+?)\\s*$",Pattern.DOTALL).matcher(mb.group(1));
-					if ( mc.find() ) {
-						String recChName = CommonUtils.unEscape(mc.group(1)).trim();
-						channel = cc.getCH_REC2CODE(recChName);
-						if ( channel != null ) {
-							ch_name = cc.getCH_CODE2WEB(channel);
-						}
-					}
-					break;
-				case 4:		// 時刻
-					mc = Pattern.compile(">\\s*(\\d+):(\\d+)～((\\d+):(\\d+)|未定)",Pattern.DOTALL).matcher(mb.group(1));
-					if ( mc.find() ) {
-						if ( mc.group(4) == null ) {
-							// 終了時刻＝'未定(fefe)'の場合はcopyattributes()で過去情報から補完するか、または２時間後に仮置き
-							System.out.println(DBGID+"終了時刻がみつかりません");
-							String[] db = _hhmm2hhmm_min(mc.group(1)+":"+mc.group(2),"00:00");
-							ahh = db[0];
-							amm = db[1];
-						}
-						else {
-							String[] db = _hhmm2hhmm_min(mc.group(1)+":"+mc.group(2),mc.group(4)+":"+mc.group(5));
-							ahh = db[0];
-							amm = db[1];
-							zhh = db[2];
-							zmm = db[3];
-							rec_min = db[4];
-						}
-					}
-					break;
-				case 5:		// 録画モード
-					mc = Pattern.compile(">\\s*(.+?)\\s*<").matcher(mb.group(1));
 					if ( mc.find() ) {
 						rec_mode = CommonUtils.unEscape(mc.group(1)).trim().replaceFirst("\\(HDD\\)", "");
 					}
-					break;
-				case 6:		// 補足情報
-					if ( mb.group(1).contains("毎日") ) {
-						repeat_everyday = true;
-					}
-					else if ( mb.group(1).contains("月金") ) {
-						repeat_mon2fri = true;
-					}
-					else if ( mb.group(1).contains("月土") ) {
-						repeat_mon2sat = true;
-					}
-					else if ( mb.group(1).contains("毎週") || mb.group(1).contains("曜日指定") ) {
-						repeat_wday = true;
-					}
-					else {
-						repeat_none = true;
-					}
-					
-					if ( mb.group(1).contains("実行切") ) {
-						exec = false;
-					}
-					if ( mb.group(1).contains("重複") ) {
-						tunershort = true;
-					}
-					if ( mb.group(1).contains("番組予約") ) {
-						pursues = true;
-						rec_type = ITEM_REC_TYPE_EPG;
-					}
-					break;
 				}
+				break;
+			case 6:		// 補足情報
+				if ( mb.group(1).contains("毎日") ) {
+					repeat_everyday = true;
+				}
+				else if ( mb.group(1).contains("月金") ) {
+					repeat_mon2fri = true;
+				}
+				else if ( mb.group(1).contains("月土") ) {
+					repeat_mon2sat = true;
+				}
+				else if ( mb.group(1).contains("毎週") || mb.group(1).contains("曜日指定") ) {
+					repeat_wday = true;
+				}
+				else {
+					repeat_none = true;
+				}
+				
+				if ( mb.group(1).contains("実行切") ) {
+					exec = false;
+				}
+				if ( mb.group(1).contains("重複") ) {
+					tunershort = true;
+				}
+				if ( mb.group(1).contains("番組予約") ) {
+					pursues = true;
+					rec_type = ITEM_REC_TYPE_EPG;
+				}
+				break;
 			}
-			
-			// 予約情報更新
-			reqr.setId(id);
-			
-			reqr.setAhh(ahh);
-			reqr.setAmm(amm);
-			
-			reqr.setZhh(zhh);
-			reqr.setZmm(zmm);
-			reqr.setRec_min(rec_min);
-			
-			if ( repeat_everyday ) {
-				// 毎日
-				reqr.setRec_pattern(HDDRecorder.RPTPTN[HDDRecorder.RPTPTN_ID_EVERYDAY]);
-				reqr.setRec_pattern_id(HDDRecorder.RPTPTN_ID_EVERYDAY);
-			}
-			else if ( repeat_mon2sat ) {
-				// 毎月～土
-				reqr.setRec_pattern(HDDRecorder.RPTPTN[HDDRecorder.RPTPTN_ID_MON2SAT]);
-				reqr.setRec_pattern_id(HDDRecorder.RPTPTN_ID_MON2SAT);
-			}
-			else if ( repeat_mon2fri ) {
-				// 毎月～金
-				reqr.setRec_pattern(HDDRecorder.RPTPTN[HDDRecorder.RPTPTN_ID_MON2FRI]);
-				reqr.setRec_pattern_id(HDDRecorder.RPTPTN_ID_MON2FRI);
-			}
-			else if ( repeat_wday && wday > 0 ) {
-				// 毎週
-				reqr.setRec_pattern(HDDRecorder.RPTPTN[wday-1]);
-				reqr.setRec_pattern_id(wday-1);
-			}
-			else {
-				// 単日
-				reqr.setRec_pattern(date);
-				reqr.setRec_pattern_id(HDDRecorder.RPTPTN_ID_BYDATE);
-			}
-			if ( zhh != null && zmm != null ) {
-				reqr.setRec_nextdate(CommonUtils.getNextDate(reqr));
-				getStartEndDateTime(reqr);
-			}
-			else {
-				// 終了時刻="未定"の場合（setRec_nextdateとかは↓の中で）
-				setAttributesDiga(reqr,null);
-			}
-			
-			if ( pursues && ! repeat_none ) {
-				reqr.setAutoreserved(true);
-			}
-			
-			reqr.setRec_mode(rec_mode);
-			reqr.setTitle(MISS_TITLE);
-			reqr.setTitlePop("");
-			reqr.setChannel(channel);
-			reqr.setCh_name(ch_name);
-			
-			reqr.setPursues(pursues);
-			reqr.setExec(exec);
-			reqr.setContentId(null);
-			reqr.setRec_audio(rec_type);
-
-			reqr.setTunershort(tunershort);
-
-			// 予約情報を保存
-			newReserveList.add(reqr);
 		}
 		
-		return(RETCODE_SUCCESS);
+		// 予約情報更新
+		reqr.setId(id);
+		
+		reqr.setAhh(ahh);
+		reqr.setAmm(amm);
+		
+		reqr.setZhh(zhh);
+		reqr.setZmm(zmm);
+		reqr.setRec_min(rec_min);
+		
+		if ( repeat_everyday ) {
+			// 毎日
+			reqr.setRec_pattern(HDDRecorder.RPTPTN[HDDRecorder.RPTPTN_ID_EVERYDAY]);
+			reqr.setRec_pattern_id(HDDRecorder.RPTPTN_ID_EVERYDAY);
+		}
+		else if ( repeat_mon2sat ) {
+			// 毎月～土
+			reqr.setRec_pattern(HDDRecorder.RPTPTN[HDDRecorder.RPTPTN_ID_MON2SAT]);
+			reqr.setRec_pattern_id(HDDRecorder.RPTPTN_ID_MON2SAT);
+		}
+		else if ( repeat_mon2fri ) {
+			// 毎月～金
+			reqr.setRec_pattern(HDDRecorder.RPTPTN[HDDRecorder.RPTPTN_ID_MON2FRI]);
+			reqr.setRec_pattern_id(HDDRecorder.RPTPTN_ID_MON2FRI);
+		}
+		else if ( repeat_wday && wday > 0 ) {
+			// 毎週
+			reqr.setRec_pattern(HDDRecorder.RPTPTN[wday-1]);
+			reqr.setRec_pattern_id(wday-1);
+		}
+		else {
+			// 単日
+			reqr.setRec_pattern(date);
+			reqr.setRec_pattern_id(HDDRecorder.RPTPTN_ID_BYDATE);
+		}
+		if ( zhh != null && zmm != null ) {
+			reqr.setRec_nextdate(CommonUtils.getNextDate(reqr));
+			getStartEndDateTime(reqr);
+		}
+		else {
+			// 終了時刻="未定"の場合（setRec_nextdateとかは↓の中で）
+			setAttributesDiga(reqr,null);
+		}
+		
+		if ( pursues && ! repeat_none ) {
+			reqr.setAutoreserved(true);
+		}
+		
+		reqr.setRec_mode(rec_mode);
+		reqr.setTitle(MISS_TITLE);
+		reqr.setTitlePop("");
+		reqr.setChannel(channel);
+		reqr.setCh_name(ch_name);
+		
+		reqr.setPursues(pursues);
+		reqr.setExec(exec);
+		reqr.setContentId(null);
+		reqr.setRec_audio(rec_type);
+
+		reqr.setTunershort(tunershort);
+
+		// 予約情報を保存
+		newReserveList.add(reqr);
+		
+		return 0;
 	}
 	
 	/*******************************************************************************
@@ -1763,7 +1783,7 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 	}
 
 	/*******************************************************************************
-	 * 予約のタイトル一覧を取得する。詳細は{@link #getDigaReserveDetail}で。
+	 * 録画結果の一覧を取得する
 	 ******************************************************************************/
 	
 	private int getDigaRecordedList(ArrayList<RecordedInfo> newRecordedList) {
