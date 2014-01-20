@@ -26,8 +26,6 @@ import tainavi.RecordedInfo;
 import tainavi.ReserveList;
 import tainavi.TextValueSet;
 import tainavi.TraceProgram;
-import tainavi.HDDRecorder.RecType;
-import tainavi.HDDRecorderUtils.MyAuthenticator;
 import tainavi.TVProgram.ProgGenre;
 import tainavi.TVProgram.ProgSubgenre;
 

@@ -74,6 +74,8 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 	@Override
 	public String getLabel_Audiorate() { return "予約方法"; }
 	@Override
+	public String getLabel_Folder() { return "録画ﾓｰﾄﾞ"; }
+	@Override
 	public String getLabel_XChapter() { return "待機時間(秒前)"; }
 	@Override
 	public String getLabel_MsChapter() { return "録画開始(秒前)"; }
@@ -100,6 +102,25 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 	
 	private static final String VALUE_CH_EPGGET		= "";
 
+	private static final String VALUE_YES  = "1";
+	private static final String VALUE_NO   = "0";
+	
+	private static final String ITEM_REC_MODE_RECORD	= "録画のみ";
+	private static final String ITEM_REC_MODE_WATCH		= "視聴のみ";
+	private static final String ITEM_REC_MODE_RANDW		= "録画＋視聴";
+	private static final String ITEM_REC_MODE_FANDO		= "録画＋ワンセグ";
+	
+	private static final String VALUE_REC_MODE_RECORD	= "100";
+	private static final String VALUE_REC_MODE_WATCH	= "010";
+	private static final String VALUE_REC_MODE_RANDW	= "110";
+	private static final String VALUE_REC_MODE_FANDO	= "101";
+	
+	private static final String[] KEYS_REC_MODE = {
+		"reconly",
+		"watchonly",
+		"oneseg"
+	};
+	
 	// ログ関連
 	
 	private final String MSGID = "["+getRecorderId()+"] ";
@@ -380,6 +401,7 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 		String recDefaultsTFile = "env/recdefaults."+getIPAddr()+"_"+getPortNo()+"_"+getRecorderId()+".xml";
 		
 		// ハードコーディングな選択肢の面々
+		setSettingRecMode(folder);
 		setSettingRecType(arate);
 		setSettingBvperf(bvperf);
 		
@@ -761,6 +783,23 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			
 			// (1-11)終了後コマンド
 			r.setRec_aspect(getSelectedSetting("cuscom",res));
+			
+			// 予約実行＋録画モード
+			mb = Pattern.compile("<input type=\"checkbox\" name=\"valid\" value=\"true\"( checked)?>",Pattern.DOTALL).matcher(res);
+			r.setExec(mb.find() && mb.group(1) != null);
+			
+			// 録画モード
+			{
+				String rec_mode_value = "";
+				for ( int i=0; i < KEYS_REC_MODE.length; i++ ) {
+					String rmname = KEYS_REC_MODE[i];
+					Matcher mc = Pattern.compile("<input type=\"checkbox\" name=\""+rmname+"\" value=\"true\"( checked)?>",Pattern.DOTALL).matcher(res);
+					rec_mode_value += (mc.find() && mc.group(1) != null) ? VALUE_YES : VALUE_NO;
+				}
+				
+				String rec_mode_text = value2text(folder, rec_mode_value);
+				r.setRec_folder(rec_mode_text != null ? rec_mode_text : ITEM_REC_MODE_RECORD);
+			}
 			
 			// 時刻を調べる
 			r.setAhh(getSelectedSetting("shour",res));
@@ -1912,9 +1951,14 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			if (r.getExec()) {
 				sb.append("valid=true&");
 			}
+			if ( r.getRec_folder() != null ) {
+				String rmvalue = text2value(folder, r.getRec_folder());
+				for ( int i=0; i<rmvalue.length(); i++ ) {
+					String val = rmvalue.substring(i,i+1).equals(VALUE_YES) ? "true" : "";
+					sb.append(KEYS_REC_MODE[i]+"="+val+"&");
+				}
+			}
 			if (aspect.size() > 0) {
-				sb.append("reconly=true&");
-				sb.append("watchonly=&");
 				sb.append("extmd="+text2value(dvdcompat,r.getRec_dvdcompat())+"&");
 				sb.append("idle="+text2value(xchapter,r.getRec_xchapter())+"&");
 				sb.append("ready="+text2value(mschapter,r.getRec_mschapter())+"&");
@@ -1961,6 +2005,16 @@ public class PlugIn_RecRD_TvRock extends HDDRecorderUtils implements HDDRecorder
 			return true;
 		}
 		return false;
+	}
+	
+	// 録画モード
+	private void setSettingRecMode(ArrayList<TextValueSet> tvs) {
+		tvs.clear();
+		TextValueSet t = add2tvs(tvs,ITEM_REC_MODE_RECORD,VALUE_REC_MODE_RECORD);
+		t.setDefval(true);
+		add2tvs(tvs,ITEM_REC_MODE_WATCH,VALUE_REC_MODE_WATCH);
+		add2tvs(tvs,ITEM_REC_MODE_RANDW,VALUE_REC_MODE_RANDW);
+		add2tvs(tvs,ITEM_REC_MODE_FANDO,VALUE_REC_MODE_FANDO);
 	}
 	
 	// 既存ユーザが混乱するのでデフォルトはプログラム予約
