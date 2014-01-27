@@ -64,7 +64,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import tainavi.HDDRecorder.RecType;
-import tainavi.SearchKey.TargetId;
 import tainavi.TVProgram.ProgFlags;
 import tainavi.TVProgram.ProgGenre;
 import tainavi.TVProgram.ProgOption;
@@ -73,6 +72,7 @@ import tainavi.TVProgram.ProgSubtype;
 import tainavi.TVProgram.ProgType;
 import tainavi.VWMainWindow.MWinTab;
 import tainavi.VWUpdate.UpdateResult;
+import tainavi.plugintv.Syobocal;
 
 
 /**
@@ -1383,11 +1383,6 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		@Override
 		protected void setFullScreen(boolean b) {
 			Viewer.this.setFullScreen(b);
-		}
-
-		@Override
-		protected void toggleSettingTabVisible() {
-			mainWindow.toggleShowSettingTabs();
 		}
 
 		@Override
@@ -3124,7 +3119,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 	
 	/**
 	 * Web番組表をＤＬする
-	 * <P>単体実行の場合はこちらを呼び出す：{@link #doLoadTVProgram(LoadFor)}
+	 * <P>単体実行の場合はこちらを呼び出す：{@link #doLoadTVProgram(boolean, tainavi.Viewer.LoadFor)}
 	 * <P>部品実行の場合はこちらを呼び出す
 	 */
 	private boolean loadTVProgram(final boolean force, final LoadFor lf) {

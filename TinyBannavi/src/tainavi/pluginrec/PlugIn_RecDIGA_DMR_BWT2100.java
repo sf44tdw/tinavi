@@ -2275,7 +2275,7 @@ public class PlugIn_RecDIGA_DMR_BWT2100 extends HDDRecorderUtils implements HDDR
 				r = d[1];
 			}
 
-			if ( r.contains(DIGAMSG_PLEASELOGIN) ) {
+			if ( r == null || r.contains(DIGAMSG_PLEASELOGIN) ) {
 				// ログイン失敗だからもうだめぽ
 				break;
 			}

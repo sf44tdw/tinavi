@@ -3,6 +3,7 @@ package tainavi;
 import java.util.ArrayList;
 
 import tainavi.TVProgram.ProgType;
+import tainavi.plugintv.Syobocal;
 
 /**
  * <P>{@link TVProgram} のリストを実現するクラスです.

@@ -60,6 +60,7 @@ public class VWMainWindow extends JPanel {
 	 */
 	
 	private JTabbedPane jTabbedPane = null;
+	private JTabbedPane jTabbedPane_settings = null;
 
 	
 	/*
@@ -69,9 +70,13 @@ public class VWMainWindow extends JPanel {
 	public VWMainWindow() {
 		this.setLayout(new BorderLayout());
 		this.add(getJTabbedPane(), BorderLayout.CENTER);
-		
+		getJTabbedPane_settings();
+
 		// タブを全部準備する
 		for ( MWinTab tab : MWinTab.values() ) {
+			if ( tab == MWinTab.SETTING ) {
+				jTabbedPane.add(jTabbedPane_settings, "設定");
+			}
 			addTab(null, tab);
 		}
 	}
@@ -93,14 +98,21 @@ public class VWMainWindow extends JPanel {
 	
 	// タブを追加する
 	public boolean addTab(Component comp, MWinTab tab) {
-		if ( jTabbedPane.getTabCount() < tab.getIndex() ) {
-			System.err.println(String.format("[DEBUG][メインウィンドウ] タブの数があわない： %d/%d",jTabbedPane.getTabCount(),tab.getIndex()));
+		if ( jTabbedPane.getTabCount() + jTabbedPane_settings.getTabCount() < tab.getIndex() ) {
+			System.err.println(String.format("[DEBUG][メインウィンドウ] タブの数があわない： %d/%d", jTabbedPane.getTabCount(), tab.getIndex()));
 			return false;
 		}
-		if ( jTabbedPane.getTabCount() > tab.getIndex() ) {
-			jTabbedPane.remove(tab.getIndex());
+
+		int tabIndex = tab.getIndex();
+		JTabbedPane tabPane = jTabbedPane;
+		if ( tabIndex >= MWinTab.SETTING.getIndex() ) {
+			tabIndex -= MWinTab.SETTING.getIndex();
+			tabPane = jTabbedPane_settings;
 		}
-		jTabbedPane.add(comp, tab.getName(), tab.getIndex());
+		if ( tabPane.getTabCount() > tabIndex ) {
+			tabPane.remove(tabIndex);
+		}
+		tabPane.add(comp, tab.getName(), tabIndex);
 		return true;
 	}
 
@@ -108,24 +120,39 @@ public class VWMainWindow extends JPanel {
 	public void setSelectedTab(MWinTab tab) {
 		if ( tab == null ) {
 			jTabbedPane.setSelectedIndex(-1);
+			return;
 		}
-		else if (jTabbedPane.getTabCount() > tab.getIndex()) {
-			jTabbedPane.setSelectedIndex(tab.getIndex());
+		if ( tab.getIndex() >= MWinTab.SETTING.getIndex() ) {
+			jTabbedPane_settings.setSelectedIndex(tab.getIndex()-MWinTab.SETTING.getIndex());
+			jTabbedPane.setSelectedIndex(MWinTab.SETTING.getIndex());
+			return;
 		}
+		jTabbedPane.setSelectedIndex(tab.getIndex());
 	}
 	
 	//
 	public Component getTab(MWinTab tab) {
-		return this.getComponent(tab.getIndex());
+		if ( tab.getIndex() >= MWinTab.SETTING.getIndex() ) {
+			return jTabbedPane_settings.getComponent(tab.getIndex() - MWinTab.SETTING.getIndex());
+		}
+		return jTabbedPane.getComponent(tab.getIndex());
 	}
 	
 	// タブが選択されているか確認する
 	public boolean isTabSelected(MWinTab tab) {
+		if ( tab.getIndex() >= MWinTab.SETTING.getIndex() ) {
+			return (jTabbedPane.getSelectedIndex() == MWinTab.SETTING.getIndex() && jTabbedPane_settings.getSelectedIndex() == tab.getIndex()-MWinTab.SETTING.getIndex());
+		}
 		return (jTabbedPane.getSelectedIndex() == tab.getIndex());
 	}
 	
 	// どのタブが選択されているのやら
-	public MWinTab getSelectedTab() { return MWinTab.getAt(jTabbedPane.getSelectedIndex()); }
+	public MWinTab getSelectedTab() {
+		if ( jTabbedPane.getSelectedIndex() == MWinTab.SETTING.getIndex() ) {
+			return MWinTab.getAt(jTabbedPane.getSelectedIndex());
+		}
+		return MWinTab.getAt(jTabbedPane.getSelectedIndex());
+	}
 	
 	// 設定タブをトグル切り替え
 	private final int firstSettingTab = MWinTab.SETTING.ordinal();
@@ -133,33 +160,13 @@ public class VWMainWindow extends JPanel {
 	private Component[] st_comp = new Component[countSettingTab];
 	private String[] st_title = new String[countSettingTab];
 	public boolean toggleShowSettingTabs() {
-		if (st_comp[0] == null) {
-			for (int i=countSettingTab-1; i>=0; i--) {
-				st_comp[i] = this.jTabbedPane.getComponentAt(firstSettingTab+i);
-				st_title[i] = this.jTabbedPane.getTitleAt(firstSettingTab+i);
-				this.jTabbedPane.remove(firstSettingTab+i);
-			}
-			return false;
-		}
-		else {
-			for (int i=0; i<countSettingTab; i++) {
-				this.jTabbedPane.add(st_comp[i]);
-				this.jTabbedPane.setTitleAt(firstSettingTab+i, st_title[i]);
-				st_comp[i] = null;
-			}
-			this.jTabbedPane.setSelectedIndex(firstSettingTab);
-			return true;
-		}
+		return true;
 	}
 	
 	public boolean getShowSettingTabs() {
-		return (jTabbedPane.getTabCount() > firstSettingTab);
+		return true;
 	}
 	public void setShowSettingTabs(boolean b) {
-		if ((b && jTabbedPane.getTabCount() <= firstSettingTab) ||
-				( ! b && jTabbedPane.getTabCount() > firstSettingTab)) {
-			toggleShowSettingTabs();
-		}
 	}
 	
 	
@@ -172,6 +179,13 @@ public class VWMainWindow extends JPanel {
 			jTabbedPane = new JTabbedPane();
 		}
 		return jTabbedPane;
+	}
+
+	private JTabbedPane getJTabbedPane_settings() {
+		if (jTabbedPane_settings == null) {
+			jTabbedPane_settings = new JTabbedPane();
+		}
+		return jTabbedPane_settings;
 	}
 	
 	/**

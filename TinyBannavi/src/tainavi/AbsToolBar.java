@@ -90,15 +90,12 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	// メインウィンドウ
 	/**
 	 * 親から呼ばないでくださいね！
-	 * @see #setToggleShowStatusButton(boolean)
 	 */
 	protected abstract void setStatusVisible(boolean b);
 	/**
 	 * 親から呼ばないでくださいね！
-	 * @see #setToggleFullScreenButton(boolean)
 	 */
 	protected abstract void setFullScreen(boolean b);
-	protected abstract void toggleSettingTabVisible();
 	protected abstract boolean isTabSelected(MWinTab tab);
 	// 部品
 	protected abstract boolean addKeywordSearch(SearchKey search);
@@ -216,7 +213,6 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	private JSlider jSlider_paperZoom = null;
 	private JToggleButton jToggleButton_timer = null;
 	private JButton jButton_logviewer = null;
-	private JToggleButton jToggleButton_showsetting = null;
 	private JToggleButton jToggleButton_showstatus = null;
 	private JToggleButton jToggleButton_fullScreen = null;
 	private JButton jButton_update = null;
@@ -268,7 +264,6 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 		this.add(getJSlider_paperZoom("番組枠表示拡大"));
 		this.add(getJButton_logviewer("ログビューア"));
 		this.add(getJToggleButton_timer("タイマー"));
-		this.add(getJToggleButton_showsetting("設定タブを開く"));
 		this.addSeparator(new Dimension(4,0));
 		this.add(getJToggleButton_showstatus("ステータス領域"));
 		this.add(getJToggleButton_fullScreen("全"));
@@ -996,13 +991,6 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 		}
 	};
 	
-	// 設定タブを出したりしまったり
-	private final ActionListener al_showsetting = new ActionListener(){
-		public void actionPerformed(ActionEvent e){
-			toggleSettingTabVisible();
-		}
-	};
-
 	// ステータスエリアを出したりしまったり
 	private final ActionListener al_toggleShowStatus = new ActionListener() {
 		
@@ -1337,20 +1325,6 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 			jButton_shutdown.addActionListener(al_down);
 		}
 		return jButton_shutdown;
-	}
-	
-	// 「設定タブを表示」
-	private JToggleButton getJToggleButton_showsetting(String s) {
-		if (jToggleButton_showsetting == null) {
-			final ImageIcon icon = new ImageIcon(ICONFILE_SHOWSETTING);
-			jToggleButton_showsetting = new JToggleButton(icon);
-			jToggleButton_showsetting.setToolTipText(TIPS_SHOWSETTING);
-			
-			jToggleButton_showsetting.setSelected(bounds.getShowSettingTabs());
-			
-			jToggleButton_showsetting.addActionListener(al_showsetting);
-		}
-		return jToggleButton_showsetting;
 	}
 	
 	// 「ステータス領域」

@@ -29,6 +29,7 @@ import javax.swing.table.TableColumn;
 
 import tainavi.TVProgram.ProgSubtype;
 import tainavi.TVProgram.ProgType;
+import tainavi.plugintv.Syobocal;
 
 /**
  * ChannelConver.datを編集するView
