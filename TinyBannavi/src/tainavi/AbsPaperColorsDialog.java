@@ -156,6 +156,7 @@ abstract class AbsPaperColorsDialog extends JEscCancelDialog {
 	private JCCLabel jLabel_pickup = null;
 	private JCCLabel jLabel_pickupFont = null;
 	private JCCLabel jLabel_matchedBorderColor = null;
+	private JCCLabel jLabel_matchedKeywordBorderColor = null;
 	private JSliderPanel jSP_matchedBorderThickness = null;
 	//private JCheckBoxPanel jCBP_lightProgramView = null;
 	
@@ -312,6 +313,7 @@ abstract class AbsPaperColorsDialog extends JEscCancelDialog {
 		toe.setPickedColor(jLabel_pickup.getChoosed());
 		toe.setPickedFontColor(jLabel_pickupFont.getChoosed());
 		toe.setMatchedBorderColor(jLabel_matchedBorderColor.getChoosed());
+		toe.setMatchedKeywordBorderColor(jLabel_matchedKeywordBorderColor.getChoosed());
 		toe.setMatchedBorderThickness(jSP_matchedBorderThickness.getValue());
 		//
 		tob.setShowMatchedBorder(origbnd.getShowMatchedBorder());
@@ -775,8 +777,11 @@ abstract class AbsPaperColorsDialog extends JEscCancelDialog {
 			CommonSwingUtils.putComponentOn(jPanel_bounds, jSP_matchedBorderThickness = new JSliderPanel("太さ",LABEL_WIDTH,1,16,ITEM_WIDTH), LABEL_WIDTH+ITEM_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			
 			y += (PARTS_HEIGHT+SEP_HEIGHT_NARROW);
-			CommonSwingUtils.putComponentOn(jPanel_bounds, jLabel_matchedBorderColor = new JCCLabel("予約待機の枠色",origenv.getMatchedBorderColor(),true,this,ccwin), ITEM_WIDTH, PARTS_HEIGHT, SEP_WIDTH+LABEL_WIDTH, y);
-			
+			CommonSwingUtils.putComponentOn(jPanel_bounds, jLabel_matchedBorderColor = new JCCLabel("予約待機枠(番組追跡)",origenv.getMatchedBorderColor(),true,this,ccwin), ITEM_WIDTH, PARTS_HEIGHT, SEP_WIDTH+LABEL_WIDTH, y);
+
+			y += (PARTS_HEIGHT+SEP_HEIGHT_NARROW);
+			CommonSwingUtils.putComponentOn(jPanel_bounds, jLabel_matchedKeywordBorderColor = new JCCLabel("予約待機枠(ｷｰﾜｰﾄﾞ検索)",origenv.getMatchedKeywordBorderColor(),true,this,ccwin), ITEM_WIDTH, PARTS_HEIGHT, SEP_WIDTH+LABEL_WIDTH, y);
+
 			y += (PARTS_HEIGHT+SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_bounds, new JTitleLabel("フォントのアンチエイリアス設定"), TITLE_WIDTH, PARTS_HEIGHT, SEP_WIDTH_NARROW, y);
 			
@@ -807,6 +812,7 @@ abstract class AbsPaperColorsDialog extends JEscCancelDialog {
 		jLabel_pickupFont.setChoosed(origenv.getPickedFontColor());
 		jLabel_pickupFont.setBackground(Color.RED);
 		jLabel_matchedBorderColor.setChoosed(origenv.getMatchedBorderColor());
+		jLabel_matchedKeywordBorderColor.setChoosed(origenv.getMatchedKeywordBorderColor());
 		jSP_matchedBorderThickness.setValue(origenv.getMatchedBorderThickness());
 		/*
 		if ( ! origenv.getShowStart() && ! origenv.getShowDetail() ) {

@@ -249,6 +249,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	
 	// 予約待機枠と番組枠
 	private final DashBorder dborder = new DashBorder(Color.RED,env.getMatchedBorderThickness(),DASHBORDER_LENGTH,DASHBORDER_SPACE);
+	private final DashBorder dborderK = new DashBorder(Color.MAGENTA,env.getMatchedBorderThickness(),DASHBORDER_LENGTH,DASHBORDER_SPACE);
 	private final LineBorder lborder = new ChippedBorder(Color.BLACK,1);
 	
 	private float paperHeightZoom = 1.0F;
@@ -615,14 +616,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		for (JTXTButton b : frameUsed ) {
 			ProgDetailList tvd = b.getInfo();
 			if ( tvd.type == ProgType.PROG ) {
-				if (bounds.getShowMatchedBorder() && b.isStandby()) {
-					if ( b.getBorder() != dborder )
-						b.setBorder(dborder);
-				}
-				else {
-					if ( b.getBorder() != lborder )
-						b.setBorder(lborder);
-				}
+				_updPBorder(bounds, b);
 			}
 		}
 	}
@@ -635,10 +629,10 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		// 状態を保存
 		bounds.setShowMatchedBorder( ! bounds.getShowMatchedBorder());
 		
-		_updPBorders(env, bounds, frameUsed);
+		_updPBorderAll(env, bounds, frameUsed);
 		
 		if ( env.getDrawcacheEnable() ) {
-			_updPBorders(env, bounds, frameUsedByDate);
+			_updPBorderAll(env, bounds, frameUsedByDate);
 		}
 		
 		return bounds.getShowMatchedBorder();
@@ -1200,7 +1194,9 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		// 番組の枠表示用
 		dborder.setDashColor(env.getMatchedBorderColor());
 		dborder.setThickness(env.getMatchedBorderThickness());
-		
+		dborderK.setDashColor(env.getMatchedKeywordBorderColor());
+		dborderK.setThickness(env.getMatchedBorderThickness());
+
 		// 番組表時の共通設定
 		updateFonts(env);
 		
@@ -1637,13 +1633,8 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		JTXTButton.setHeightMultiplier(bounds.getPaperHeightMultiplier() * paperHeightZoom);
 		
 		b2.setBackground(pColors.get(tvd.genre));
-		if (bounds.getShowMatchedBorder() && b2.isStandby() ) {
-			b2.setBorder(dborder);
-		}
-		else {
-			b2.setBorder(lborder);
-		}
-		
+		_updPBorder(bounds, b2);
+
 		// 配置を決定する
 		b2.setVBounds(col,row,1,tvd.length);
 		
@@ -2459,7 +2450,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		{
 			{
 				_updPBounds(bc, frameUsed);
-				_updPBorders(ec, bc, frameUsed);
+				_updPBorderAll(ec, bc, frameUsed);
 				
 				Dimension d = jLayeredPane_space_main_view.getPreferredSize();
 				d.width = vieww;
@@ -2469,7 +2460,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 			
 			if ( ec.getDrawcacheEnable() ) {
 				_updPBounds(bc, frameUsedByDate);
-				_updPBorders(ec, bc, frameUsedByDate);
+				_updPBorderAll(ec, bc, frameUsedByDate);
 				
 				for ( JLayeredPane pane : jLayeredPane_space_main_view_byDate ) {
 					Dimension d = pane.getPreferredSize();
@@ -2561,21 +2552,34 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		}
 	}
 	
-	private void _updPBorders(Env ec, Bounds bc, ArrayList<JTXTButton> fa) {
+	private void _updPBorderAll(Env ec, Bounds bc, ArrayList<JTXTButton> fa) {
 		dborder.setDashColor(ec.getMatchedBorderColor());
 		dborder.setThickness(ec.getMatchedBorderThickness());
+		dborderK.setDashColor(ec.getMatchedKeywordBorderColor());
+		dborderK.setThickness(ec.getMatchedBorderThickness());
 		for ( JTXTButton b2 :  fa ) {
-			if ( bc.getShowMatchedBorder() && b2.isStandby() ) {
-				if ( b2.getBorder() != dborder )
-					b2.setBorder(dborder);
-			}
-			else {
-				if ( b2.getBorder() != lborder )
-					b2.setBorder(lborder);
-			}
+			_updPBorder(bc, b2);
 		}
 	}
-	
+
+	private void _updPBorder(Bounds bc, JTXTButton b) {
+		if ( bc.getShowMatchedBorder() && b.isStandby() ) {
+			if ( b.isStandbyByTrace() ) {
+				if ( b.getBorder() != dborder )
+					b.setBorder(dborder);
+			}
+			else {
+				// 番組追跡はキーワード検索に優先する
+				if ( b.getBorder() != dborder && b.getBorder() != dborderK )
+					b.setBorder(dborderK);
+			}
+		}
+		else {
+			if ( b.getBorder() != lborder )
+				b.setBorder(lborder);
+		}
+	}
+
 	private void _updPRepaint(ArrayList<JTXTButton> fa) {
 		for ( JTXTButton b2 :  fa ) {
 			b2.forceRepaint();

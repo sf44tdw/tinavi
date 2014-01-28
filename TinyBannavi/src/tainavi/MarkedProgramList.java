@@ -3,7 +3,6 @@ package tainavi;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,7 +86,7 @@ public class MarkedProgramList {
 				
 				for ( ProgDateList tvc : tvpl.pdate ) {
 					for ( ProgDetailList tvd : tvc.pdetail ) {
-						tvd.marked = false;
+						tvd.marked = tvd.markedByTrace = false;
 						tvd.nonrepeated = false;
 						tvd.showinstandby = false;
 					}
@@ -96,9 +95,9 @@ public class MarkedProgramList {
 		}
 	}
 	
-	private void buildByKeyword(ArrayList<TVProgram> tvprograms, TraceKey tKey, SearchKey sKye) {
+	private void buildByKeyword(ArrayList<TVProgram> tvprograms, TraceKey tKey, SearchKey sKey) {
 		// 検索条件のマッチカウントのクリア
-		SearchItem item = tKey != null ? tKey : sKye;
+		SearchItem item = tKey != null ? tKey : sKey;
 		item.clearMatchedList();
 
 		//
@@ -174,8 +173,8 @@ public class MarkedProgramList {
 								}
 							}
 						}
-						else if (sKye != null) {
-    						isFind = SearchProgram.isMatchKeyword(sKye, ((sKye.getCaseSensitive()==false)?(centerPop):(tvpl.Center)), tvd);
+						else if (sKey != null) {
+    						isFind = SearchProgram.isMatchKeyword(sKey, ((sKey.getCaseSensitive()==false)?(centerPop):(tvpl.Center)), tvd);
     						if ( isFind ) {
     							matchedString = SearchProgram.getMatchedString();
     						}
@@ -183,7 +182,8 @@ public class MarkedProgramList {
 						
 						if (isFind) {
 							tvd.marked = true;
-							mBuf.add(tvd, tKey, fazScore, sKye, matchedString);
+							tvd.markedByTrace = tvd.markedByTrace || tKey != null;
+							mBuf.add(tvd, tKey, fazScore, sKey, matchedString);
 						}
 					}
 				}
@@ -193,7 +193,7 @@ public class MarkedProgramList {
 							System.out.println(MSGID+"[リピート放送判定] [結果] リピート放送ではないと判断されました： "+d.prog.startDateTime+" 「"+d.prog.title+"("+d.bareTitle+")」 ("+d.storyNo+")");
 							d.prog.nonrepeated = true;
 						}
-						if ( ! (sKye != null && ! sKye.getShowInStandby()) ) {
+						if ( ! (sKey != null && ! sKey.getShowInStandby()) ) {
 							d.prog.showinstandby = true;
 						}
 						this.add(d.prog, d.tKey, d.tScore, d.sKey, d.sStr);
@@ -202,8 +202,8 @@ public class MarkedProgramList {
 						if ( tKey != null && tKey.getShowLatestOnly() ) {
 							if ( ! showOnlyNonrepeated ) {
 								// 復活戦
-								d.prog.marked = true;
-								if ( sKye != null && sKye.getShowInStandby() ) {
+								d.prog.marked = d.prog.markedByTrace = true;
+								if ( sKey != null && sKey.getShowInStandby() ) {
 									d.prog.showinstandby = true;
 								}
 								this.add(d.prog, d.tKey, d.tScore, d.sKey, d.sStr);
@@ -313,12 +313,12 @@ public class MarkedProgramList {
 						if ( d.bareTitle != null && d.bareTitle.equals(bd.bareTitle) ) {
 							if ( d.storyNo != null && d.storyNo >= bd.storyNo ) {
 								// 同じかより新しいものがすでにあったら自分を捨てる
-								bd.prog.marked = false;
+								bd.prog.marked = bd.prog.markedByTrace = false;
 								System.out.println(MSGID+"[リピート放送判定] [結果] リピート放送と判定されました(すでに新しいものがある)： "+bd.prog.startDateTime+" 「"+bd.prog.title+"("+bd.bareTitle+")」 ("+bd.storyNo+")");
 							}
 							else {
 								// 自分より古いものは捨てる
-								d.prog.marked = false;
+								d.prog.marked = d.prog.markedByTrace = false;
 								System.out.println(MSGID+"[リピート放送判定] [結果] リピート放送と判定されました(より新し番組がみつかった)： "+d.prog.startDateTime+" 「"+d.prog.title+"("+d.bareTitle+")」 ("+d.storyNo+")");
 							}
 						}
@@ -328,7 +328,7 @@ public class MarkedProgramList {
 						if ( d.bareTitle != null && d.bareTitle.equals(bd.bareTitle) ) {
 							if ( d.storyNo != null && d.storyNo >= bd.storyNo ) {
 								// 同じかより新しいものがすでにあったら自分を捨てる
-								bd.prog.marked = false;
+								bd.prog.marked = bd.prog.markedByTrace = false;
 								System.out.println(MSGID+"[リピート放送判定] [結果] リピート放送と判定されました(すでに新しいものがある[8日目])： "+bd.prog.startDateTime+" 「"+bd.prog.title+"("+bd.bareTitle+")」 ("+bd.storyNo+")");
 							}
 							else {

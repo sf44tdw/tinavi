@@ -181,7 +181,8 @@ public class JTXTButton extends JLabel {
 	
 	// 予約待機枠を表示するかどうかの確認
 	public boolean isStandby() { return tvd.marked && tvd.showinstandby; }
-	
+	public boolean isStandbyByTrace() { return tvd.markedByTrace; }
+
 	// 表示スタイル
 	public static void setShowStart(boolean b) {
 		showStart = b;
@@ -433,9 +434,7 @@ public class JTXTButton extends JLabel {
 	 * 参考：てんぷらメモ／JTableのセル幅で文字列を折り返し  ( http://terai.xrea.jp/Swing/TableCellRenderer.html )
 	 * @param str			描画する文字列
 	 * @param width			描画領域の幅
-	 * @param height		描画領域の高さ 
 	 * @param xstart		１行目の描画開始位置
-	 * @param lineCountMax	最大描画行数
 	 * @param font			描画フォント
 	 * @param lineHeight	１行あたりの高さ
 	 * @param frc			FontRenderContext

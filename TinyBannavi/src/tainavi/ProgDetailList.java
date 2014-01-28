@@ -66,7 +66,8 @@ public class ProgDetailList implements Cloneable {
 	public String progid = "";				// 番組ID
 	
 	public boolean nosyobo = false;		// しょぼのぼっち判定
-	public boolean marked = false;			// 検索に引っかかったマーク 
+	public boolean marked = false;	// 検索に引っかかったマーク
+	public boolean markedByTrace = false;	// 番組追跡に引っかかったマーク
 	public boolean newarrival = false;		// 新着だなぁ
 	public boolean modified = false;		// 詳細が更新された
 	public boolean nonrepeated = false;	// リピート放送の初回かな？
@@ -127,7 +128,8 @@ public class ProgDetailList implements Cloneable {
 
 		progid = "";
 		nosyobo = false;
-		marked = false; 
+		marked = false;
+		markedByTrace = false;
 		newarrival = false;
 		modified = false;
 		nonrepeated = false;

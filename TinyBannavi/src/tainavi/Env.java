@@ -471,6 +471,9 @@ public class Env {
 	public Color getMatchedBorderColor() { return matchedBorderColor; }
 	public void setMatchedBorderColor(Color c) { matchedBorderColor = c; }
 	private Color matchedBorderColor = MATCHBORDER_COLOR;
+	public Color getMatchedKeywordBorderColor() { return matchedKeywordBorderColor; }
+	public void setMatchedKeywordBorderColor(Color c) { matchedKeywordBorderColor = c; }
+	private Color matchedKeywordBorderColor = MATCHBORDER_COLOR;
 	public int getMatchedBorderThickness() { return matchedBorderThickness; }
 	public void setMatchedBorderThickness(int n) { matchedBorderThickness = n; }
 	private int matchedBorderThickness = 6;
