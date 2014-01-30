@@ -232,34 +232,39 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		}
 		return lcmap;
 	}
-	
+
+	private int MIN_COLUMN_WIDTH = 20;
+
 	/**
 	 * テーブルのカラムの設定（名前と幅の初期値）。できれば@{link {@link ListedItem}と一体化させたかったのだが無理っぽい
 	 * @see ListedItem
 	 */
 	public static enum ListedColumn {
-		RSVMARK		("予約",			35),
-		DUPMARK		("重複",			35),
-		CHNAME		("チャンネル名",	100),
-		OPTIONS		("オプション",		100),
-		TITLE		("番組タイトル",	300),
-		DETAIL		("番組詳細",		200),
-		START		("開始時刻",		150),
-		END			("終了",			50),
-		LENGTH		("長さ",			50),
-		GENRE		("ジャンル",		85),
-		SITEM		("検索アイテム名",	100),
-		STAR		("お気に入り度",	100),
-		SCORE		("ｽｺｱ",			35),
-		THRESHOLD	("閾値",			35),
+		RSVMARK		("予約",		35,		false),
+		PICKMARK		("ﾋﾟｯｸ",		35,		false),
+		DUPMARK		("重複",		35,		false),
+		CHNAME		("チャンネル名",	100,	true),
+		OPTIONS		("オプション",	100,	true),
+		TITLE		("番組タイトル",	300,	true),
+		DETAIL		("番組詳細",		200,	true),
+		START		("開始時刻",		150,	true),
+		END			("終了",			50,		true),
+		LENGTH		("長さ",			50,		true),
+		GENRE		("ジャンル",		85,		true),
+		SITEM		("検索アイテム名",	100,	true),
+		STAR		("お気に入り度",	100,	true),
+		SCORE		("ｽｺｱ",				35,		false),
+		THRESHOLD	("閾値",			35,		false),
 		;
 
 		private String name;
 		private int iniWidth;
+		private boolean resizable;
 
-		private ListedColumn(String name, int iniWidth) {
+		private ListedColumn(String name, int iniWidth, boolean resizable) {
 			this.name = name;
 			this.iniWidth = iniWidth;
+			this.resizable = resizable;
 		}
 
 		public String getName() {
@@ -269,7 +274,12 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		public int getIniWidth() {
 			return iniWidth;
 		}
-		
+
+		public boolean isResizable() {
+			return resizable;
+		}
+
+
 		public int getColumn() {
 			return ordinal();
 		}
@@ -283,24 +293,49 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	 * 検索範囲（番組追跡か、キーワード検索か、予約待機か）
 	 */
 	private static enum SearchBy { TRACE, KEYWORD, BOTH } ;
-	
-	public static final String RSVMARK_NOEXEC		= "×";	// 予約無効
-	public static final String RSVMARK_NORMAL		= "●";	// ぴったり
-	public static final String RSVMARK_OVERRUN		= "◎";	// のりしろより大きく予約時間がとられている
-	public static final String RSVMARK_UNDERRUN		= "○";	// 時間延長が考慮されていない
-	public static final String RSVMARK_DELAYED		= "◇";	// 開始時刻が一致しない
-	public static final String RSVMARK_CLIPPED		= "▲";	// １分短縮済み
-	public static final String RSVMARK_CLIPPED_E	= "△";	// １分短縮済み（延長警告あり）
-	public static final String RSVMARK_SHORTAGE		= "▼";	// ２分以上短かい
-	public static final String RSVMARK_SHORTAGE_E	= "▽";	// ２分以上短かい（延長警告あり）
-	
-	public static final String RSVMARK_PICKUP		= "★";	// ピックアップ
-	public static final String RSVMARK_URABAN		= "■";	// 裏番組
+
+	public static enum RsvMark {
+		NOEXEC			( "×",		"予約無効"),
+		NORMAL			( "●",		"ぴったり"),
+		OVERRUN		( "◎",		"のりしろより大きく予約時間がとられている"),
+		UNDERRUN		( "○",		"時間延長が考慮されていない"),
+		DELAYED		( "◇",		"開始時刻が一致しない"),
+		CLIPPED		( "▲",		"１分短縮済み"),
+		CLIPPED_E		( "△",		"１分短縮済み（延長警告あり）"),
+		SHORTAGE		( "▼",		"２分以上短かい"),
+		SHORTAGE_E		( "▽",		"２分以上短かい（延長警告あり）"),
+
+		PICKUP			( "★",		"ピックアップ"),
+		URABAN			( "裏",		"裏番組"),
+
+		DUP_NORMAL		( "■",		"時間が重なっている"),
+		DUP_REP		( "□",		"開始時間と終了時間が同じ"),
+		;
+
+		private String mark;
+		private String desc;
+
+		private RsvMark(String mark, String desc) {
+			this.mark = mark;
+			this.desc = desc;
+		}
+	}
+
+	private class Marker {
+		RsvMark rsvmark = null;
+		RsvMark uramark = null;
+		RsvMark pickmark = null;
+		String myself = null;
+		String color = null;
+
+		public Marker(String myself, String color) {
+			this.myself = myself;
+			this.color = color;
+		}
+	}
+
 	private static final String PICKUP_COLOR		= CommonUtils.color2str(Color.BLACK);
 	private static final String URABAN_COLOR		= CommonUtils.color2str(Color.BLACK);
-
-	private static final String DUPMARK_NORMAL		= "■";
-	private static final String DUPMARK_REP			= "□";
 	private static final String DUPMARK_COLOR		= "#FFB6C1";
 	
 	private static final String TreeExpRegFile_Listed = "env"+File.separator+"tree_expand_listed.xml";
@@ -424,7 +459,6 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	/**
 	 *  プレビュー表示とか（親から呼ばれるよ！）
 	 * @see #redrawListByKeywordDyn(SearchKey, String)
-	 * @see #redrawListByPassed(SearchKey, String)
 	 * @see #redrawListByKeywordFilter(SearchKey, String)
 	 */
 	public void redrawListByPreview(SearchKey sKey) {
@@ -704,8 +738,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 							
 							sa.tvd = tvd;
 							
-							sa.rsvmark		= "";
-							sa.dupmark		= "";
+							sa.marker = null;
+							sa.dupmark		= null;
 							sa.prefix		= prefixMark;
 							sa.title		= tvd.newlast_mark+"\0"+tStr[0]+"\0"+tStr[1]+"\0"+tStr[2]+tvd.postfix_mark;
 							sa.searchlabel	= label;
@@ -809,8 +843,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			
 			sa.tvd = tvd;
 			
-			sa.rsvmark		= "";
-			sa.dupmark		= "";
+			sa.marker = null;
+			sa.dupmark		= null;
 			sa.prefix		= prefixMark;
 			sa.title		= tvd.newlast_mark+"\0"+tStr[0]+"\0"+tStr[1]+"\0"+tStr[2]+tvd.postfix_mark;
 			sa.searchlabel	= tvd.dynKey.getLabel();
@@ -1064,8 +1098,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 
 			sa.tvd = tvd;
 			
-			sa.rsvmark		= "";
-			sa.dupmark		= "";
+			sa.marker = null;
+			sa.dupmark		= null;
 			sa.prefix		= tvd.extension_mark+tvd.prefix_mark;
 			sa.title		= tvd.newlast_mark+"\0"+tStr[0]+"\0"+tStr[1]+"\0"+tStr[2]+tvd.postfix_mark;
 			sa.searchlabel	= label;
@@ -1116,8 +1150,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 						
 						sa.tvd = tvd;
 						
-						sa.rsvmark		= "";
-						sa.dupmark		= "";
+						sa.marker = null;
+						sa.dupmark		= null;
 						sa.prefix		= tvd.extension_mark+tvd.prefix_mark;
 						sa.title		= tvd.newlast_mark+"\0"+tvd.title+tvd.postfix_mark;
 						sa.searchlabel	= "ピックアップ";
@@ -1233,12 +1267,12 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			Marker rm = getReservedMarkChar(data);
 			
 			if (rm != null) {
-				data.rsvmark = rm.mark;
+				data.marker = rm;
 				data.hide_rsvmarkcolor = rm.color;
 				data.fireChanged();
 			}
 			else {
-				data.rsvmark = "";
+				data.marker = null;
 				data.hide_rsvmarkcolor = "";
 				data.fireChanged();
 			}
@@ -1258,7 +1292,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		// リセット
 		for (int vrow=0; vrow<rowData.size(); vrow++) {
 			ListedItem rf = rowData.get(vrow); 
-			rf.dupmark = "";
+			rf.dupmark = null;
 			rf.fireChanged();
 		}
 		
@@ -1296,17 +1330,17 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 				}
 				
 				if ( eDT.equals(sDT2) ) {
-					if ( ra.dupmark.length() == 0 ) {
-						ra.dupmark = DUPMARK_REP;
+					if ( ra.dupmark == null ) {
+						ra.dupmark = RsvMark.DUP_REP;
 						ra.fireChanged();
 					}
-					if ( rb.dupmark.length() == 0 ) {
-						rb.dupmark = DUPMARK_REP;
+					if ( rb.dupmark== null ) {
+						rb.dupmark = RsvMark.DUP_REP;
 						rb.fireChanged();
 					}
 				}
 				else if ( CommonUtils.isOverlap(sDT, eDT, sDT2, eDT2, false) ) {
-					ra.dupmark = rb.dupmark = DUPMARK_NORMAL;
+					ra.dupmark = rb.dupmark = RsvMark.DUP_NORMAL;
 					ra.fireChanged();
 					rb.fireChanged();
 				}
@@ -1317,7 +1351,6 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	/**
 	 * 現在時刻追従スクロールを開始する
 	 * @see #stopTimer
-	 * @see #pauseTimer
 	 */
 	private void startTimer() {
 		timer_now_enabled = true;
@@ -2213,7 +2246,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 				// 開始日時が過去のものは対象外
 				continue;
 			}
-			if ( c.rsvmark.length() == 0 || c.rsvmark.equals(RSVMARK_URABAN) ) {
+			if ( c.marker == null || c.marker.rsvmark == null || c.marker.rsvmark == RsvMark.URABAN ) {
 				int vrow = jTable_listed.convertRowIndexToView(row);
 				jTable_listed.getSelectionModel().addSelectionInterval(vrow, vrow);
 				if (cnt++ >= env.getRsvTargets()) {
@@ -2293,18 +2326,10 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	 */
 	public void copyColumnWidth() {
 		//DefaultTableColumnModel columnModel = (DefaultTableColumnModel)jTable_listed.getColumnModel();
-		TableColumn column = null;
 		for ( ListedColumn lc : ListedColumn.values() ) {
-			if ( lc.getIniWidth() < 0 ) {
-				continue;
-			}
-			try {
-				column = jTable_listed.getColumn(lc.getName());
-				bounds.getListedColumnSize().put(lc.toString(), column.getPreferredWidth());	// toString()!
-			}
-			catch (IllegalArgumentException e) {
-				// 非表示のカラムは操作できない
-			}
+			TableColumn column = jTable_listed.getColumn(lc.getName());
+			int w = column.getWidth();
+			bounds.getListedColumnSize().put(lc.toString(), w > 0 ? w : lc.getIniWidth());	// toString()!
 		}
 	}
 	
@@ -2328,14 +2353,39 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		jTable_listed.setCurrentColor(c);
 	}
 	
-	// 番組詳細の表示・非表示
+	// オプション表示の分離
 	public void setMarkColumnVisible(boolean b) {
-		jTable_listed.setColumnVisible(ListedColumn.OPTIONS.getName(), b);
+		_setColumnVisible(ListedColumn.OPTIONS, b);
 	}
 	
 	// 番組詳細の表示・非表示
 	public void setDetailColumnVisible(boolean b) {
-		jTable_listed.setColumnVisible(ListedColumn.DETAIL.getName(), b);
+		_setColumnVisible(ListedColumn.DETAIL, b);
+	}
+
+	// ピックアップの表示・非表示
+	public void setPickupColumnVisible(boolean b) {
+		_setColumnVisible(ListedColumn.PICKMARK, b);
+	}
+
+	// 時間重複の表示・非表示
+	public void setDupColumnVisible(boolean b) {
+		_setColumnVisible(ListedColumn.DUPMARK, b);
+	}
+
+	private void _setColumnVisible(ListedColumn lc, boolean b) {
+		if ( lc.getIniWidth() < 0 ) {
+			return;
+		}
+		TableColumn column = jTable_listed.getColumnModel().getColumn(lc.getColumn());
+		if (b) {
+			column.setMinWidth(MIN_COLUMN_WIDTH);
+			column.setPreferredWidth(lc.getIniWidth());
+		}
+		else {
+			column.setMinWidth(0);
+			column.setPreferredWidth(0);
+		}
 	}
 
 	/*
@@ -2367,25 +2417,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	 * 予約マークの取得だお！
 	 */
 	
-	private class Marker {
-		String mark; 
-		String myself;
-		String color;
-		
-		public Marker(String mark, String myself, String color) {
-			this.mark = mark;
-			this.myself = myself;
-			this.color = color;
-		}
-	}
-	
 	/**
 	 * 引数で指定した番組を予約している、または予約に一部時間が重なっている場合に表示する予約マークを取得する。
-	 * @param Center チェックする番組の放送局名
-	 * @param startDateTime チェックする番組の開始日時
-	 * @param endDateTime チェックする番組の終了日時
-	 * @param title チェックする番組のタイトル
-	 * @param extention 延長警告がなされている番組の場合はtrueを指定。
 	 * @return String [0]マーク [1]予約しているレコーダのユニークID({@link HDDRecorder#Myself()}) [2]色({@link CommonUtils#str2color(String)})
 	 */
 	private Marker getReservedMarkChar(ListedItem data) {
@@ -2465,73 +2498,65 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		
 		// 予約されている
 		
-		Marker mark = null;
-		Marker pickmark = null;
-		Marker uramark = null;
-		
+		Marker mark;
+		boolean marked = false;
+
 		// 予約マーク
 		if (recorder != null) {
-			mark = _getReservedMarkCharNormal(data, recorder, reserve, start, end);
+			mark = new Marker(recorder.Myself(), recorder.getColor(reserve.getTuner()));
+			marked = marked || _getReservedMarkCharNormal(mark, data, recorder, reserve, start, end);
 		}
-		// ピックアップマーク
-		if (env.getShowRsvPickup()) {
-			pickmark = _getReservedMarkCharPickup(data);
+		else {
+			mark = new Marker("", "");
 		}
 		// 裏番組予約マーク
-		if (mark == null && pickmark == null && env.getShowRsvUra()) {
-			uramark = _getReservedMarkCharUra(data);
+		if (env.getShowRsvUra() && mark.rsvmark == null) {
+			marked = _getReservedMarkCharUra(mark, data) || marked;
 		}
-		
-		if ( mark != null ) {
-			return mark;
-		}
-		if ( pickmark != null || isPickupOnly ) {
-			return pickmark;
-		}
-		if ( uramark != null ) {
-			return uramark;
-		}
-		
-		// 予約されていない
-		return(null);
+		// ピックアップマーク
+		marked = _getReservedMarkCharPickup(mark, data) || marked;
+
+		return(marked ? mark : null);
 	}
 	/**
-	 * @see #getReservedMarkChar(String, String, String, String, boolean) 
+	 * @see #getReservedMarkChar(ListedItem)
 	 */
-	private Marker _getReservedMarkCharNormal(ListedItem data, HDDRecorder recorder, ReserveList reserve, String start, String end) {
+	private boolean _getReservedMarkCharNormal(Marker mark, ListedItem data, HDDRecorder recorder, ReserveList reserve, String start, String end) {
 		
 		// ここに入ってくる場合は時間の重なりが確認できているものだけである
 		
 		RSVMARK_COND cond = getReservedMarkCond(data, start, end);
 		
 		if (debug) System.err.println(DBGID+data.tvd.title+" "+data.tvd.startDateTime+" "+data.tvd.endDateTime+" "+start+" "+end+" "+cond);
-		
-		String mark = null;
-		
+
+		RsvMark mk;
+
 		switch (cond) {
 		case PREV:
-			return null;
+			return false;
 		case DELAY:
-			mark = RSVMARK_DELAYED;
+			mk = RsvMark.DELAYED;
 			break;
 		case UNDER:
-			mark = RSVMARK_UNDERRUN;
+			mk = RsvMark.UNDERRUN;
 			break;
 		case OVER:
-			mark = RSVMARK_OVERRUN;
+			mk = RsvMark.OVERRUN;
 			break;
 		case CLIP:
-			mark = (data.tvd.extension) ? (RSVMARK_CLIPPED_E) : (RSVMARK_CLIPPED);
+			mk = (data.tvd.extension) ? (RsvMark.CLIPPED_E) : (RsvMark.CLIPPED);
 			break;
 		case SHORT:
-			mark = (data.tvd.extension) ? (RSVMARK_SHORTAGE_E) : (RSVMARK_SHORTAGE);
+			mk = (data.tvd.extension) ? (RsvMark.SHORTAGE_E) : (RsvMark.SHORTAGE);
 			break;
 		default:
-			mark = RSVMARK_NORMAL;
+			mk = RsvMark.NORMAL;
 			break;
 		}
 
-		return(new Marker((reserve.getExec())?(mark):(RSVMARK_NOEXEC), recorder.Myself(), recorder.getColor(reserve.getTuner())));
+		mark.rsvmark = (reserve.getExec()) ? mk : RsvMark.NOEXEC;
+
+		return true;
 	}
 	private RSVMARK_COND getReservedMarkCond(ListedItem data, String start, String end) {
 		{
@@ -2613,7 +2638,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	}
 	private static enum RSVMARK_COND { PREV, DELAY, UNDER, OVER, CLIP, SHORT, NORMAL };
 	
-	private Marker _getReservedMarkCharPickup(ListedItem data) {
+	private boolean _getReservedMarkCharPickup(Marker mark, ListedItem data) {
 		//return (data.hide_ispickup)?(new Marker(RSVMARK_PICKUP,"",PICKUP_COLOR)):(null);
 		//
 		PickedProgram picktvp = tvprograms.getPickup();
@@ -2622,13 +2647,15 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		ProgDetailList picktvd = picktvp.find(data.tvd);
 		if ( picktvd == null ) {
 			// みつかんねーよ
-			return null;
+			return false;
 		}
-		
-		return new Marker(RSVMARK_PICKUP,"",PICKUP_COLOR);
+
+		mark.pickmark = RsvMark.PICKUP;
+
+		return true;
 	}
 	
-	private Marker _getReservedMarkCharUra(ListedItem data) {
+	private boolean _getReservedMarkCharUra(Marker mark, ListedItem data) {
 		//
 		String myself = getSelectedRecorderOnToolbar();
 		HDDRecorderList recs = recorders.findInstance(myself);
@@ -2652,12 +2679,13 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 				CommonUtils.getStartEndList(starts, ends, res);
 				for (int j=0; j<starts.size(); j++) {
 					if ( CommonUtils.isOverlap(data.tvd.startDateTime, data.tvd.endDateTime, starts.get(j), ends.get(j), env.getAdjoiningNotRepetition()) ) {
-						return new Marker(RSVMARK_URABAN,"",URABAN_COLOR);
+						mark.uramark = RsvMark.URABAN;
+						return true;
 					}
 				}
 			}
 		}
-		return null;
+		return false;
 	}
 	
 	
@@ -3776,6 +3804,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			VWColorCharCellRenderer renderer = new VWColorCharCellRenderer();
 			if ( CommonUtils.isMac() ) renderer.setMacMarkFont();
 			jTable_listed.getColumn(ListedColumn.RSVMARK.getName()).setCellRenderer(renderer);
+			jTable_listed.getColumn(ListedColumn.PICKMARK.getName()).setCellRenderer(renderer);
 			jTable_listed.getColumn(ListedColumn.DUPMARK.getName()).setCellRenderer(renderer);
 			
 			// 強調色関連
@@ -3806,7 +3835,10 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 					continue;
 				}
 				column = columnModel.getColumn(lc.ordinal());
-				column.setPreferredWidth(bounds.getListedColumnSize().get(lc.toString()));	// toString()!
+				column.setResizable(lc.isResizable());
+				column.setMinWidth(MIN_COLUMN_WIDTH);
+				Integer w = bounds.getListedColumnSize().get(lc.toString());
+				column.setPreferredWidth(w != null ? w : lc.getIniWidth());
 			}
 			
 			// マーク表示分離の有無
@@ -3814,7 +3846,13 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			
 			// 番組詳細の表示・非表示
 			setDetailColumnVisible(env.getShowDetailOnList());
-			
+
+			// ピックアップの表示・非表示
+			setPickupColumnVisible(env.getShowRsvPickup());
+
+			// 時間重複の表示・非表示
+			setDupColumnVisible(env.getShowRsvDup());
+
 			//　行を選択すると詳細が表示されるようにする
 			jTable_listed.getSelectionModel().addListSelectionListener(lsSelectListner);
 			
@@ -3836,8 +3874,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	 * @see ListedColumn
 	 */
 	private class ListedItem extends RowItem implements Cloneable {
-		String rsvmark;
-		String dupmark;
+		Marker marker;
+		RsvMark dupmark;
 		String prefix;
 		String title;
 		String searchlabel;
@@ -3852,7 +3890,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		@Override
 		protected void myrefresh(RowItem o) {
 			ListedItem c = (ListedItem) o;
-			c.addData(rsvmark);
+			c.addData(marker);
+			c.addData(marker);	// ピックアップ欄用のダミー
 			c.addData(dupmark);
 			c.addData(tvd.center);
 			c.addData(prefix);
@@ -4016,17 +4055,13 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			
 			{
 				// 予約が入っているか否か
-				if ( c.rsvmark == null || c.rsvmark.length() == 0 ) {
-					//
-				}
-				else if ( c.rsvmark.equals(RSVMARK_NOEXEC)  ) {
-					//
-				}
-				else if ( c.rsvmark.equals(RSVMARK_PICKUP) ) {
-					prechkpicked = true;
-				}
-				else {
-					prechkreserved = true;
+				if ( c.marker != null ) {
+					if ( c.marker.rsvmark != null && c.marker.rsvmark != RsvMark.NOEXEC  ) {
+						prechkreserved = true;
+					}
+					else if ( c.marker.pickmark != null ) {
+						prechkpicked = true;
+					}
 				}
 			}
 			{
@@ -4046,7 +4081,26 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			
 			return true;
 		}
-		
+
+		@Override
+		public String getToolTipText(MouseEvent e){
+			// イベントからマウス位置を取得し、テーブル内のセルを割り出す
+			int prow = rowAtPoint(e.getPoint());
+			int row = this.convertRowIndexToModel(prow);
+			ListedItem c = rowData.get(row);
+			int col = columnAtPoint(e.getPoint());
+			if ( col == ListedColumn.RSVMARK.getColumn() && c.marker != null && c.marker.rsvmark != null ) {
+				return c.marker.rsvmark.desc;
+			}
+			else if ( col == ListedColumn.PICKMARK.getColumn() && c.marker != null && c.marker.pickmark != null ) {
+				return c.marker.pickmark.desc;
+			}
+			else if ( col == ListedColumn.DUPMARK.getColumn() && c.dupmark != null ) {
+				return c.dupmark.desc;
+			}
+			return null;
+		}
+
 		//
 		@Override
 		public void tableChanged(TableModelEvent e) {
@@ -4086,18 +4140,24 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		public Object getValueAt(int row, int column) {
 			// 多少負荷があがるがこっちの方が見通しがいいだろう
 			ListedItem c = rowData.get(row);
-			if ( c.size()>column ) {
+			if ( c.size( ) > column ) {
 				// 特殊なカラム
 				if ( column == ListedColumn.RSVMARK.getColumn() ) {
-					if ( c.rsvmark.length() > 0 ) {
-						return c.rsvmark+"\0"+c.hide_rsvmarkcolor;
+					if ( c.marker != null && c.marker.rsvmark != null ) {
+						if ( c.marker.rsvmark != RsvMark.URABAN ) {
+							return c.marker.rsvmark.mark+"\0"+c.hide_rsvmarkcolor;
+						}
+						else {
+							return c.marker.rsvmark.mark+"\0"+URABAN_COLOR;
+						}
 					}
-					else {
-						return "";
-					}
+					return "";
+				}
+				else if ( column == ListedColumn.PICKMARK.getColumn() ) {
+					return (env.getShowRsvPickup() && c.marker != null && c.marker.pickmark != null) ? c.marker.pickmark.mark : "" ;
 				}
 				else if ( column == ListedColumn.DUPMARK.getColumn() ) {
-					return c.dupmark+"\0"+DUPMARK_COLOR;
+					return (env.getShowRsvDup() && c.dupmark != null) ? c.dupmark.mark+"\0"+DUPMARK_COLOR : "";
 				}
 				else if ( column == ListedColumn.START.getColumn() ) {
 					return c.tvd.accurateDate+" "+c.tvd.start;
@@ -4126,7 +4186,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			}
 			return null;
 		}
-		
+
 		@Override
 		public int getRowCount() {
 			return rowData.size();

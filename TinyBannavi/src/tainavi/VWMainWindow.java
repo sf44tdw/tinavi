@@ -54,7 +54,9 @@ public class VWMainWindow extends JPanel {
 		public static int size() { return MWinTab.values().length; }
 		
 	}
-	
+
+	private final String SETTING_LIST = "設定一覧";
+
 	/*
 	 * 部品
 	 */
@@ -75,7 +77,7 @@ public class VWMainWindow extends JPanel {
 		// タブを全部準備する
 		for ( MWinTab tab : MWinTab.values() ) {
 			if ( tab == MWinTab.SETTING ) {
-				jTabbedPane.add(jTabbedPane_settings, "設定");
+				jTabbedPane.add(jTabbedPane_settings, SETTING_LIST);
 			}
 			addTab(null, tab);
 		}

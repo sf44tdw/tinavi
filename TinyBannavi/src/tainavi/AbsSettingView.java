@@ -159,6 +159,7 @@ public abstract class AbsSettingView extends JScrollPane {
 	private JCheckBoxPanel jCBP_syoboFilterByCenters = null;
 	private JCheckBoxPanel jCBP_displayPassedEntry = null;
 	private JCheckBoxPanel jCBP_showRsvPickup = null;
+	private JCheckBoxPanel jCBP_showRsvDup = null;
 	private JCheckBoxPanel jCBP_showRsvUra = null;
 	private JCheckBoxPanel jCBP_rsvdLineEnhance = null;
 	private JLabel jLabel_rsvdLineColor = null;
@@ -415,7 +416,12 @@ public abstract class AbsSettingView extends JScrollPane {
 			// RELOADリスナー不要
 
 			y+=(PARTS_HEIGHT+SEP_HEIGHT);
-			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_showRsvUra = new JCheckBoxPanel("裏番組予約マーク(■)を表示する",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
+			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_showRsvDup = new JCheckBoxPanel("時間重複マーク(■)を表示する",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
+			jCBP_showRsvDup.setSelected(env.getShowRsvDup());
+			// RELOADリスナー不要
+
+			y+=(PARTS_HEIGHT+SEP_HEIGHT);
+			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_showRsvUra = new JCheckBoxPanel("裏番組予約マーク(裏)を表示する",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
 			jCBP_showRsvUra.setSelected(env.getShowRsvUra());
 			// RELOADリスナー不要
 
@@ -1082,6 +1088,7 @@ public abstract class AbsSettingView extends JScrollPane {
 				env.setSyoboFilterByCenters(jCBP_syoboFilterByCenters.isSelected());
 				env.setDisplayPassedEntry(jCBP_displayPassedEntry.isSelected());
 				env.setShowRsvPickup(jCBP_showRsvPickup.isSelected());
+				env.setShowRsvDup(jCBP_showRsvDup.isSelected());
 				env.setShowRsvUra(jCBP_showRsvUra.isSelected());
 				env.setRsvdLineEnhance(jCBP_rsvdLineEnhance.isSelected());
 				env.setRsvdLineColor(jCCL_rsvdLineColor.getChoosed());

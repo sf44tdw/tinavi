@@ -55,9 +55,9 @@ public class JNETable extends JTable {
 	}
 	
 	private ColumnData[] colDat = null;
-	
+
 	public void setColumnVisible(String name, boolean b) {
-		
+
 		if ( name == null ) {
 			return;
 		}
@@ -108,7 +108,7 @@ public class JNETable extends JTable {
 			}
 		}
 	}
-	
+
 	/*
 	 * コンストラクタ
 	 */

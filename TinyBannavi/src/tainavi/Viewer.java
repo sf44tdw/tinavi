@@ -3704,6 +3704,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		// 列の表示・非表示
 		listed.setMarkColumnVisible(env.getSplitMarkAndTitle());
 		listed.setDetailColumnVisible(env.getShowDetailOnList());
+		listed.setPickupColumnVisible(env.getShowRsvPickup());
+		listed.setDupColumnVisible(env.getShowRsvDup());
 		listed.setRowHeaderVisible(env.getRowHeaderVisible());
 		reserved.setRowHeaderVisible(env.getRowHeaderVisible());
 		

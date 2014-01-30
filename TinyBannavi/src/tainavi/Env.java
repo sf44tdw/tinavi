@@ -268,10 +268,14 @@ public class Env {
 	public boolean getDisplayPassedEntry() { return displayPassedEntry; }
 	public void setDisplayPassedEntry(boolean b) { displayPassedEntry = b; }
 	private boolean displayPassedEntry = true;
-	// 裏番組予約マークの表示
+	// ピックアップマークの表示
 	public boolean getShowRsvPickup() { return showRsvPickup; }
 	public void setShowRsvPickup(boolean b) { showRsvPickup = b; }
 	private boolean showRsvPickup = true;
+	// 時間重複マークの表示
+	public boolean getShowRsvDup() { return showRsvDup; }
+	public void setShowRsvDup(boolean b) { showRsvDup = b; }
+	private boolean showRsvDup = true;
 	// 裏番組予約マークの表示
 	public boolean getShowRsvUra() { return showRsvUra; }
 	public void setShowRsvUra(boolean b) { showRsvUra = b; }
