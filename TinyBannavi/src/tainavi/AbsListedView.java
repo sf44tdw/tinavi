@@ -323,7 +323,6 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 
 	private class Marker {
 		RsvMark rsvmark = null;
-		RsvMark uramark = null;
 		RsvMark pickmark = null;
 		String myself = null;
 		String color = null;
@@ -335,7 +334,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	}
 
 	private static final String PICKUP_COLOR		= CommonUtils.color2str(Color.BLACK);
-	private static final String URABAN_COLOR		= CommonUtils.color2str(Color.BLACK);
+	private static final String URABAN_COLOR		= "#666666";
 	private static final String DUPMARK_COLOR		= "#FFB6C1";
 	
 	private static final String TreeExpRegFile_Listed = "env"+File.separator+"tree_expand_listed.xml";
@@ -2423,108 +2422,155 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	 */
 	private Marker getReservedMarkChar(ListedItem data) {
 		
-		//
-		HDDRecorder recorder = null;						// その番組の予約がみつかった最初のレコーダ
-		ReserveList reserve = null;							// 見つかった予約情報
-		String start = null;								// 実行予定が複数あったら一番近いのを選ぶ
-		String end = "";									// 同上
-		long diff = 86400L*30L;
-		
-		String myself = getSelectedRecorderOnToolbar();
-		HDDRecorderList recs = recorders.findInstance(myself);
-
 		// コンボボックスの指定はピックアップである
+		String myself = getSelectedRecorderOnToolbar();
 		boolean isPickupOnly = ( myself == HDDRecorder.SELECTED_PICKUP ) ;
-		
+
+		Marker mark = new Marker("", "");
+		boolean marked = false;
+
 		if ( ! isPickupOnly ) {
-			
 			// 「ピックアップ」が選択されていればここは通らない
-			
-			// 基準日時
-			String critDateTime = CommonUtils.getCritDateTime(env.getDisplayPassedReserve());
-			
-			// 全予約をなめて、一番近い予約を探さなければならない
-			for ( HDDRecorder rec : recs )
-			{
-				if (diff == 0) break;
-				
-				for ( ReserveList res : rec.getReserves() )
-				{
-					if (diff == 0) break;
-					
-					// Exec == ON ?
-					if ( env.getDisplayOnlyExecOnEntry() && ! res.getExec()) {
+
+			// 表示対象のレコーダを絞る
+			HDDRecorderList s_recorders = recorders.findInstance(myself);
+
+			// 近傍の予約を探す
+			ArrayList<NeighborReserveList> n_reserves = findOverlapReserves(s_recorders, data);
+
+			for ( NeighborReserveList n_res : n_reserves ) {
+				if ( ! data.tvd.center.equals(n_res.getReserve().getCh_name()) ) {
+					// 他局はアウト
+					continue;
+				}
+
+				// 予約マーク
+				mark = new Marker(n_res.getRecorder().Myself(), n_res.getRecorder().getColor(n_res.getReserve().getTuner()));
+				marked = _getReservedMarkCharNormal(mark, data, n_res);
+				break;
+			}
+
+			// 裏番組予約マーク
+			if ( env.getShowRsvUra() && ! marked ) {
+				for ( NeighborReserveList n_res : n_reserves ) {
+					if ( data.tvd.center.equals(n_res.getReserve().getCh_name()) ) {
+						// 裏番組だから、同じ局はアウト
 						continue;
 					}
-					
-					if (res.getCh_name() == null) {
-						// 警告したい！
+					if ( ! n_res.getReserve().getExec() ) {
+						// 実行不可なら裏番組にはならない
 						continue;
 					}
-					
-					// 局が一致して
-					if ( ! data.tvd.center.equals(res.getCh_name())) {
+
+					// 予約マーク
+					marked = _getReservedMarkCharUra(mark, data) || marked;
+					break;
+				}
+
+			}
+		}
+
+		// ピックアップマーク
+		if ( env.getShowRsvPickup() ) {
+			marked = _getReservedMarkCharPickup(mark, data) || marked;
+		}
+
+		return(marked ? mark : null);
+	}
+
+	/**
+	 * その番組の近傍の予約情報のリストを作成する
+	 */
+	private ArrayList<NeighborReserveList> findOverlapReserves(HDDRecorderList s_recorders, ListedItem data) {
+
+		// 近傍予約のリスト
+		ArrayList<NeighborReserveList> n_reserves = new ArrayList<NeighborReserveList>();
+
+		// 基準日時
+		String critDateTime = CommonUtils.getCritDateTime(env.getDisplayPassedReserve());
+
+		// 全予約をなめて、一番近い予約を探さなければならない
+		for ( HDDRecorder rec : s_recorders ) {
+			for ( ReserveList res : rec.getReserves() ) {
+				if ( env.getDisplayOnlyExecOnEntry() && ! res.getExec() ) {
+					// 実行可能な予約しかいらない場合
+					continue;
+				}
+
+				if ( res.getCh_name() == null ) {
+					// TODO 警告したい！
+					continue;
+				}
+
+				// 開始終了日時リストを生成する
+				ArrayList<String> starts = new ArrayList<String>();
+				ArrayList<String> ends = new ArrayList<String>();
+				CommonUtils.getStartEndList(starts, ends, res);
+
+				for ( int j=0; j<starts.size(); j++ ) {
+					if ( critDateTime.compareTo(ends.get(j)) > 0 ) {
+						// 終了済みは対象外
 						continue;
 					}
-						
-					// 開始終了日時リストを生成する
-					ArrayList<String> starts = new ArrayList<String>();
-					ArrayList<String> ends = new ArrayList<String>();
-					CommonUtils.getStartEndList(starts, ends, res);
-					
-					for (int j=0; j<starts.size(); j++) {
-						if (critDateTime.compareTo(ends.get(j)) > 0) {
-							// 終了済みは対象外
-							continue;
-						}
-						if ( CommonUtils.isOverlap(data.tvd.startDateTime, data.tvd.endDateTime, starts.get(j), ends.get(j), true) ) {
-							// より開始時刻が近いものを選ぶ
-							if ( start == null ) {
-								start = starts.get(j);
+					if ( CommonUtils.isOverlap(data.tvd.startDateTime, data.tvd.endDateTime, starts.get(j), ends.get(j), true) ) {
+						// 重なってる（開始時間＝終了時間は除外）
+						long df = CommonUtils.getDiffDateTime(starts.get(j), data.tvd.startDateTime);
+						NeighborReserveList n_res = new NeighborReserveList(rec, res, starts.get(j), ends.get(j), df);
+
+						// 距離昇順に並べる
+						int index = 0;
+						for ( ; index < n_reserves.size(); index++ ) {
+							if ( n_res.getDiff() < n_reserves.get(index).getDiff() ) {
+								break;
 							}
-							long df = CommonUtils.getDiffDateTime(starts.get(j), data.tvd.startDateTime);
-							if ( diff > df ) {
-								recorder = rec;
-								reserve = res;
-								start = starts.get(j);
-								end = ends.get(j);
-								diff = df;
-							}
 						}
+						n_reserves.add(index, n_res);
+
+						break;
 					}
 				}
 			}
 		}
-		
-		// 予約されている
-		
-		Marker mark;
-		boolean marked = false;
 
-		// 予約マーク
-		if (recorder != null) {
-			mark = new Marker(recorder.Myself(), recorder.getColor(reserve.getTuner()));
-			marked = marked || _getReservedMarkCharNormal(mark, data, recorder, reserve, start, end);
-		}
-		else {
-			mark = new Marker("", "");
-		}
-		// 裏番組予約マーク
-		if (env.getShowRsvUra() && mark.rsvmark == null) {
-			marked = _getReservedMarkCharUra(mark, data) || marked;
-		}
-		// ピックアップマーク
-		marked = _getReservedMarkCharPickup(mark, data) || marked;
-
-		return(marked ? mark : null);
+		return n_reserves;
 	}
+
+	private class NeighborReserveList {
+		public NeighborReserveList(HDDRecorder recorder, ReserveList reserve, String start, String end, long diff) {
+			this.recorder = recorder;
+			this.reserve = reserve;
+			this.start = start;
+			this.end = end;
+			this.diff = diff;
+		}
+
+		private HDDRecorder recorder;
+		public HDDRecorder getRecorder() { return recorder; }
+
+		private ReserveList reserve;
+		public ReserveList getReserve() { return reserve; }
+
+		private long diff;
+		public long getDiff() { return diff; }
+
+		private String start;
+		public String getStart() { return start; }
+
+		private String end;
+		public String getEnd() { return end; }
+	}
+
 	/**
 	 * @see #getReservedMarkChar(ListedItem)
 	 */
-	private boolean _getReservedMarkCharNormal(Marker mark, ListedItem data, HDDRecorder recorder, ReserveList reserve, String start, String end) {
+	private boolean _getReservedMarkCharNormal(Marker mark, ListedItem data, NeighborReserveList n_reserve) {
 		
 		// ここに入ってくる場合は時間の重なりが確認できているものだけである
-		
+		HDDRecorder recorder = n_reserve.getRecorder();
+		ReserveList reserve = n_reserve.getReserve();
+		String start = n_reserve.getStart();
+		String end = n_reserve.getEnd();
+
 		RSVMARK_COND cond = getReservedMarkCond(data, start, end);
 		
 		if (debug) System.err.println(DBGID+data.tvd.title+" "+data.tvd.startDateTime+" "+data.tvd.endDateTime+" "+start+" "+end+" "+cond);
@@ -2656,6 +2702,14 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	}
 	
 	private boolean _getReservedMarkCharUra(Marker mark, ListedItem data) {
+
+		mark.rsvmark = RsvMark.URABAN;
+		return true;
+		/*
+		if ( mark.rsvmark != null ) {
+			return false;
+		}
+
 		//
 		String myself = getSelectedRecorderOnToolbar();
 		HDDRecorderList recs = recorders.findInstance(myself);
@@ -2679,17 +2733,18 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 				CommonUtils.getStartEndList(starts, ends, res);
 				for (int j=0; j<starts.size(); j++) {
 					if ( CommonUtils.isOverlap(data.tvd.startDateTime, data.tvd.endDateTime, starts.get(j), ends.get(j), env.getAdjoiningNotRepetition()) ) {
-						mark.uramark = RsvMark.URABAN;
+						mark.rsvmark = RsvMark.URABAN;
 						return true;
 					}
 				}
 			}
 		}
+
 		return false;
+		*/
 	}
-	
-	
-	
+
+
 	
 	
 	/*
@@ -4056,7 +4111,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			{
 				// 予約が入っているか否か
 				if ( c.marker != null ) {
-					if ( c.marker.rsvmark != null && c.marker.rsvmark != RsvMark.NOEXEC  ) {
+					if ( c.marker.rsvmark != null && c.marker.rsvmark != RsvMark.NOEXEC && c.marker.rsvmark != RsvMark.URABAN ) {
 						prechkreserved = true;
 					}
 					else if ( c.marker.pickmark != null ) {
@@ -4143,7 +4198,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			if ( c.size( ) > column ) {
 				// 特殊なカラム
 				if ( column == ListedColumn.RSVMARK.getColumn() ) {
-					if ( c.marker != null && c.marker.rsvmark != null ) {
+					if ( c.marker != null  && c.marker.rsvmark != null ) {
 						if ( c.marker.rsvmark != RsvMark.URABAN ) {
 							return c.marker.rsvmark.mark+"\0"+c.hide_rsvmarkcolor;
 						}
