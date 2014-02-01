@@ -420,6 +420,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			toolBar.setBatchReservationEnabled(true);
 			// スナップショットを有効にする
 			toolBar.setSnapShotEnabled(true);
+			// 新聞形式以外ではマッチ枠を無効にする
+			toolBar.setBorderToggleEnabled(true, bounds.getShowReservedBackground());
 		}
 
 		@Override
@@ -430,6 +432,8 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			toolBar.setBatchReservationEnabled(false);
 			// スナップショットを無効にする
 			toolBar.setSnapShotEnabled(false);
+			// 新聞形式以外ではマッチ枠を無効にする
+			toolBar.setBorderToggleEnabled(false, bounds.getShowReservedBackground());
 		}
 
 		@Override
@@ -569,7 +573,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			// ジャンル別背景色を有効にする
 			toolBar.setPaperColorDialogEnabled(true);
 			// マッチ枠を有効にする
-			toolBar.setBorderToggleEnabled(true);
+			toolBar.setBorderToggleEnabled(true, bounds.getShowMatchedBorder());
 		}
 
 		@Override
@@ -581,7 +585,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			// 新聞形式以外ではジャンル別背景色を無効にする
 			toolBar.setPaperColorDialogEnabled(false);
 			// 新聞形式以外ではマッチ枠を無効にする
-			toolBar.setBorderToggleEnabled(false);
+			toolBar.setBorderToggleEnabled(false, bounds.getShowMatchedBorder());
 		}
 
 		@Override
@@ -1315,9 +1319,14 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		}
 
 		@Override
-		protected void toggleMatchBorder() {
+		protected void toggleMatchBorder(boolean b) {
 			timer_now.pause();
-			paper.toggleMatchBorder();
+			if ( mainWindow.isTabSelected(MWinTab.LISTED) ) {
+				listed.toggleReservedBackground(b);
+			}
+			else if ( mainWindow.isTabSelected(MWinTab.PAPER) ) {
+				paper.toggleMatchBorder(b);
+			}
 			timer_now.start();
 		}
 

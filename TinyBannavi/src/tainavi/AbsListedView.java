@@ -1447,7 +1447,20 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	public void setRowHeaderVisible(boolean b) {
 		jScrollPane_listed.getRowHeader().setVisible(b);
 	}
-	
+
+	/**
+	 * 予約済み背景色の描画（ツールバーからのトグル操作）
+	 */
+	public boolean toggleReservedBackground(boolean b) {
+
+		// 状態を保存
+		bounds.setShowReservedBackground(b);
+
+		tableModel_listed.fireTableDataChanged();
+
+		return bounds.getShowReservedBackground();
+	}
+
 	/**
 	 * スクリーンショット用
 	 */
@@ -4058,14 +4071,14 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 				isRowPassed(row);
 				
 				fgColor = (prechknextweek)?(nextweekFgColor):(this.getForeground());
-				
+
 				if( prechkpassed && passedColor != null ) {
 					bgColor = passedColor;
 				}
-				else if( prechkreserved && reservedColorEven != null ) {
+				else if( bounds.getShowReservedBackground() && prechkreserved && reservedColorEven != null ) {
 					bgColor = (isSepRowColor && row%2 == 1)?(reservedColorEven):(reservedColorOdd);
 				}
-				else if( prechkpicked && pickedColorEven != null ) {
+				else if( bounds.getShowReservedBackground() && prechkpicked && pickedColorEven != null ) {
 					bgColor = (isSepRowColor && row%2 == 1)?(pickedColorEven):(pickedColorOdd);
 				}
 				else if( prechkcurrent && currentColorEven != null ) {

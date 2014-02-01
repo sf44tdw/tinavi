@@ -81,7 +81,7 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	protected abstract boolean jumpToNow();
 	protected abstract boolean jumpToPassed(String passed);
 	protected abstract boolean redrawByPager();
-	protected abstract void toggleMatchBorder();
+	protected abstract void toggleMatchBorder(boolean b);
 	protected abstract void setPaperColorDialogVisible(boolean b);
 	protected abstract void setPaperZoom(int n);
 	// 共通
@@ -454,8 +454,13 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	/**
 	 * ぼだー
 	 */
-	public void setBorderToggleEnabled(boolean b) {
+	public void setBorderToggleEnabled(boolean b, boolean cond) {
+		jToggleButton_showmatchborder.removeActionListener(al_showborder);
+
 		jToggleButton_showmatchborder.setEnabled(b);
+		jToggleButton_showmatchborder.setSelected(cond);
+
+		jToggleButton_showmatchborder.addActionListener(al_showborder);
 	}
 	
 	/**
@@ -1037,8 +1042,9 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	
 	// 新聞形式に予約待機枠を表示させたりしなかったり
 	private final ActionListener al_showborder = new ActionListener(){
+		@Override
 		public void actionPerformed(ActionEvent e){
-			toggleMatchBorder();
+			toggleMatchBorder(((JToggleButton)e.getSource()).isSelected());
 		}
 	};
 	
@@ -1384,8 +1390,10 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 		}
 		return jToggleButton_fullScreen;
 	}
-	
-	// 「設定タブを表示」
+
+	/**
+	 * 予約背景色・検索マッチ枠の表示／非表示
+ 	 */
 	private JToggleButton getJToggleButton_showmatchborder(String s) {
 		if (jToggleButton_showmatchborder == null) {
 			final ImageIcon icon = new ImageIcon(ICONFILE_SHOWMATCHBORDER);

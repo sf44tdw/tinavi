@@ -624,10 +624,10 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	/**
 	 * 予約待機赤枠の描画（ツールバーからのトグル操作）
 	 */
-	public boolean toggleMatchBorder() {
+	public boolean toggleMatchBorder(boolean b) {
 		
 		// 状態を保存
-		bounds.setShowMatchedBorder( ! bounds.getShowMatchedBorder());
+		bounds.setShowMatchedBorder(b);
 		
 		_updPBorderAll(env, bounds, frameUsed);
 		

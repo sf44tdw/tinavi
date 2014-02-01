@@ -70,15 +70,23 @@ public class Bounds {
 	public void setSelectedTab(int t) { selectedTab = t; }
 	
 	//
+	@Deprecated
 	private boolean showSettingTabs;
+	@Deprecated
 	public boolean getShowSettingTabs() { return showSettingTabs; }
+	@Deprecated
 	public void setShowSettingTabs(boolean b) { showSettingTabs = b; }
 	
-	// 検索マッチ枠を表示する
+	// 予約済み背景色を描画する（リスト形式）
+	public boolean getShowReservedBackground() { return showReservedBackground; }
+	public void setShowReservedBackground(boolean b) { showReservedBackground = b; }
+	private boolean showReservedBackground = true;
+
+	// 検索マッチ枠を表示する（新聞形式）
 	public boolean getShowMatchedBorder() { return showMatchedBorder; }
 	public void setShowMatchedBorder(boolean b) { showMatchedBorder = b; }
 	private boolean showMatchedBorder = true;
-	
+
 	// ステータスエリアを表示する
 	private boolean showStatus;
 	public boolean getShowStatus() { return showStatus; }
