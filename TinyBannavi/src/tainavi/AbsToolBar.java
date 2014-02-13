@@ -131,7 +131,6 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	private static final String ICONFILE_RELOADRSV		= "icon/video-television.png";
 	private static final String ICONFILE_WAKEUP			= "icon/system-shutdown-2.png";
 	private static final String ICONFILE_SHUTDOWN		= "icon/user-offline.png";
-	private static final String ICONFILE_SHOWSETTING	= "icon/system.png";
 	private static final String ICONFILE_STATUSHIDDEN	= "icon/view-split-top-bottom-3.png";
 	private static final String ICONFILE_STATUSSHOWN	= "icon/view-close.png";
 	private static final String ICONFILE_TOFULL			= "icon/view-fullscreen-5.png";
@@ -159,7 +158,6 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	private static final String TIPS_RELOADRSVED		= "レコーダから予約情報を再取得＆レコーダの各種設定情報の収集";
 	private static final String TIPS_WAKEUP				= "レコーダの電源を入れる";
 	private static final String TIPS_DOWN				= "レコーダの電源を落とす";
-	private static final String TIPS_SHOWSETTING		= "設定タブを表示する";
 	private static final String TIPS_STATUSHIDDEN		= "ステータスエリアを表示する";
 	private static final String TIPS_STATUSSHOWN		= "ステータスエリアを隠す";
 	private static final String TIPS_TOFULL				= "フルスクリーンモードへ";
@@ -202,7 +200,6 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 	private JButton jButton_reloadrsved = null;
 	private JButton jButton_reloadrsvedmenu = null;
 	private JPopupMenu jPopupMenu_reloadrsvedmenu = null;
-	//private JButton jButton_reloadreced = null;
 	private JButton jButton_batchreservation = null;
 	private JToggleButton jToggleButton_showmatchborder = null;
 	private JButton jButton_moveToNow = null;
@@ -284,17 +281,24 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 		boolean doFilter = false;
 		String sStr = null;
 		String kStr = null;
-		Matcher ma = Pattern.compile("^(@(.+?)[ 　]+)").matcher(jTextField_keyword.getText());
+		String keywordStr = jTextField_keyword.getText().trim();
+
+		if ( keywordStr.matches(("^@d(?:rop)?$"))) {
+			doKeywordSerach(null,null,null,true);
+			return;
+		}
+
+		Matcher ma = Pattern.compile("^(@(.+?)[ 　]+)").matcher(keywordStr);
 		if ( ma.find() ) {
-			if ( ma.group(2).matches("^f(ilter)?$") ) {
+			if ( ma.group(2).matches("^f(ilter)?$")) {
 				// 絞込検索
-				kStr = jTextField_keyword.getText();
+				kStr = keywordStr;
 				kStr = kStr.substring(ma.group(1).length()-1,kStr.length()).trim();
 				doFilter = true;
 			}
 		}
 		else {
-			ma = Pattern.compile("^(\\d\\d\\d\\d/)?(\\d\\d/\\d\\d)([ 　]+((\\d\\d\\d\\d/)?\\d\\d/\\d\\d))?[  　]+").matcher(jTextField_keyword.getText());
+			ma = Pattern.compile("^(\\d\\d\\d\\d/)?(\\d\\d/\\d\\d)([ 　]+((\\d\\d\\d\\d/)?\\d\\d/\\d\\d))?[  　]+").matcher(keywordStr);
 			if (ma.find()) {
 				// 過去ログ検索(範囲指定あり）
 				String sD;
@@ -339,7 +343,7 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 			}
 			else {
 				// 通常ログ検索
-				kStr = jTextField_keyword.getText().trim();
+				kStr = keywordStr.trim();
 			}
 		}
 		if ( kStr == null || kStr.matches("^[ 　]*$") ) {

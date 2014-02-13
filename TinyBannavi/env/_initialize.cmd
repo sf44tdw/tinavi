@@ -59,3 +59,4 @@ del /F /Q bounds.txt
 del /F /Q bounds.xml.bak
 REM --- 3.21.1b ---
 del /F /Q _gtkrc-2.0
+del /F /Q autorsv.*

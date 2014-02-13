@@ -345,27 +345,26 @@ public abstract class AbsRecordedListView extends JPanel {
 	/**
 	 * 絞り込み検索の本体（現在リストアップされているものから絞り込みを行う）（親から呼ばれるよ！）
 	 */
-	public void redrawListByKeywordFilter(SearchKey keyword, String target) {
+	public void redrawListByKeyword(SearchKey keyword, String target) {
 		
 		// 情報を一行ずつチェックする
 		if ( keyword != null ) {
-			
+
 			rowView.clear();
-			
+
 			for ( RecordedItem a : rowData ) {
-				
+
 				ProgDetailList tvd = new ProgDetailList();
 				tvd.title = a.title;
 				tvd.titlePop = TraceProgram.replacePop(tvd.title);
-				
-				// タイトルを整形しなおす
+
 				boolean isFind = SearchProgram.isMatchKeyword(keyword, "", tvd);
-				
+
 				if ( isFind ) {
 					rowView.add(a);
 				}
 			}
-			
+
 			// fire!
 			tableModel_reced.fireTableDataChanged(true);
 			rowheaderModel_reced.fireTableDataChanged();
@@ -388,7 +387,25 @@ public abstract class AbsRecordedListView extends JPanel {
 			rowheaderModel_reced.fireTableDataChanged();
 		}
 	}
-	
+
+	/**
+	 *
+	 */
+	public void redrawListByErrorFilter() {
+
+		rowView.clear();
+
+		for ( RecordedItem a : rowData ) {
+			if ( a.drop != 0 || ! a.hide_succeeded ) {
+				rowView.add(a);
+			}
+		}
+
+		// fire!
+		tableModel_reced.fireTableDataChanged(true);
+		rowheaderModel_reced.fireTableDataChanged();
+	}
+
 	/**
 	 * カラム幅を保存する（鯛ナビ終了時に呼び出されるメソッド）
 	 */

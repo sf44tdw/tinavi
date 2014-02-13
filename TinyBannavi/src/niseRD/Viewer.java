@@ -53,7 +53,7 @@ public class Viewer extends JFrame {
 			jComboBox = new JComboBox();
 			DefaultComboBoxModel model = new DefaultComboBoxModel();
 			jComboBox.setModel(model);
-			String root = "D:\\workspace+\\Data";
+			String root = "D:\\Develop\\workspace+\\Data";
 			File f = new File(root);
 			for ( File fc : f.listFiles()) {
 				if (fc.isDirectory()) {

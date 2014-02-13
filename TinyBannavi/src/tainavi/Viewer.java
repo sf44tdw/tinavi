@@ -1252,7 +1252,12 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 				reserved.redrawListByKeywordFilter(search, kStr);
 			}
 			else if ( mainWindow.getSelectedTab() == MWinTab.RECED ) {
-				recorded.redrawListByKeywordFilter(search, kStr);
+				if ( ! doFilter ) {
+					recorded.redrawListByKeyword(search, kStr);
+				}
+				else {
+					recorded.redrawListByErrorFilter();
+				}
 			}
 			else {
 				if ( search != null ) {
@@ -1507,7 +1512,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		}
 		else if ( mainWindow.isTabSelected(MWinTab.RECED) ) {
 			if ( e.getCause() == CancelEvent.Cause.TOOLBAR_SEARCH ) {
-				recorded.redrawListByKeywordFilter(null,null);
+				recorded.redrawListByKeyword(null,null);
 			}
 		}
 	}

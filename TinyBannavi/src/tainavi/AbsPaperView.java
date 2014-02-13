@@ -2081,7 +2081,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 			
 			// なんかおかしいのでデフォルト選択にまわす
 			CommonUtils.printStackTrace();
-			MWin.appendError(ERRID+"バグの可能性あり");
+			MWin.appendError(DBGID+"デバッグまで仮置き");
 			//redrawByNow(IterationType.ALL);
 			//jLabel_tree.setView(JTreeLabel.Nodes.DATE, JTreeLabel.Nodes.NOW.getLabel());
 		}

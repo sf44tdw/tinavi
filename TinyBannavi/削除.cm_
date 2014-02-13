@@ -40,7 +40,7 @@ CD ..\Resources
 RMDIR /S /Q CVS
 CD ..\..\..\
 
-COPY tinybannavi.sh "TaiNavi for Mac.app\Contents\MacOS\"
+COPY /Y tinybannavi.sh "TaiNavi for Mac.app\Contents\MacOS\"
 
 rem MOVE .\bin\tainavi\PlugIn_RecGoogleCalendar.class .\calendar
 rem MOVE .\bin\tainavi\PlugIn_RecRD_MAIL*.class .\javamail
