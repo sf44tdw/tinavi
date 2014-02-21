@@ -330,6 +330,10 @@ public class PlugIn_TVPDimora extends TVProgramUtils implements TVProgram,Clonea
 				if ( ca == null ) {
 					continue;
 				}
+				if ( ca.compareTo(cy) >= 0 ) {
+					// なんか翌日付のデータが混じってるぞ？
+					continue;
+				}
 				pdl.start = CommonUtils.getTime(ca);
 				
 				GregorianCalendar cz = CommonUtils.getCalendar(dat[2]);
