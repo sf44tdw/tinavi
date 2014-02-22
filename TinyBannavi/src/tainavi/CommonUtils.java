@@ -482,13 +482,21 @@ public class CommonUtils {
 		return c;
 	}
 	/**
+	 * 指定日時＋min分のCalendarを返す
+	 */
+	public static GregorianCalendar getCalendar(String date, int sec) {
+		GregorianCalendar c = getCalendar(date);
+		c.add(Calendar.SECOND, sec);
+		return c;
+	}
+	/**
 	 *  日付時刻文字列をCalendarに変換
 	 *  @param date YYYY/MM/DD[(.)][ hh:mm[:ss]] or YYYY-MM-DD[Thh:mm[:ss]] or YYYYMMDD[hhmm[ss]]
 	 */
 	public static GregorianCalendar getCalendar(String date) {
 		Matcher ma = Pattern.compile("^(\\d\\d\\d\\d)[/-](\\d{1,2})[/-](\\d{1,2})(\\(.\\))?([ T](\\d{1,2}):(\\d{1,2})(:\\d{1,2})?)?$").matcher(date);
 		if ( ! ma.find()) {
-			ma = Pattern.compile("^(\\d\\d\\d\\d)(\\d\\d)(\\d\\d)()?((\\d\\d)(\\d\\d)(\\d\\d)?)?$").matcher(date);
+			ma = Pattern.compile("^(\\d\\d\\d\\d)(\\d\\d)(\\d\\d)(\\s)?((\\d\\d)(\\d\\d)(\\d\\d)?)?$").matcher(date);
 			if ( ! ma.find()) {
 				return null;
 			}

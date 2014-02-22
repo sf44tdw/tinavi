@@ -109,10 +109,12 @@ public class ProgDetailList implements Cloneable {
 	/*******************************************************************************
 	 * NGワード処理
 	 ******************************************************************************/
-	
+
+	private static final String NO_PROG_TITLE = "番組情報がありません";
+
 	public void abon() {
 		start = "";
-		title = "番組情報がありません";
+		title = splitted_title = NO_PROG_TITLE;
 		detail = "";
 		addedDetail = "";
 		

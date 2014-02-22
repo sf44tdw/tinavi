@@ -19,8 +19,6 @@ import tainavi.ProgDetailList;
 import tainavi.ProgList;
 import tainavi.TVProgram;
 import tainavi.TVProgramUtils;
-import tainavi.TVProgram.ProgSubtype;
-import tainavi.TVProgram.ProgType;
 
 
 public class PlugIn_TVPDimora extends TVProgramUtils implements TVProgram,Cloneable {
@@ -308,7 +306,8 @@ public class PlugIn_TVPDimora extends TVProgramUtils implements TVProgram,Clonea
 					break;
 				}
 			}
-			if ( pcl == null ) {
+			if ( pcl == null || pcl.row > 0 ) {
+				// 複数地域を同時に選択していると、BSの番組情報が重複して取得されるので、既得(pcl.row>0)ならスキップ
 				continue;
 			}
 			
@@ -355,13 +354,13 @@ public class PlugIn_TVPDimora extends TVProgramUtils implements TVProgram,Clonea
 					}
 					else if ( cx.compareTo(ca) < 0 ) {
 						// 開始時刻が05:00よりあと
-						addEnmptyInfo(pcl, sdat, dat[1]);
+						addEmptyInfo(pcl, sdat, dat[1]);
 					}
 				}
 				else {
 					if ( pcz.compareTo(ca) < 0 ) {
 						// 前の番組との間が空いている
-						addEnmptyInfo(pcl, CommonUtils.getDateTime(pcz), dat[1]);
+						addEmptyInfo(pcl, CommonUtils.getDateTime(pcz), dat[1]);
 					}
 				}
 				
@@ -418,11 +417,11 @@ public class PlugIn_TVPDimora extends TVProgramUtils implements TVProgram,Clonea
 			}
 			if ( pcz == null ) {
 				// 番組情報がないよ
-				addEnmptyInfo(pcl, CommonUtils.getDateTime(cx), CommonUtils.getDateTime(cy));
+				addEmptyInfo(pcl, CommonUtils.getDateTime(cx), CommonUtils.getDateTime(cy));
 			}
 			else if ( pcz.compareTo(cy) < 0 ) {
 				// 終了時刻が29:00より前
-				addEnmptyInfo(pcl, CommonUtils.getDateTime(pcz), CommonUtils.getDateTime(cy));
+				addEmptyInfo(pcl, CommonUtils.getDateTime(pcz), CommonUtils.getDateTime(cy));
 			}
 		}
 	}

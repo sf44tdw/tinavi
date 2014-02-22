@@ -1,6 +1,8 @@
 package tainavi.plugintv;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -11,21 +13,16 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import tainavi.AreaCode;
-import tainavi.Center;
-import tainavi.CommonUtils;
-import tainavi.ContentIdDIMORA;
-import tainavi.ProgDateList;
-import tainavi.ProgDetailList;
-import tainavi.ProgList;
-import tainavi.TVProgram;
-import tainavi.TVProgramUtils;
-import tainavi.TVProgram.ProgGenre;
-import tainavi.TVProgram.ProgOption;
-import tainavi.TVProgram.ProgSubgenre;
-import tainavi.TVProgram.ProgSubtype;
-import tainavi.TVProgram.ProgType;
+import tainavi.*;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProgram,Cloneable {
 
@@ -202,37 +199,45 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 			getDate(pl);
 
 			//
+			String xtype = (pl.CenterId.startsWith(CHID_PREFIX_BS) || pl.CenterId.startsWith(CHID_PREFIX_CS)) ? XTYPE_BASIC : XTYPE_PREMIUM;
+			String chid = xtype == XTYPE_BASIC ? pl.CenterId : pl.CenterId.replaceFirst("^"+CHID_PREFIX_PR, "");
+			//String cacheFileExt = xtype == XTYPE_BASIC ? "xml" : "txt";
+			String cacheFileExt = "txt";
+
 			for ( int dtidx=0; dtidx<pl.pdate.size(); dtidx++ ) {
 				//
 				GregorianCalendar cal = CommonUtils.getCalendar(pl.pdate.get(dtidx).Date);
-				
+				String dt = CommonUtils.getDateYMD(cal);
+
 				boolean isNextpageExist = true;
 				for ( int pgidx=1; isNextpageExist; pgidx++ ) {
 					
 					final String progCacheFile = 
-							pgidx == 1 ? String.format("%s%sSKP2012_%s_%d.txt", getProgDir(), File.separator, pl.CenterId, cal.get(Calendar.DAY_OF_MONTH)) :
-								         String.format("%s%sSKP2012_%s_%d_%d.txt", getProgDir(), File.separator, pl.CenterId, cal.get(Calendar.DAY_OF_MONTH),pgidx);
+							pgidx == 1 ? String.format("%s%sSKP2012_%s_%d.%s", getProgDir(), File.separator, pl.CenterId, cal.get(Calendar.DAY_OF_MONTH), cacheFileExt) :
+								         String.format("%s%sSKP2012_%s_%d_%d.%s", getProgDir(), File.separator, pl.CenterId, cal.get(Calendar.DAY_OF_MONTH),pgidx, cacheFileExt);
 					//
 					File f = new File(progCacheFile);
 					if (force == true ||
 							(f.exists() == true && isCacheOld(progCacheFile) == true) ||
 							(f.exists() == false && isCacheOld(null) == true)) {
 						//
-						String xtype = (pl.CenterId.startsWith(CHID_PREFIX_BS) || pl.CenterId.startsWith(CHID_PREFIX_CS)) ? XTYPE_BASIC : XTYPE_PREMIUM;
-						String chid = xtype != XTYPE_PREMIUM ? pl.CenterId : pl.CenterId.replaceFirst("^"+CHID_PREFIX_PR, "");
-						String dt = CommonUtils.getDateYMD(cal);
 						String url = "http://bangumi.skyperfectv.co.jp/"+xtype+"/channel:"+chid+"/date:"+dt.substring(2)+"/";
 						if ( pgidx > 1 ) {
 							url += "?p="+pgidx;
 						}
+
 						/*
-						if ( pl.ChId.length() == 0 ) {
-							url = "http://bangumi.skyperfectv.co.jp/api/version:3/search/date:"+dt.substring(2)+"/channel:"+pl.CenterId+"/?api_key=336eec3423";
+						if ( xtype == XTYPE_BASIC ) {
+							url = "http://www.skyperfectv.co.jp/xml/"+dt+"_"+chid.replaceFirst("^[^0-9]+","")+".xml?_="+System.currentTimeMillis();
 						}
 						else {
-							url = "http://www.skyperfectv.co.jp/xml/"+dt+"_"+pl.ChId.substring(2)+".xml";
+							url = "http://bangumi.skyperfectv.co.jp/"+xtype+"/channel:"+chid+"/date:"+dt.substring(2)+"/";
+							if ( pgidx > 1 ) {
+								url += "?p="+pgidx;
+							}
 						}
 						*/
+
 						webToFile(url, progCacheFile, thisEncoding);
 						
 						printProgress("(オンライン)を取得しました", counter+dtidx, pgidx, counterMax, pl.Center, cal.get(Calendar.DAY_OF_MONTH), url);
@@ -244,21 +249,30 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 						printProgress("(キャッシュ)がみつかりません", counter+dtidx, pgidx, counterMax, pl.Center, cal.get(Calendar.DAY_OF_MONTH), progCacheFile);
 						break;
 					}
-		
+
 					String response = CommonUtils.read4file(progCacheFile, true);
 					if ( response == null || ! response.matches("^.*<a href=\"\\?p=\\d+[^>]+?>次.*$") ) {
 						isNextpageExist = false;
 					}
-					
+
 					// 番組リストの追加
 					try {
 						getPrograms(pl, dtidx, response);
 						/*
-						if ( pl.ChId.length() == 0 ) {
-							getPrograms(pl, i, response);
+						if ( xtype == XTYPE_BASIC ) {
+							getPrograms_basic(pl, dtidx, progCacheFile);
+							isNextpageExist = false;
 						}
 						else {
-							getPrograms_basic(pl, i, response);
+							String response = CommonUtils.read4file(progCacheFile, true);
+
+							if ( xtype != XTYPE_BASIC ) {
+								if ( response == null || ! response.matches("^.*<a href=\"\\?p=\\d+[^>]+?>次.*$") ) {
+									isNextpageExist = false;
+								}
+							}
+
+							getPrograms(pl, dtidx, response);
 						}
 						*/
 					}
@@ -280,6 +294,7 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 	private void printProgress(String msg, int count, int pgidx, int countMax, String center, int date, String uri) {
 		reportProgress(String.format("%s %s: (%d/%d) page=%d %s[%d日]    %s", getTVProgramId(), msg, count, countMax, pgidx, center, date, uri));
 	}
+
 	//
 	private void getDate(ProgList pl) {
 		// 日付の処理
@@ -334,26 +349,31 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 		// 隙間を埋めつつ一個にまとめる
 		ProgDateList all = new ProgDateList();
 		all.pdetail = new ArrayList<ProgDetailList>();
+		String prevStart = null;
+		String prevEnd = null;
 		for ( ProgDateList pcl : pcenter ) {
 			for ( ProgDetailList pdl : pcl.pdetail ) {
-				if ( all.row == 0 ) {
-					String prevend = CommonUtils.getDateTime(CommonUtils.getCalendar(pcenter.get(0).Date+" 05:00"));
-					if ( prevend.compareTo(pdl.startDateTime) < 0 ) {
+				if ( prevEnd == null ) {
+					prevEnd = CommonUtils.getDateTime(CommonUtils.getCalendar(pcenter.get(0).Date+" 05:00"));
+					if ( prevEnd.compareTo(pdl.startDateTime) < 0 ) {
 						// 最前列の情報がとれなかった
-						addEnmptyInfo(all, prevend, pdl.startDateTime);
+						addEmptyInfo(all, prevEnd, pdl.startDateTime);
 					}
 				}
 				else {
-					ProgDetailList prevpdl = all.pdetail.get(all.pdetail.size()-1);
-					if ( prevpdl.startDateTime.equals(pdl.startDateTime) ) {
+					if ( prevStart.equals(pdl.startDateTime) ) {
 						// 重複は破棄
 						continue;
 					}
-					else if ( prevpdl.endDateTime.compareTo(pdl.startDateTime) < 0 ) {
+					else if ( prevEnd.compareTo(pdl.startDateTime) < 0 ) {
 						// 隙間を埋める
-						addEnmptyInfo(all, prevpdl.endDateTime, pdl.startDateTime);
+						addEmptyInfo(all, prevEnd, pdl.startDateTime);
 					}
 				}
+
+				prevStart = pdl.startDateTime;
+				prevEnd = pdl.endDateTime;
+
 				all.pdetail.add(pdl);
 				all.row += pdl.length;
 			}
@@ -370,7 +390,8 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 				String da = CommonUtils.getDateTime(cz);
 				cz.add(Calendar.DATE, 1);
 				String dz = CommonUtils.getDateTime(cz);
-				if ( CommonUtils.isOverlap(pdl.startDateTime, pdl.endDateTime, da, dz, true) ) {
+				String endDateTime = pdl.endDateTime.length() > 0 ? pdl.endDateTime : CommonUtils.getDateTime(CommonUtils.getCalendar(pdl.startDateTime, pdl.length * 60));
+				if ( CommonUtils.isOverlap(pdl.startDateTime, endDateTime, da, dz, true) ) {
 					if ( cnt++ == 0 ) {
 						pcl.pdetail.add(pdl);
 					}
@@ -389,7 +410,9 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 			// １日の合計分数を足し合わせる
 			for ( ProgDetailList pdl : pcl.pdetail ) {
 				String da = (pcl.row == 0) ? pcl.Date+" 05:00" : pdl.startDateTime;
-				pdl.length = (int)(CommonUtils.getCompareDateTime(pdl.endDateTime, da)/60000L);
+				if ( pdl.endDateTime.length() > 0 ) {
+					pdl.length = (int)(CommonUtils.getCompareDateTime(pdl.endDateTime, da)/60000L);
+				}
 				pcl.row += pdl.length;
 			}
 			// おしりがとどかない場合（デメリット：これをやると、サイト側のエラーで欠けてるのか、そもそも休止なのかの区別がつかなくなる）
@@ -398,7 +421,7 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 				GregorianCalendar cz = (GregorianCalendar) ca.clone();
 				ca.add(Calendar.MINUTE, pcl.row);
 				cz.add(Calendar.MINUTE, 24*60);
-				addEnmptyInfo(pcl, CommonUtils.getDateTime(ca), CommonUtils.getDateTime(cz));
+				addEmptyInfo(pcl, CommonUtils.getDateTime(ca), CommonUtils.getDateTime(cz));
 			}
 		}
 	}
@@ -566,40 +589,139 @@ public class PlugIn_CSPSkyperfectTV2012 extends TVProgramUtils implements TVProg
 
 	
 	/**
-	 * こちらは番組IDがとれる代わりに出演者情報がとれなくなるので保留とする
+	 * こちらは50番組/日までしかとれないため、保留
 	 */
-	private void getPrograms_basic(ProgList pl, int dtidx, String response) {
-		
-		Matcher ma = Pattern.compile("<SIInformation(.+?)</SIInformation>",Pattern.DOTALL).matcher(response);
-		while ( ma.find() ) {
-			Matcher mb = Pattern.compile("eventId=\"(.+?)\".+?broadCastStartDate=\"(\\d{8})(\\d{4})",Pattern.DOTALL).matcher(ma.group(1));
-			if ( mb.find() ) {
-				
-			}
-			/*
-			mb = Pattern.compile("<(.+?)>(.+?)</\\1>",Pattern.DOTALL).matcher(ma.group(1));
-			while ( mb.find() ) {
-				if ( mb.group(1).equals("ChannelName") ) {
-					
+	private void getPrograms_basic(ProgList pl, int dtidx, String filename) throws ParserConfigurationException, IOException, SAXException {
+
+		ProgDateList pcl = pl.pdate.get(dtidx);
+
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		DocumentBuilder db = dbf.newDocumentBuilder();
+
+		Document parseDoc = db.parse(new FileInputStream(filename));
+
+		NodeList list = parseDoc.getElementsByTagName("SIInformation");
+		for ( int i=0; i < list.getLength(); i++ ) {
+			ProgDetailList pdl = new ProgDetailList();
+			Node node = list.item(i);
+			try {
+				NamedNodeMap attributes = node.getAttributes();
+				String startValue = attributes.getNamedItem("broadCastStartDate").getNodeValue().substring(8,12);
+				pdl.start = startValue.substring(0,2) + ":" + startValue.substring(2);
+				String endValue = attributes.getNamedItem("broadCastEndDate").getNodeValue().substring(8,12);
+				pdl.end = endValue.substring(0,2) + ":" + endValue.substring(2);
+				pdl.length = CommonUtils.getRecMinVal(pdl.start, pdl.end);
+
+				int onid = Integer.decode(attributes.getNamedItem("networkId").getNodeValue());
+				//Node tsid = attributes.getNamedItem("").getNodeValue();
+				int sid = Integer.decode(attributes.getNamedItem("serviceId").getNodeValue());
+				Node evidNode = attributes.getNamedItem("eventId");
+				if ( evidNode != null ) {
+					int evid = Integer.decode(evidNode.getNodeValue());
+					pdl.progid = ContentIdEDCB.getContentId(onid, 0, sid, evid);
 				}
-				else if ( mb.group(1).equals("Title") ) {
-					
+
+				pdl.title = queryNode(node, "Title").getTextContent();
+
+				Node detailNode = queryNode(node, "Synopsis");
+				if ( detailNode != null ) {
+					pdl.detail = detailNode.getTextContent();
 				}
-				else if ( mb.group(1).equals("Synopsis") ) {
-					
+
+				Node genreNode = queryNode(node, "Genres");
+				if ( genreNode != null ) {
+					NamedNodeMap genreAttributes = queryNode(genreNode, "Genre").getAttributes();
+					String majorGenreId = genreAttributes.getNamedItem("majorGenreId").getNodeValue();
+					String minorGenreId = genreAttributes.getNamedItem("minorGenreId").getNodeValue();
+					pdl.genre = ProgGenre.getByIEPG(majorGenreId.substring(majorGenreId.length()-1));
+					pdl.subgenre = ProgSubgenre.getByIEPG(pdl.genre, minorGenreId.substring(minorGenreId.length() - 1));
 				}
-				else if ( mb.group(1).equals("Genres") ) {
-					Matcher mc = Pattern.compile("<Genre majorGenreId=\".+?\" minorGenreId=\".+?\"",Pattern.DOTALL).matcher(mb.group(2));
-					while ( mc.find() ) {
-						
+				if ( pdl.genre == null || pdl.subgenre == null ) {
+					pdl.genre = ProgGenre.NOGENRE;
+					pdl.subgenre = ProgSubgenre.NOGENRE_ETC;
+				}
+
+				Node actorNode = queryNode(node, "ActorInformation");
+				if ( actorNode != null ) {
+					if ( pdl.detail == null ) {
+						pdl.detail = "";
 					}
+					else if ( pdl.detail.length() > 0 ) {
+						pdl.detail += "\n";
+					}
+
+					String prePostValue = "";
+					ArrayList<Node> nodes = queryNodes(queryNode(actorNode, "Actors"), "Actor");
+					for ( Node actor : nodes ) {
+						Node post = queryNode(actor, "Post");
+						Node name = queryNode(actor, "Name");
+						if ( post != null && name != null ) {
+							String postValue = post.getTextContent();
+							if ( ! postValue.equals(prePostValue) ) {
+								pdl.detail += "\n" + postValue + ":";
+								prePostValue = postValue;
+							}
+							pdl.detail += name.getTextContent() + "、";
+						}
+					}
+
+					pdl.detail = pdl.detail.replaceFirst("、$","");
 				}
+
+				Node copyRights = queryNode(node, "CopyRights");
+				if ( copyRights != null ) {
+					pdl.detail += "\n\n"+copyRights.getTextContent();
+				}
+
+				// タイトルから各種フラグを分離する
+				doSplitFlags(pdl, nf);
+
+				// サブタイトル分離（ポインタを活用してメモリを節約する）
+				doSplitSubtitle(pdl);
+
+				// その他フラグ
+				pdl.extension = false;
+				pdl.nosyobo = false;
+
+				pcl.pdetail.add(pdl);
 			}
-			*/
+			catch ( Exception e ) {
+				e.printStackTrace();
+			}
 		}
 	}
 
-	
+	private Node queryNode(Node root, String query) {
+		if ( root.getNodeType() != Node.ELEMENT_NODE ) {
+			return null;
+		}
+		if ( root.getNodeName().equals(query) ) {
+			return root;
+		}
+		NodeList list = root.getChildNodes();
+		for ( int i=0; i < list.getLength(); i++ ) {
+			Node n = queryNode(list.item(i), query);
+			if ( n != null ) {
+				return n;
+			}
+		}
+		return null;
+	}
+
+	private ArrayList<Node> queryNodes(Node root, String query) {
+		ArrayList<Node> nodes = new ArrayList<Node>();
+		if ( root.getNodeType() != Node.ELEMENT_NODE ) {
+			return null;
+		}
+		NodeList list = root.getChildNodes();
+		for ( int i=0; i < list.getLength(); i++ ) {
+			Node n = queryNode(list.item(i), query);
+			if ( n != null ) {
+				nodes.add(n);
+			}
+		}
+		return nodes;
+	}
 	/*
 	 * ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 	 * ★★★★★　放送地域を取得する（TVAreaから降格）－ここから　★★★★★

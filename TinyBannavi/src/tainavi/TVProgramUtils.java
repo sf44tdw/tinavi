@@ -935,15 +935,12 @@ public class TVProgramUtils implements Cloneable {
 		}
 	}
 
-	protected void addEnmptyInfo(ProgDateList pcl, String sdat, String edat) {
+	protected void addEmptyInfo(ProgDateList pcl, String sdat, String edat) {
 		ProgDetailList pdl = new ProgDetailList();
-		pdl.title = pdl.splitted_title = "番組情報がありません";
-		pdl.detail = "";
-		pdl.length = (int)(CommonUtils.getDiffDateTime(sdat, edat)/60000L);
-		pdl.genre = ProgGenre.NOGENRE;
-		pdl.start = "";
+		pdl.abon();
 		pdl.startDateTime = sdat;
-		pdl.endDateTime = edat;
+		//pdl.endDateTime = edat;
+		pdl.length = (int)(CommonUtils.getDiffDateTime(sdat, edat)/60000L);
 		pcl.pdetail.add(pdl);
 		pcl.row += pdl.length;
 	}

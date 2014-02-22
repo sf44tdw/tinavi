@@ -323,7 +323,7 @@ public class VWUpdate {
 		
 		// リリースファイルのURLを取得する
 		String flink = "";
-		Matcher ma = Pattern.compile("<meta http-equiv=\"refresh\" content=\"1; url=(.+?)\">").matcher(response);
+		Matcher ma = Pattern.compile("<meta http-equiv=\"refresh\" content=\"\\d+; url=(.+?\\.zip)\">").matcher(response);
 		if ( ! ma.find()) {
 			String msg = "リリースファイルの情報が取得できませんでした。プロジェクトサイト(http://sourceforge.jp/projects/tainavi/)を確認してください。";
 			StWinAppendError(msg);
