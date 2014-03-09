@@ -2392,7 +2392,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		TableColumn column = jTable_listed.getColumnModel().getColumn(lc.getColumn());
 		if (b) {
 			column.setMinWidth(MIN_COLUMN_WIDTH);
-			column.setPreferredWidth(lc.getIniWidth());
+			Integer w = bounds.getListedColumnSize().get(lc.toString());
+			column.setPreferredWidth(w != null ? w : lc.getIniWidth());
 		}
 		else {
 			column.setMinWidth(0);

@@ -364,11 +364,11 @@ public abstract class AbsReserveListView extends JScrollPane {
 		else {
 			for ( Entry<String, Integer> en : rcmap.entrySet() ) {
 				try {
-					bounds.getListedColumnSize().get(en.getKey());
+					bounds.getRsvedColumnSize().get(en.getKey());
 				}
 				catch (NullPointerException e) {
 					System.err.println(ERRID+en.getKey()+", "+e.toString());
-					bounds.getListedColumnSize().put(en.getKey(),en.getValue());
+					bounds.getRsvedColumnSize().put(en.getKey(),en.getValue());
 				}
 			}
 		}
