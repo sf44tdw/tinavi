@@ -425,7 +425,11 @@ public abstract class AbsToolBar extends JToolBar implements HDDRecorderSelectab
 			return search;
 		}
 	}
-	
+
+	public void setFocusInSearchBox() {
+		jTextField_keyword.requestFocusInWindow();
+	}
+
 	/**
 	 * 
 	 */

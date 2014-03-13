@@ -20,14 +20,7 @@ import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -50,16 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -4770,7 +4754,80 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		listed.saveTreeExpansion();
 		paper.saveTreeExpansion();
 	}
-	
+
+	private void setKeyboardShortCut() {
+		class ShortCut {
+			final String action;
+			final int key;
+			final int mask;
+			final Action callback;
+
+			public ShortCut(String aAction, int aKey, int aMask, Action aCallback) {
+				action = aAction;
+				key = aKey;
+				mask = aMask;
+				callback = aCallback;
+			}
+		}
+
+		final String FIND_ACTION = "find";
+		final String SELECT_ACTION_LISTTAB = "listtab";
+		final String SELECT_ACTION_PAPERTAB = "papertab";
+		final String SELECT_ACTION_RSVEDTAB = "rsvedtab";
+		final String SELECT_ACTION_RECEDTAB = "recedtab";
+		final String SELECT_ACTION_AUTORESTAB = "autorestab";
+
+		final Action find_action =  new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toolBar.setFocusInSearchBox();
+			}
+		};
+		final Action select_action_listtab = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainWindow.setSelectedTab(MWinTab.LISTED);
+			}
+		};
+		final Action select_action_papertab = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainWindow.setSelectedTab(MWinTab.PAPER);
+			}
+		};
+		final Action select_action_rsvedtab = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainWindow.setSelectedTab(MWinTab.RSVED);
+			}
+		};
+		final Action select_action_recedtab = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainWindow.setSelectedTab(MWinTab.RECED);
+			}
+		};
+		final Action select_action_autorestab = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mainWindow.setSelectedTab(MWinTab.AUTORES);
+			}
+		};
+
+		ArrayList<ShortCut> sca = new ArrayList<ShortCut>();
+		sca.add(new ShortCut(FIND_ACTION, KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK, find_action));
+		sca.add(new ShortCut(SELECT_ACTION_LISTTAB, KeyEvent.VK_1, KeyEvent.ALT_DOWN_MASK, select_action_listtab));
+		sca.add(new ShortCut(SELECT_ACTION_PAPERTAB, KeyEvent.VK_2, KeyEvent.ALT_DOWN_MASK, select_action_papertab));
+		sca.add(new ShortCut(SELECT_ACTION_RSVEDTAB, KeyEvent.VK_3, KeyEvent.ALT_DOWN_MASK, select_action_rsvedtab));
+		sca.add(new ShortCut(SELECT_ACTION_RECEDTAB, KeyEvent.VK_4, KeyEvent.ALT_DOWN_MASK, select_action_recedtab));
+		sca.add(new ShortCut(SELECT_ACTION_AUTORESTAB, KeyEvent.VK_5, KeyEvent.ALT_DOWN_MASK, select_action_autorestab));
+
+		InputMap imap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		for ( ShortCut sc : sca ) {
+			imap.put(KeyStroke.getKeyStroke(sc.key, sc.mask), sc.action);
+			getRootPane().getActionMap().put(sc.action, sc.callback);
+		}
+	}
 
 	/*******************************************************************************
 	 * main()
@@ -5092,7 +5149,9 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		setTitleBar();	// タイトルバー更新
 		
 		ShowInitTab();	// 前回開いていたタブを開く
-		
+
+		setKeyboardShortCut();
+
 		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 		// タイマーを起動する
 		// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
