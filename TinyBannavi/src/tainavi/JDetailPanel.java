@@ -3,6 +3,7 @@ package tainavi;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.event.MouseListener;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -63,12 +64,31 @@ public class JDetailPanel extends JPanel {
 		jta.setText(s);
 		jta.setCaretPosition(0);
 	}
-	
+
+	public void clear() {
+		setLabel(null,null,null);
+		setText("");
+	}
+
 	public int getRows() {
 		return jta.getRows();
 	}
 	
 	public void setRows(int rows) {
 		jta.setRows(rows);
+	}
+
+	@Override
+	public void addMouseListener(MouseListener l) {
+		jlabel_time.addMouseListener(l);
+		jlabel_title.addMouseListener(l);
+		jta.addMouseListener(l);
+	}
+	
+	@Override
+	public void removeMouseListener(MouseListener l) {
+		jlabel_time.removeMouseListener(l);
+		jlabel_title.removeMouseListener(l);
+		jta.removeMouseListener(l);
 	}
 }

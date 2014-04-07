@@ -251,7 +251,10 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	private final DashBorder dborder = new DashBorder(Color.RED,env.getMatchedBorderThickness(),DASHBORDER_LENGTH,DASHBORDER_SPACE);
 	private final DashBorder dborderK = new DashBorder(Color.MAGENTA,env.getMatchedBorderThickness(),DASHBORDER_LENGTH,DASHBORDER_SPACE);
 	private final LineBorder lborder = new ChippedBorder(Color.BLACK,1);
-	
+
+	private final LineBorder detailInfoLockedBorder = new LineBorder(Color.RED, 1);
+	private final LineBorder detailInfoFreeBorder = new LineBorder(new Color(0,0,0,0), 1);
+
 	private float paperHeightZoom = 1.0F;
 	
 	/**
@@ -274,6 +277,16 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 			return timeline;
 		}
 	}
+
+	//
+	private class DetailInfo {
+		String label;
+		String text;
+	}
+
+	private ProgDetailList detailInfoData = null;
+
+	private boolean isDetailInfoLocked() { return detailInfoData != null; }
 	
 	/*******************************************************************************
 	 * コンストラクタ
@@ -1104,7 +1117,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		
 		// 古いタイマーの削除
 		stopTimer();
-		
+
 		cur_tuner = tuner;
 		
 		if (date == null) {
@@ -1272,7 +1285,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	{
 		// 古いタイマーの削除
 		stopTimer();
-		
+
 		// ページャーは効かないよ
 		if ( env.isPagerEnabled() ) {
 			setPagerEnabled(false);
@@ -1657,7 +1670,6 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	
 	/**
 	 * 現在時刻線の位置を変える
-	 * @param minpos : MINPOS.RESET=初回、MINPOS.UPDATE=自動更新時
 	 */
 	private int setTimelinePos(boolean reset) {
 		if ( vport != null && jLabel_timeline != null && jLabel_timeline.isVisible() ) {
@@ -1724,8 +1736,28 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		
 		return clickedDateTime;
 	}
-	
-	
+
+	/**
+	 * 番組詳細欄に情報を設定する
+	 * @param tvd
+	 * @param locking
+	 */
+	private void setDetailInfo(ProgDetailList tvd, boolean locking) {
+		if ( locking ) {
+			detailInfoData = tvd;
+			jTextPane_detail.setBorder(detailInfoLockedBorder);
+		}
+		else {
+			detailInfoData = null;
+			jTextPane_detail.setBorder(detailInfoFreeBorder);
+		}
+		if ( tvd != null ) {
+			jTextPane_detail.setLabel(tvd.start, tvd.end, tvd.title);
+			jTextPane_detail.setText(tvd.detail + "\n" + tvd.getAddedDetail());
+		}
+	}
+
+
 	/*******************************************************************************
 	 * ハンドラ―メソッド
 	 ******************************************************************************/
@@ -1874,8 +1906,12 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 					
 					return;
 				}
-				
-				if (e.getClickCount() == 2) {
+
+				if ( e.getClickCount() == 1 ) {
+					// 番組詳細表示のロック or 解除（トグル）
+					setDetailInfo(tvd, tvd != detailInfoData);
+				}
+				else if (e.getClickCount() == 2) {
 					// 左ダブルクリックで予約ウィンドウを開く
 					openReserveDialog(tvd);					
 				}
@@ -1885,7 +1921,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 				addToPickup(tvd);
 			}
 		}
-		
+
 		private void openReserveDialog(ProgDetailList tvd) {
 			
 			// レコーダが登録されていない場合はなにもしない
@@ -1923,7 +1959,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		 */
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			
+
 			JTXTButton b = (JTXTButton) e.getSource();
 			ProgDetailList tvd = b.getInfo();
 			
@@ -1931,8 +1967,11 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 				bgcolor = ((JTXTButton)e.getSource()).getBackground();
 				((JTXTButton)e.getSource()).setBackground(env.getHighlightColor());
 			}
-			jTextPane_detail.setLabel(tvd.start,tvd.end,tvd.title);
-			jTextPane_detail.setText(tvd.detail+"\n"+tvd.getAddedDetail());
+
+			if ( ! isDetailInfoLocked() ) {
+				setDetailInfo(tvd, false);
+			}
+
 		}
 
 		@Override
@@ -1966,7 +2005,19 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		public void mouseMoved(MouseEvent e) {
 		}
 	};
-	
+
+	private final MouseListener ml_detailInfoClick = new MouseAdapter() {
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (e.getButton() == MouseEvent.BUTTON1) {
+				if (e.getClickCount() == 2) {
+					// 番組詳細表示のロック解除
+					setDetailInfo(null, false);
+				}
+			}
+		}
+	};
+
 	/**
 	 * サイドツリーにつけるリスナー（ツリーの展開状態を記憶する）
 	 */
@@ -2178,6 +2229,8 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 		if (jTextPane_detail == null) {
 			jTextPane_detail = new JDetailPanel();
 			jTextPane_detail.setRows(bounds.getDetailRows());
+			jTextPane_detail.setBorder(detailInfoFreeBorder);
+			jTextPane_detail.addMouseListener(ml_detailInfoClick);
 			//Dimension d = jTextPane_detail.getMaximumSize();
 			//d.height = bounds.getDetailAreaHeight();
 			//jTextPane_detail.setPreferredSize(d);
