@@ -6,14 +6,7 @@ import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -3269,7 +3262,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		JPopupMenu pop = new JPopupMenu();
 		
 		{
-			JMenuItem menuItem = new JMenuItem("番組追跡の編集【"+keyword+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("番組追跡の編集【"+keyword+"】");
+			menuItem.setMnemonic(KeyEvent.VK_E);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					editTraceKey(keyword);
@@ -3279,7 +3273,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		}
 		
 		{
-			JMenuItem menuItem = new JMenuItem("番組追跡の削除【"+keyword+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("番組追跡の削除【"+keyword+"】");
+			menuItem.setMnemonic(KeyEvent.VK_D);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					removeTraceKey(keyword);
@@ -3299,6 +3294,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 					for (String o : TVProgram.OKINIIRI) {
 						final String okini = o; 
 						JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(okini, okini.equals(tk.getOkiniiri()));
+						menuItem.setMnemonic(KeyEvent.VK_0 + okini.length());
 						bg.add(menuItem);
 						menuItem.addActionListener(new ActionListener() {
 							public void actionPerformed(ActionEvent e) {
@@ -3321,7 +3317,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		JPopupMenu pop = new JPopupMenu();
 		
 		{
-			JMenuItem menuItem = new JMenuItem("キーワードの編集【"+keyword+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("キーワードの編集【"+keyword+"】");
+			menuItem.setMnemonic(KeyEvent.VK_E);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					editSearchKey(keyword);
@@ -3330,7 +3327,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			pop.add(menuItem);
 		}
 		{
-			JMenuItem menuItem = new JMenuItem("キーワードの削除【"+keyword+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("キーワードの削除【"+keyword+"】");
+			menuItem.setMnemonic(KeyEvent.VK_D);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					removeSearchKey(keyword);
@@ -3345,7 +3343,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			for ( SearchGroup gr : srGrps ) {
 				final String groupName = gr.getName();
 				if (srGrps.isFind(groupName,keyword) ) {
-					JMenuItem menuItem = new JMenuItem("キーワードグループから登録解除【"+groupName+"】");
+					JMenuItem menuItem = new JMenuItemWithShortcut("キーワードグループから登録解除【"+groupName+"】");
+					menuItem.setMnemonic(KeyEvent.VK_R);
 					menuItem.setForeground(Color.RED);
 					menuItem.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
@@ -3355,7 +3354,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 					pop.add(menuItem);
 				}
 				else {
-					JMenuItem menuItem = new JMenuItem("キーワードグループに追加【"+groupName+"】");
+					JMenuItem menuItem = new JMenuItemWithShortcut("キーワードグループに追加【"+groupName+"】");
+					menuItem.setMnemonic(KeyEvent.VK_A);
 					menuItem.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
 							addSearchKeyGroupItem(groupName,keyword);
@@ -3377,6 +3377,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 					for (String o : TVProgram.OKINIIRI) {
 						final String okini = o; 
 						JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(okini, okini.equals(sr.getOkiniiri()));
+						menuItem.setMnemonic(KeyEvent.VK_0 + okini.length());
 						bg.add(menuItem);
 						menuItem.addActionListener(new ActionListener() {
 							public void actionPerformed(ActionEvent e) {
@@ -3396,7 +3397,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	private void showPopupForSortTraceKey(int x, int y) {
 		JPopupMenu pop = new JPopupMenu();
 		{
-			JMenuItem menuItem = new JMenuItem("番組追跡の並べ替え");
+			JMenuItem menuItem = new JMenuItemWithShortcut("番組追跡の並べ替え");
+			menuItem.setMnemonic(KeyEvent.VK_S);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					sortTraceKey();
@@ -3411,7 +3413,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	private void showPopupForSortSearchKey(int x, int y) {
 		JPopupMenu pop = new JPopupMenu();
 		{
-			JMenuItem menuItem = new JMenuItem("キーワード検索の並べ替え");
+			JMenuItem menuItem = new JMenuItemWithShortcut("キーワード検索の並べ替え");
+			menuItem.setMnemonic(KeyEvent.VK_S);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					sortSearchKey();
@@ -3426,7 +3429,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	private void showPopupForSortExtension(int x, int y) {
 		JPopupMenu pop = new JPopupMenu();
 		{
-			JMenuItem menuItem = new JMenuItem("延長警告の並べ替え");
+			JMenuItem menuItem = new JMenuItemWithShortcut("延長警告の並べ替え");
+			menuItem.setMnemonic(KeyEvent.VK_S);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					sortExtension();
@@ -3443,7 +3447,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		JPopupMenu pop = new JPopupMenu();
 		
 		{
-			JMenuItem menuItem = new JMenuItem("キーワードグループの追加");
+			JMenuItem menuItem = new JMenuItemWithShortcut("キーワードグループの追加");
+			menuItem.setMnemonic(KeyEvent.VK_A);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					addSearchKeyGroup();
@@ -3459,7 +3464,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		JPopupMenu pop = new JPopupMenu();
 		
 		{
-			JMenuItem menuItem = new JMenuItem("キーワードグループの編集【"+name+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("キーワードグループの編集【"+name+"】");
+			menuItem.setMnemonic(KeyEvent.VK_E);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					editSeachkeyGroup(name);
@@ -3471,7 +3477,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		pop.addSeparator();
 		
 		{
-			JMenuItem menuItem = new JMenuItem("キーワードグループの削除【"+name+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("キーワードグループの削除【"+name+"】");
+			menuItem.setMnemonic(KeyEvent.VK_D);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					removeSearchKeyGroup(name);
@@ -3487,7 +3494,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		JPopupMenu pop = new JPopupMenu();
 		
 		{
-			JMenuItem menuItem = new JMenuItem("キーワードの編集【"+member+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("キーワードの編集【"+member+"】");
+			menuItem.setMnemonic(KeyEvent.VK_E);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					editSearchKeyGroupItem(name,member);
@@ -3496,7 +3504,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			pop.add(menuItem);
 		}
 		{
-			JMenuItem menuItem = new JMenuItem("キーワードの削除【"+member+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("キーワードの削除【"+member+"】");
+			menuItem.setMnemonic(KeyEvent.VK_D);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					removeSearchKeyGroupItem(null,member);
@@ -3511,8 +3520,9 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			for ( SearchGroup gr : srGrps ) {
 				final String groupName = gr.getName();
 				if (srGrps.isFind(groupName,member) ) {
-					JMenuItem menuItem = new JMenuItem("キーワードグループから登録解除【"+groupName+"】");
+					JMenuItem menuItem = new JMenuItemWithShortcut("キーワードグループから登録解除【"+groupName+"】");
 					menuItem.setForeground(Color.RED);
+					menuItem.setMnemonic(KeyEvent.VK_R);
 					menuItem.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
 							removeSearchKeyGroupItem(groupName, member);
@@ -3521,7 +3531,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 					pop.add(menuItem);
 				}
 				else {
-					JMenuItem menuItem = new JMenuItem("キーワードグループに追加【"+groupName+"】");
+					JMenuItem menuItem = new JMenuItemWithShortcut("キーワードグループに追加【"+groupName+"】");
+					menuItem.setMnemonic(KeyEvent.VK_A);
 					menuItem.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
 							addSearchKeyGroupItem(groupName,member);
@@ -3541,7 +3552,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		JPopupMenu pop = new JPopupMenu();
 		
 		{
-			JMenuItem menuItem = new JMenuItem("延長警告の編集【"+keyword+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("延長警告の編集【"+keyword+"】");
+			menuItem.setMnemonic(KeyEvent.VK_E);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					editExtension(keyword);
@@ -3550,7 +3562,8 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			pop.add(menuItem);
 		}
 		{
-			JMenuItem menuItem = new JMenuItem("延長警告の削除【"+keyword+"】");
+			JMenuItem menuItem = new JMenuItemWithShortcut("延長警告の削除【"+keyword+"】");
+			menuItem.setMnemonic(KeyEvent.VK_D);
 			menuItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					removeExtension(keyword);

@@ -65,7 +65,7 @@ public class JTXTButton extends JLabel {
 		}
 	};
 	
-	private static final float DRAWTAB = 2.0F; 
+	private static final float DRAWTAB = 2.0F;
 	
 	
 	/*******************************************************************************
@@ -306,7 +306,7 @@ public class JTXTButton extends JLabel {
 				FontMetrics fm = g2.getFontMetrics(startFont);
 				float hi = Float.valueOf(fm.getHeight());
 				float as = Float.valueOf(fm.getAscent());
-				
+
 				float startx = Float.valueOf(DRAWTAB);
 				float startw = draww;
 				float xposstartx = 0.0F;
@@ -369,7 +369,7 @@ public class JTXTButton extends JLabel {
 					GlyphVector gv = wgv.getGv();
 					g2.setPaint(Color.RED);
 					g2.drawGlyphVector(gv, titlex, baseline);
-					
+
 					xpos = wgv.getLastX();	// 後続有り
 					baseline += wgv.getLastY();
 				}
@@ -396,7 +396,23 @@ public class JTXTButton extends JLabel {
 				else {
 					detail = tvd.detail;
 				}
-				
+
+				/*
+				FontMetrics fm = g2.getFontMetrics(detailFont);
+				int hi = fm.getAscent() + fm.getDescent();
+				int as = fm.getAscent();
+				int detailx = (int) (DRAWTAB+detailTab);
+				int detailw = (int) (draww-detailTab);
+
+				if ( baseline == 0.0F ) {
+					baseline = as;	// 初期垂直位置
+				}
+
+				g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				g2.setColor(detailFontColor);
+				CommonSwingUtils.drawWrappedString(g2, detailx, (int)baseline, detailw, (int)drawh, detail, fm, hi, false);
+				*/
+
 				FontMetrics fm = g2.getFontMetrics(detailFont);
 				float as = Float.valueOf(fm.getAscent());
 				float detailx = Float.valueOf(DRAWTAB+detailTab);
@@ -405,7 +421,7 @@ public class JTXTButton extends JLabel {
 				if ( baseline == 0.0F ) {
 					baseline = as;	// 初期垂直位置
 				}
-				
+
 				WrappedGlyphVector wgv = getWrappedGlyphVector(detail, detailw, 0.0f, detailFont, as, frc);
 				g2.setPaint(detailFontColor);
 				

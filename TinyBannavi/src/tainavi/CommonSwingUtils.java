@@ -1,13 +1,6 @@
 package tainavi;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -261,4 +254,55 @@ public class CommonSwingUtils {
 			e.printStackTrace();
 		}
 	}
+
+	/**
+	 * 左端で折り返す文字列の描画
+	 */
+	public static int drawWrappedString(Graphics2D g, int x, int baseline, int width, int height, String message, FontMetrics fm, int fontHeight, boolean center) {
+		int top = 0;
+		int bottom = top;
+		int length = message.length();
+		int strWidth = 0;
+		int cWidth = 0;
+		int drawX = 0;
+		while  ( bottom < length && baseline < height) {
+			String str;
+			if ( cWidth == 0 ) {
+				char c = message.charAt(bottom);
+				cWidth = fm.charWidth(c);
+			}
+			if ( (strWidth+cWidth) > width ) {
+				// 越えちゃった
+				str = message.substring(top, bottom);
+				// センタリング有無
+				if ( center ) {
+					drawX = (width-strWidth) / 2;
+				}
+				// 次の頭（cWidthは次のループで利用）
+				top = bottom;
+				strWidth = cWidth;
+			}
+			else if ( bottom+1 == length ) {
+				// 残り全部
+				str = message.substring(top, bottom+1);
+				// センタリング有無
+				if ( center ) {
+					drawX = (width-strWidth) / 2;
+				}
+				// 次はない
+				bottom++;
+			}
+			else {
+				// まだ足りない
+				bottom++;
+				strWidth += cWidth;
+				cWidth = 0;
+				continue;
+			}
+			g.drawString(str, x+drawX, baseline);
+			baseline += fontHeight;
+		}
+		return baseline;
+	}
+
 }
