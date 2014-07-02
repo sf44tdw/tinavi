@@ -158,15 +158,17 @@ public class AutoReserveInfo implements Cloneable {
 	 * テーブルの放送局欄に表示する値を取得する
 	 */
 	public String getChName() {
-		if ( chNames.size() >= 2 ) {
-			return chNames.get(0)+" ほか";	// 複数局あるなら何個かピックアップしたいよね
+		final int CH_MAX = 3;
+		String chList = null;
+		for ( int i=0; i < chNames.size() && i < CH_MAX; i++ ) {
+			if ( chList == null ) {
+				chList = chNames.get(i);
+			}
+			else {
+				chList += "," + chNames.get(i);
+			}
 		}
-		else if ( chNames.size() >= 1 ) {
-			return chNames.get(0);
-		}
-		else {
-			return null;
-		}
+		return ( chNames.size() > CH_MAX ) ? chList + " ほか" : chList;
 	}
 
 }

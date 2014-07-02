@@ -77,7 +77,7 @@ public abstract class AbsAutoReserveListView extends JPanel implements HDDRecord
 	public static enum AutoRsvColumn {
 		EXEC		("実行",			50),
 		TITLE		("タイトル",		500),
-		CHNAME		("チャンネル名",	150),
+		CHNAME		("チャンネル名",	300),
 		;
 
 		private String name;
