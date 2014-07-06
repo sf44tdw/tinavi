@@ -820,7 +820,7 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 	}
 	
 	/**
-	 * @param reserves
+	 * @param recorded
 	 * @param recedFile
 	 * @see #RecordedToFile(ArrayList, String)
 	 */
@@ -1049,13 +1049,13 @@ public class HDDRecorderUtils implements HDDRecorder,Cloneable {
 			else if (d[3].equals("17") || d[3].equals("12")  || d[3].equals("11")) {
 				entry.setTuner("TS1");
 			}
-			else if (d[3].equals("16") || d[3].equals("7")) {
+			else if (d[3].equals("16") || d[3].equals("8") || d[3].equals("7")) {
 				entry.setTuner("RE");
 			}
 			else {
 				entry.setTuner("--");
 			}
-			
+
 			//
 			if (d[10].equals("  ")) {
 				if (d[9].equals("A1")) {
