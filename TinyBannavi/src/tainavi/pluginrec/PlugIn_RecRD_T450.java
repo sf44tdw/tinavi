@@ -1037,6 +1037,7 @@ public class PlugIn_RecRD_T450 extends HDDRecorderUtils implements HDDRecorder,C
 			"rec_priority",
 			"maiyoubi_type",
 			"date",
+			"date1",
 			"start_hour",
 			"start_minute",
 			"end_hour",
@@ -1169,9 +1170,15 @@ public class PlugIn_RecRD_T450 extends HDDRecorderUtils implements HDDRecorder,C
 				int i = 1;
 				for ( String s : RPTPTN ) {
 					if ( s.equals(r.getRec_pattern()) == true ) {
-						newdat.put("date", String.valueOf(i));
+						break;
 					}
 					i++;
+				}
+				if ( i <= RPTPTN_ID_SAT ) {
+					newdat.put("date1", String.valueOf(0x0001 << ((i + 5) % 7)));
+				}
+				else if ( i >= RPTPTN_ID_MON2FRI &&  i <= RPTPTN_ID_EVERYDAY ) {
+					newdat.put("date1", String.valueOf((0x0001 << (i - 4))-1));
 				}
 			}
 
