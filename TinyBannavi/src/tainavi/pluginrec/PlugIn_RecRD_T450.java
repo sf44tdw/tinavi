@@ -1167,7 +1167,7 @@ public class PlugIn_RecRD_T450 extends HDDRecorderUtils implements HDDRecorder,C
 			}
 			else {
 				newdat.put("maiyoubi_type", "1");
-				int i = 1;
+				int i = 0;
 				for ( String s : RPTPTN ) {
 					if ( s.equals(r.getRec_pattern()) == true ) {
 						break;
@@ -1175,10 +1175,10 @@ public class PlugIn_RecRD_T450 extends HDDRecorderUtils implements HDDRecorder,C
 					i++;
 				}
 				if ( i <= RPTPTN_ID_SAT ) {
-					newdat.put("date1", String.valueOf(0x0001 << ((i + 5) % 7)));
+					newdat.put("date1", String.valueOf(0x0001 << ((i + 6) % 7)));
 				}
 				else if ( i >= RPTPTN_ID_MON2FRI &&  i <= RPTPTN_ID_EVERYDAY ) {
-					newdat.put("date1", String.valueOf((0x0001 << (i - 4))-1));
+					newdat.put("date1", String.valueOf((0x0001 << (i - 3))-1));
 				}
 			}
 
