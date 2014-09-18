@@ -1025,7 +1025,10 @@ public class CommonUtils {
 		
 		return sb.toString();
 	}
-	
+
+	public static String toQuoted(String s) {
+		return "\"" + s.replaceAll("\"","\"\"") + "\"";
+	}
 	
 	/*******************************************************************************
 	 * オブジェクト操作関連

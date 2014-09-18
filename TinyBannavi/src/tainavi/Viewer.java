@@ -2078,7 +2078,36 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		}
 
 		pop.addSeparator();
-		
+
+		if ( mainWindow.isTabSelected(MWinTab.LISTED) ) {
+			{
+				JMenuItem menuItem = new JMenuItem("番組情報をCSVでコピー");
+				menuItem.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						String msg = listed.getCSV(false);
+						Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+						StringSelection s = new StringSelection(msg);
+						cb.setContents(s, s);
+					}
+				});
+				pop.add(menuItem);
+			}
+			{
+				JMenuItem menuItem = new JMenuItem("選択中の番組情報をCSVでコピー");
+				menuItem.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						String msg = listed.getCSV(true);
+						Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+						StringSelection s = new StringSelection(msg);
+						cb.setContents(s, s);
+					}
+				});
+				pop.add(menuItem);
+			}
+		}
+
+		pop.addSeparator();
+
 		// 延長感染源へ追加する
 		if (
 				tvd.type == ProgType.SYOBO ||

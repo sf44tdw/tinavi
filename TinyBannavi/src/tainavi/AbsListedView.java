@@ -1467,7 +1467,101 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 	public Component getTableBody() {
 		return jTable_listed;
 	}
-	
+
+	/**
+	 * テキスト化
+	 */
+	public String getCSV(boolean onlySelected) {
+		synchronized ( rowData ) {
+
+			StringBuilder sbCsv = new StringBuilder();
+
+			// ヘッダ
+			{
+				StringBuilder sbRow = new StringBuilder();
+				for (Enum h : CSV_HEADER.values()) {
+					sbRow.append(CommonUtils.toQuoted(h.name()));
+					sbRow.append(",");
+				}
+				sbRow.deleteCharAt(sbRow.length()-1);
+				sbRow.append("\n");
+				sbCsv.append(sbRow.toString());
+			}
+
+			// データ
+			if ( onlySelected ) {
+				for (int prow : jTable_listed.getSelectedRows()) {
+					sbCsv.append(foo(jTable_listed.convertRowIndexToModel(prow)));
+				}
+			}
+			else {
+				for ( int row=0; row < rowData.size(); row++ ) {
+					sbCsv.append(foo(row));
+				}
+			}
+			return sbCsv.toString();
+		}
+	}
+
+	private String foo(int row) {
+		ListedItem c = rowData.get(row);
+		ProgDetailList tvd = c.tvd;
+		StringBuilder sbRow = new StringBuilder();
+		for (Enum h : CSV_HEADER.values()) {
+			String v = "";
+			if (h == CSV_HEADER.RSVMARK) {
+				v = getRsvMarkString(c);
+				Matcher ma = Pattern.compile("\0.*$",Pattern.DOTALL).matcher(v);
+				if (ma.find()) {
+					v = ma.replaceAll("") ;
+				}
+			} else if (h == CSV_HEADER.PICKMARK) {
+				v = getPickMarkString(c);
+				Matcher ma = Pattern.compile("\0.*$",Pattern.DOTALL).matcher(v);
+				if (ma.find()) {
+					v = ma.replaceAll("") ;
+				}
+			} else if (h == CSV_HEADER.DUPMARK) {
+				v = getDupMarkString(c);
+				Matcher ma = Pattern.compile("\0.*$",Pattern.DOTALL).matcher(v);
+				if (ma.find()) {
+					v = ma.replaceAll("") ;
+				}
+			} else if (h == CSV_HEADER.CENTER) {
+				v = tvd.center;
+			} else if (h == CSV_HEADER.OPTION) {
+				v = c.prefix.replaceAll("\0", "");
+			} else if (h == CSV_HEADER.TITLE) {
+				v = tvd.title;
+			} else if (h == CSV_HEADER.DETAIL) {
+				v = tvd.detail;
+			} else if (h == CSV_HEADER.STARTDATETIME) {
+				v = tvd.startDateTime;
+			} else if (h == CSV_HEADER.ENDDATETIME) {
+				v = tvd.endDateTime;
+			} else if (h == CSV_HEADER.LENGTH) {
+				v = String.valueOf(tvd.length);
+			} else if (h == CSV_HEADER.GENRE) {
+				v = getGenreString(tvd);
+			} else if (h == CSV_HEADER.SEARCHLABEL) {
+				v = c.searchlabel;
+			} else if (h == CSV_HEADER.OKINIIRI) {
+				v = c.okiniiri;
+			} else if (h == CSV_HEADER.SCORE) {
+				v = String.valueOf(c.score);
+			} else if (h == CSV_HEADER.THRESHOLD) {
+				v = String.valueOf(c.threshold);
+			}
+			sbRow.append(CommonUtils.toQuoted(v));
+			sbRow.append(",");
+		}
+		sbRow.deleteCharAt(sbRow.length()-1);
+		sbRow.append("\n");
+		return sbRow.toString();
+	}
+
+	static enum CSV_HEADER { RSVMARK, PICKMARK, DUPMARK, CENTER, OPTION, TITLE, DETAIL, STARTDATETIME, ENDDATETIME, LENGTH, GENRE, SEARCHLABEL, OKINIIRI, SCORE, THRESHOLD };
+
 	/*******************************************************************************
 	 * リスナー
 	 ******************************************************************************/
@@ -1603,7 +1697,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			if (e.getButton() == MouseEvent.BUTTON3) {
 				if (e.getClickCount() == 1) {
 					// 右シングルクリックでメニューの表示
-					t.getSelectionModel().setSelectionInterval(vrow,vrow);
+					t.getSelectionModel().addSelectionInterval(vrow,vrow);
 					
 					int threshold = getThrValByRow(row);
 					String keyword = (threshold > 0) ? (getKeyValByRow(row)) : (tvd.title);
@@ -4225,21 +4319,13 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			if ( c.size( ) > column ) {
 				// 特殊なカラム
 				if ( column == ListedColumn.RSVMARK.getColumn() ) {
-					if ( c.marker != null  && c.marker.rsvmark != null ) {
-						if ( c.marker.rsvmark != RsvMark.URABAN ) {
-							return c.marker.rsvmark.mark+"\0"+c.hide_rsvmarkcolor;
-						}
-						else {
-							return c.marker.rsvmark.mark+"\0"+URABAN_COLOR;
-						}
-					}
-					return "";
+					return getRsvMarkString(c);
 				}
 				else if ( column == ListedColumn.PICKMARK.getColumn() ) {
-					return (env.getShowRsvPickup() && c.marker != null && c.marker.pickmark != null) ? c.marker.pickmark.mark : "" ;
+					return getPickMarkString(c);
 				}
 				else if ( column == ListedColumn.DUPMARK.getColumn() ) {
-					return (env.getShowRsvDup() && c.dupmark != null) ? c.dupmark.mark+"\0"+DUPMARK_COLOR : "";
+					return getDupMarkString(c);
 				}
 				else if ( column == ListedColumn.START.getColumn() ) {
 					return c.tvd.accurateDate+" "+c.tvd.start;
@@ -4248,13 +4334,7 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 					return c.tvd.recmin+"m";
 				}
 				else if ( column == ListedColumn.GENRE.getColumn() ) {
-					if ( c.tvd.subgenre != null ) {
-						return c.tvd.genre.toString()+" - "+c.tvd.subgenre.toString();
-					}
-					else {
-						// サブジャンルに非対応な番組表の場合
-						return c.tvd.genre.toString();
-					}
+					return getGenreString(c.tvd);
 				}
 				else if ( column == ListedColumn.OPTIONS.getColumn() && ! env.getSplitMarkAndTitle() ) {
 					// オプション分離がＯＦＦです
@@ -4280,4 +4360,33 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 		
 	}
 
+	private String getRsvMarkString(ListedItem c) {
+		if ( c.marker != null  && c.marker.rsvmark != null ) {
+			if ( c.marker.rsvmark != RsvMark.URABAN ) {
+				return c.marker.rsvmark.mark+"\0"+c.hide_rsvmarkcolor;
+			}
+			else {
+				return c.marker.rsvmark.mark+"\0"+URABAN_COLOR;
+			}
+		}
+		return "";
+	}
+
+	private String getPickMarkString(ListedItem c) {
+		return (env.getShowRsvPickup() && c.marker != null && c.marker.pickmark != null) ? c.marker.pickmark.mark : "" ;
+	}
+
+	private String getDupMarkString(ListedItem c) {
+		return (env.getShowRsvDup() && c.dupmark != null) ? c.dupmark.mark+"\0"+DUPMARK_COLOR : "";
+	}
+
+	private String getGenreString(ProgDetailList tvd) {
+		if ( tvd.subgenre != null ) {
+			return tvd.genre.toString()+" - "+tvd.subgenre.toString();
+		}
+		else {
+			// サブジャンルに非対応な番組表の場合
+			return tvd.genre.toString();
+		}
+	}
 }
