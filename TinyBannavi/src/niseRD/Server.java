@@ -115,7 +115,7 @@ public class Server extends Thread {
 					ma = Pattern.compile("/([^/]+\\.(htm|cgi|css|png|js|do|css))\\??(.*?)$").matcher(location);
 					if (ma.find()) {
 						file = ma.group(1);
-						if ( ma.groupCount() >= 3 && (ma.group(1).equals("prevLogin.cgi") || ma.group(1).equals("dispframe.cgi")) ) {
+						if ( ma.groupCount() >= 3 && (ma.group(1).equals("prevLogin.cgi") || ma.group(1).equals("dispframe.cgi") || ma.group(1).equals("folderlist.htm")) ) {
 							filename = folder+File.separator+ma.group(1)+"."+ma.group(3);
 						}
 						else if ( ma.groupCount() >= 3 && ma.group(1).equals("dvdr_ctrl.cgi") ) {

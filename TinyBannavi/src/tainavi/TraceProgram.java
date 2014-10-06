@@ -86,7 +86,7 @@ public class TraceProgram {
 		if (popDstA == null) {
 			popDstA = popDst.toCharArray();
 		}
-		
+
 		src = src.replaceAll("[ 　ーﾞﾟ]", "");
 		
 		StringBuilder sb = new StringBuilder();

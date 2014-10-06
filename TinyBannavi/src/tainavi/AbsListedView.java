@@ -4258,25 +4258,6 @@ public abstract class AbsListedView extends JPanel implements TickTimerListener 
 			return true;
 		}
 
-		@Override
-		public String getToolTipText(MouseEvent e){
-			// イベントからマウス位置を取得し、テーブル内のセルを割り出す
-			int prow = rowAtPoint(e.getPoint());
-			int row = this.convertRowIndexToModel(prow);
-			ListedItem c = rowData.get(row);
-			int col = columnAtPoint(e.getPoint());
-			if ( col == ListedColumn.RSVMARK.getColumn() && c.marker != null && c.marker.rsvmark != null ) {
-				return c.marker.rsvmark.desc;
-			}
-			else if ( col == ListedColumn.PICKMARK.getColumn() && c.marker != null && c.marker.pickmark != null ) {
-				return c.marker.pickmark.desc;
-			}
-			else if ( col == ListedColumn.DUPMARK.getColumn() && c.dupmark != null ) {
-				return c.dupmark.desc;
-			}
-			return null;
-		}
-
 		//
 		@Override
 		public void tableChanged(TableModelEvent e) {

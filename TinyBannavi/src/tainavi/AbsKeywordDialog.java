@@ -653,7 +653,7 @@ abstract class AbsKeywordDialog extends JEscCancelDialog {
 			TargetId ti = (TargetId) jComboBox_target.getSelectedItem();
 			String re = (String) jComboBox_regex.getSelectedItem();
 			
-			if ( ti.getUseKeyword() && re.length() == 0 ) {
+			if ( re == null || ti.getUseKeyword() && re.length() == 0 ) {
 				// キーワードが必要なのに入力されていなければＮＧ
 				return;
 			}

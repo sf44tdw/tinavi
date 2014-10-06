@@ -631,7 +631,7 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 		Matcher ma = Pattern.compile("<reserveinfo>(.+?)</reserveinfo>", Pattern.DOTALL).matcher(response);
 		while ( ma.find() ) {
 			String id = null;
-			String title = null;
+			String title = "";
 			GregorianCalendar cal = null;
 			Integer hh = null;
 			Integer mm = null;
@@ -821,11 +821,11 @@ public class PlugIn_RecRD_EDCB extends HDDRecorderUtils implements HDDRecorder,C
 			 */
 			
 			ReserveList r = new ReserveList();
-			
+
 			r.setId(getUniqId(id));
 			r.setTitle(title);
 			r.setTitlePop(TraceProgram.replacePop(title));
-			
+
 			String chid = ContentIdEDCB.getChId(onid, tsid, sid);
 			String edcbid = ContentIdEDCB.getContentId(chid, evid);
 			String contentid = ContentIdEDCB.stripMark(edcbid);
