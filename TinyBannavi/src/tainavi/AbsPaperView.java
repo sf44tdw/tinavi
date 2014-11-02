@@ -295,7 +295,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	public AbsPaperView() {
 		
 		super();
-		
+
 		this.setLayout(new BorderLayout());
 		this.add(getJTextPane_detail(), BorderLayout.PAGE_START);
 		this.add(getJSplitPane_view(), BorderLayout.CENTER);
@@ -837,7 +837,7 @@ public abstract class AbsPaperView extends JPanel implements TickTimerListener,H
 	public void buildMainViewByDate() {
 		
 		if (env.getDebug()) System.out.println(DBGID+"CALLED buildMainViewByDate()");
-		
+
 		if (jLayeredPane_space_main_view_byMakeshift == null) {
 			jLayeredPane_space_main_view_byMakeshift = new JLayeredPane();
 			for (int i=0; i<framebuffersize; i++) {

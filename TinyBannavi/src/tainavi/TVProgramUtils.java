@@ -523,32 +523,37 @@ public class TVProgramUtils implements Cloneable {
 		else {
 			if ( genre == ProgGenre.DORAMA ) {
 				// ドラマの場合は、"「*」"での分割をしない（土曜ドラマ「タイトル」とかあるため）
-				Matcher mc = Pattern.compile(spep_expr_dorama).matcher(title);
+				Matcher mc = Pattern.compile(SPEP_EXPR_DORAMA).matcher(title);
 				if ( mc.find() ) {
 					return(new String[] { mc.group(1),mc.group(2)+" " });
 				}
 			}
 			else {
+				String ani = "";
+				String tit = title;
+				Matcher mani = Pattern.compile("^(\\s*(?:TV|ＴＶ)?アニメ\\s*)(.*)$").matcher(title);
+				if ( mani.find() ) {
+					ani = mani.group(1);
+					tit = mani.group(2);
+				}
+
 				// いきなり「で始まる場合や、タイトル中に『TOKYO「萌」探偵』のように「ほげほげ」を含む場合
-				Matcher mc = Pattern.compile("^([^ 　]*「.+?」[^ 　]+)(.*)$").matcher(title);
-				if ( mc.find() ) {
-					Matcher md = Pattern.compile("^[ 　]*(.*?)[ 　]*?"+spep_expr).matcher(mc.group(2));
-					if ( md.find() ) {
-						if ( md.group(1).length() == 0 ) {
-							return(new String[] { mc.group(1),md.group(2)+" " });
+				Matcher mc = Pattern.compile("^([^ 　]*「.+?」[^ 　]+)(.*)$").matcher(tit);
+				if (mc.find()) {
+					Matcher md = Pattern.compile("^[ 　]*(.*?)[ 　]*?" + SPEP_EXPR).matcher(mc.group(2));
+					if (md.find()) {
+						if (md.group(1).length() == 0) {
+							return (new String[]{ani+mc.group(1), md.group(2) + " "});
+						} else {
+							return (new String[]{ani+mc.group(1) + " " + md.group(1), md.group(2) + " "});
 						}
-						else {
-							return(new String[] { mc.group(1)+" "+md.group(1),md.group(2)+" " });
-						}
-					}
-					else {
-						return(new String[] { title,"" });
+					} else {
+						return (new String[]{ani+tit, ""});
 					}
 				}
-				// まあこれが普通
-				mc = Pattern.compile("^(.+?)[ 　]*?"+spep_expr).matcher(title);
-				if ( mc.find() ) {
-					return(new String[] { mc.group(1),mc.group(2)+" " });
+				mc = Pattern.compile("^(.+?)[ 　]*?" + SPEP_EXPR).matcher(tit);
+				if (mc.find()) {
+					return (new String[]{ani+mc.group(1), mc.group(2) + " "});
 				}
 			}
 		}
@@ -556,10 +561,10 @@ public class TVProgramUtils implements Cloneable {
 	}
 	
 	// サブタイトル判定条件
-	private static final String spep_expr = "(([<＜]?[(（#＃♯第全「][第]?[1234567890１２３４５６７８９０一二三四五六七八九十百千]+?[回話章]?|「).*)$";
+	private static final String SPEP_EXPR = "(([<＜]?[(（#＃♯第全「][第]?[1234567890１２３４５６７８９０一二三四五六七八九十百千]+?[回話章]?|「).*)$";
 	
 	// サブタイトル判定条件（ジャンル＝ドラマ専用）
-	private static final String spep_expr_dorama = "^(.+?)[ 　]*?(([<＜]?[(（#＃♯第全「][第]?[1234567890１２３４５６７８９０一二三四五六七八九十百千]+?[回話章]?).*)$";
+	private static final String SPEP_EXPR_DORAMA = "^(.+?)[ 　]*?(([<＜]?[(（#＃♯第全「][第]?[1234567890１２３４５６７８９０一二三四五六七八九十百千]+?[回話章]?).*)$";
 	
 	
 	/**

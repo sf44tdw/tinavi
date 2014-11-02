@@ -3456,7 +3456,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 						if ( tvd.isEqualsGenre(ProgGenre.ANIME, null) ) {
 							if ( pl.Center.startsWith("NHK") || pl.Center.startsWith("ＮＨＫ") ) {
 								// NHK系で先頭が「アニメ　」ではじまるものから「アニメ　」を削除する
-								tvd.title = tvd.title.replaceFirst("^アニメ[ 　・]+","");
+								tvd.title = tvd.title.replaceFirst("^(?:TV|ＴＶ)アニメ[ 　・]+","");
 								tvd.titlePop = TraceProgram.replacePop(tvd.title);
 							}
 							if ( tvd.title.contains("コメンタリ") || tvd.detail.contains("コメンタリ") ) {
@@ -3741,7 +3741,10 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 		listed.setRsvdLineColor((env.getRsvdLineEnhance())?(env.getRsvdLineColor()):(null));
 		listed.setPickedLineColor((env.getRsvdLineEnhance())?(env.getPickedLineColor()):(null));
 		listed.setCurrentLineColor((env.getCurrentLineEnhance())?(env.getCurrentLineColor()):(null));
-		
+
+		//
+		paper.updateFonts(env);
+
 		// システムトレイアイコン
 		setTrayIconVisible(env.getShowSysTray());
 		setXButtonAction(env.getShowSysTray() && env.getHideToTray());
@@ -5085,7 +5088,7 @@ public class Viewer extends JFrame implements ChangeListener,TickTimerListener,H
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
+
 		// 背景色設定ダイアログにフォント名の一覧を設定する
 		pcwin.setFontList(vwfont);
 		

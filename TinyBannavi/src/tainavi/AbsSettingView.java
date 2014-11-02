@@ -752,7 +752,7 @@ public abstract class AbsSettingView extends JScrollPane {
 
 			y+=(PARTS_HEIGHT+SEP_HEIGHT);
 			CommonSwingUtils.putComponentOn(jPanel_setting, jCBP_splitEpno = new JCheckBoxPanel("タイトルに話数が含まれる場合に以降を分離する",LABEL_WIDTH), PARTS_WIDTH, PARTS_HEIGHT, SEP_WIDTH, y);
-			jCBP_splitEpno.setSelected( ! env.getSplitEpno());
+			jCBP_splitEpno.setSelected(env.getSplitEpno());
 			jCBP_splitEpno.addItemListener(IL_RELOAD_PROG_NEEDED);
 				
 			y+=(PARTS_HEIGHT+SEP_HEIGHT);
